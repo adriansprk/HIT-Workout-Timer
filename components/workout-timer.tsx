@@ -134,28 +134,34 @@ export default function WorkoutTimer({
 
   // Audio countdown effect for both exercise and rest periods
   useEffect(() => {
-    if (!isPaused && timeRemaining <= 3 && timeRemaining > 0) {
-      // For both exercise and rest periods, play the 3-2-1 countdown
+    if (isPaused) return;
+
+    // Handle the 3,2,1 countdown for any timer state
+    if (timeRemaining <= 3 && timeRemaining > 0) {
       if (timeRemaining === 3) playCountdownSound('three');
       else if (timeRemaining === 2) playCountdownSound('two');
       else if (timeRemaining === 1) playCountdownSound('one');
     }
-  }, [timeRemaining, isPaused, playCountdownSound]);
 
-  // Play transition sounds between states
+    // Play "go" when we're about to transition from rest to exercise
+    if ((timerState === "rest" || timerState === "roundRest") && timeRemaining === 1) {
+      // We'll also play the "go" sound when there's 1 second left in rest
+      // This will create a small overlap with "one", but it ensures the user hears "go"
+      setTimeout(() => {
+        if (!isPaused) playCountdownSound('go');
+      }, 500);
+    }
+  }, [timeRemaining, timerState, isPaused, playCountdownSound]);
+
+  // Play "rest" sound when transitioning to rest periods
   useEffect(() => {
     if (!isPaused) {
       // Play 'rest' when transitioning to rest periods
       if (timerState === "rest" || timerState === "roundRest") {
         playCountdownSound('rest');
       }
-
-      // Play 'go' when transitioning to exercise (but not at the very beginning)
-      if (timerState === "exercise" && (currentExercise > 1 || currentRound > 1)) {
-        playCountdownSound('go');
-      }
     }
-  }, [timerState, isPaused, playCountdownSound, currentExercise, currentRound]);
+  }, [timerState, isPaused, playCountdownSound]);
 
   const togglePause = () => {
     setIsPaused((prev) => !prev)
