@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { X, Plus, Trash2 } from "lucide-react"
 
@@ -23,6 +23,20 @@ export default function EditExercisesModal({
 }: EditExercisesModalProps) {
   // For a more advanced version, we could store exercise names here
   const [exerciseCount, setExerciseCount] = useState(value)
+
+  // Prevent body scrolling when modal is open
+  useEffect(() => {
+    // Save original body style
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+
+    // Prevent scrolling on body
+    document.body.style.overflow = 'hidden';
+
+    // Restore original body style when component unmounts
+    return () => {
+      document.body.style.overflow = originalStyle;
+    };
+  }, []);
 
   const handleSave = () => {
     // Ensure value is within bounds
