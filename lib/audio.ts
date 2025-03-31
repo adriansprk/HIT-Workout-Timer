@@ -202,22 +202,45 @@ export const playSound = async (sound: CountdownSound, isMuted: boolean): Promis
         return;
     }
 
-    // Check for audio unlocking on mobile
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(
+    // Detect mobile devices - using a more comprehensive check
+    const isMobile = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(
         typeof navigator !== 'undefined' ? navigator.userAgent : ''
     );
 
-    // Force unlock audio if needed, especially on mobile
-    if (isMobile && !isAudioUnlocked) {
-        console.log(`Audio: Attempting to unlock audio before playing ${sound}`);
-        try {
-            await forceUnlockAudio();
-        } catch (err) {
-            console.warn(`Audio: Could not unlock audio: ${err}`);
+    // Special handling for mobile devices - try to unlock multiple ways
+    if (isMobile) {
+        if (!isAudioUnlocked) {
+            console.log(`Audio: Mobile device detected, ensuring audio is unlocked before playing ${sound}`);
+            try {
+                await forceUnlockAudio();
+                isAudioUnlocked = true;
+            } catch (err) {
+                console.warn(`Audio: Could not unlock audio: ${err}`);
+                // Still continue to try playing
+            }
+        }
+
+        // On iOS specifically, ensure audio context is running
+        const isIOS = /iPhone|iPad|iPod/i.test(
+            typeof navigator !== 'undefined' ? navigator.userAgent : ''
+        );
+
+        if (isIOS) {
+            console.log('Audio: iOS device detected, using additional iOS-specific techniques');
+            // iOS often requires multiple attempts
+            try {
+                const dummyAudio = new Audio();
+                dummyAudio.setAttribute('playsinline', '');
+                dummyAudio.setAttribute('webkit-playsinline', '');
+                dummyAudio.muted = true;
+                await dummyAudio.play().catch(() => { });
+            } catch (e) {
+                // Ignore errors, just trying to wake up the audio context
+            }
         }
     }
 
-    // On iOS, limit concurrent sound playback and prevent duplicate play calls
+    // Prevent duplicate sounds
     if (playingSounds.has(sound)) {
         console.log(`Audio: Already playing ${sound}, not playing again`);
         return;
@@ -225,42 +248,51 @@ export const playSound = async (sound: CountdownSound, isMuted: boolean): Promis
 
     // Maximum number of retries
     let retries = 0;
-    const maxRetries = 2;
+    const maxRetries = 3;
 
     const attemptPlayback = async () => {
         try {
             // Add to playing set
             playingSounds.add(sound);
 
-            // Get or create audio element
+            // Audio instance to use for playback
             let audioToPlay: HTMLAudioElement;
 
+            // Force reload from server instead of cache for mobile devices
+            const cacheBuster = isMobile ? `?v=${Date.now()}` : '';
+
+            // Get or create audio element
             const audio = audioCache[sound];
             if (!audio) {
-                console.warn(`Audio: Sound "${sound}" not found in cache. Creating new instance.`);
-                audioToPlay = new Audio(`/audio/${sound}.mp3?v=${Date.now()}`);
+                console.log(`Audio: Creating new audio instance for ${sound}`);
+                audioToPlay = new Audio(`/audio/${sound}.mp3${cacheBuster}`);
 
                 // Important settings for mobile playback
                 audioToPlay.preload = 'auto';
                 audioToPlay.volume = 1.0;
-                audioToPlay.setAttribute('playsinline', ''); // Required for iOS
-                audioToPlay.setAttribute('webkit-playsinline', ''); // For Safari
+                audioToPlay.setAttribute('playsinline', '');
+                audioToPlay.setAttribute('webkit-playsinline', '');
+                audioToPlay.muted = false; // Ensure not muted
 
                 audioToPlay.onerror = (e) => {
                     console.error(`Audio: Error loading ${sound}.mp3 on demand:`, e);
                     playingSounds.delete(sound);
                 };
 
+                // Load the audio
                 audioToPlay.load();
 
-                // Save to cache for future use
-                audioCache[sound] = audioToPlay;
+                // Save to cache for future use, but not on iOS (iOS benefits from fresh instances)
+                if (!(/iPhone|iPad|iPod/i.test(navigator.userAgent))) {
+                    audioCache[sound] = audioToPlay;
+                }
             } else {
-                // Use fresh copy to avoid issues with concurrent playback
+                // Use a clone for most reliable playback 
                 audioToPlay = audio.cloneNode() as HTMLAudioElement;
                 audioToPlay.volume = 1.0;
                 audioToPlay.setAttribute('playsinline', '');
                 audioToPlay.setAttribute('webkit-playsinline', '');
+                audioToPlay.muted = false;
             }
 
             // Reset playback position to ensure it plays from the start
@@ -272,34 +304,52 @@ export const playSound = async (sound: CountdownSound, isMuted: boolean): Promis
                 playingSounds.delete(sound);
             }, { once: true });
 
-            // Fail-safe to remove from playing after max duration
+            // Fail-safe to remove from playing set after max duration
             setTimeout(() => {
                 playingSounds.delete(sound);
             }, 3000);
 
-            console.log(`Audio: Playing ${sound}.mp3`);
+            console.log(`Audio: Attempting to play ${sound}.mp3 (try ${retries + 1})`);
 
-            // Play the sound
-            await audioToPlay.play().catch(err => {
-                console.error(`Audio: Error playing sound ${sound}:`, err);
-                playingSounds.delete(sound);
+            // Play the sound - add multiple methods of playing for best compatibility
+            try {
+                // First, try the standard way (works on most browsers)
+                await audioToPlay.play();
+                console.log(`Audio: Successfully playing ${sound}`);
+            } catch (err: unknown) {
+                console.warn(`Audio: Standard play method failed for ${sound}:`, err);
 
                 // Handle browsers with autoplay restrictions
-                if (err.name === 'NotAllowedError') {
-                    console.warn('Audio: Playback was blocked by the browser. User interaction is required first.');
+                if (err instanceof Error && err.name === 'NotAllowedError') {
+                    console.warn('Audio: Playback was blocked by browser autoplay restrictions');
                     isAudioUnlocked = false;
 
                     // Try unlocking again and retry
                     if (retries < maxRetries) {
                         retries++;
-                        console.log(`Audio: Retrying playback attempt ${retries} of ${maxRetries}`);
-                        forceUnlockAudio().then(() => attemptPlayback());
+                        console.log(`Audio: Retrying playback, attempt ${retries} of ${maxRetries}`);
+
+                        // Clear from playing set before retry
+                        playingSounds.delete(sound);
+
+                        // Try to unlock audio again
+                        await forceUnlockAudio();
+
+                        // Small delay before retry
+                        setTimeout(() => attemptPlayback(), 100);
                     }
                 }
-            });
+            }
         } catch (error) {
-            console.error(`Audio: Error in playSound for "${sound}":`, error);
+            console.error(`Audio: General error in playSound for "${sound}":`, error);
             playingSounds.delete(sound);
+
+            // Retry on general errors too
+            if (retries < maxRetries) {
+                retries++;
+                console.log(`Audio: Retrying after error, attempt ${retries} of ${maxRetries}`);
+                setTimeout(() => attemptPlayback(), 100);
+            }
         }
     };
 
