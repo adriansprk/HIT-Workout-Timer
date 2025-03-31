@@ -1,20 +1,2 @@
-declare module 'nosleep.js' {
-    export default class NoSleep {
-        constructor();
-
-        /**
-         * Enable the wake lock
-         */
-        enable(): void;
-
-        /**
-         * Disable the wake lock
-         */
-        disable(): void;
-
-        /**
-         * Returns true if the wake lock is currently enabled
-         */
-        isEnabled: boolean;
-    }
-} 
+// This file is being removed since we're no longer using NoSleep.js
+// Instead, we're using a video-based fallback approach directly 

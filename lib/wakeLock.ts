@@ -1,9 +1,9 @@
+'use client';
+
 /**
  * Screen Wake Lock utility for preventing device screens from sleeping
- * Uses Wake Lock API when available, with NoSleep.js fallback for iOS/Safari
+ * Uses Wake Lock API when available, with video element fallback for iOS/Safari
  */
-
-import NoSleep from 'nosleep.js';
 
 /**
  * Type definition for a WakeLock instance
@@ -12,108 +12,151 @@ export interface WakeLockInstance {
     /** Release the wake lock */
     release: () => Promise<void>;
     /** Type of wake lock */
-    type: 'screen';
+    type: string;
 }
 
 /**
  * Status of a wake lock request
  */
-export type WakeLockStatus =
-    | { active: true; wakeLock: WakeLockInstance }
-    | { active: false; wakeLock: null };
+export interface WakeLockStatus {
+    isActive: boolean;
+    type: string | null;
+}
 
-// Instance of NoSleep for fallback
-let noSleepInstance: NoSleep | null = null;
+// Global references for fallback method
+let activeWakeLock: WakeLockInstance | null = null;
+let videoElement: HTMLVideoElement | null = null;
 
 /**
- * Requests a screen wake lock using the Wake Lock API with NoSleep.js fallback
+ * Check if Wake Lock API is supported
+ */
+const isWakeLockSupported = (): boolean => {
+    return 'wakeLock' in navigator;
+};
+
+/**
+ * Requests a screen wake lock using the Wake Lock API with video fallback
  * @returns A wake lock instance and status
  */
-export async function requestWakeLock(): Promise<WakeLockStatus> {
-    // Use Wake Lock API if available
-    if ('wakeLock' in navigator) {
-        try {
-            // Request the screen wake lock
-            const wakeLock = await navigator.wakeLock.request('screen');
+export async function requestWakeLock(): Promise<WakeLockInstance> {
+    // If we already have an active wake lock, return it
+    if (activeWakeLock) {
+        return activeWakeLock;
+    }
 
-            // Create a wrapper around the native wake lock
-            const wakeLockInstance: WakeLockInstance = {
+    try {
+        if (isWakeLockSupported()) {
+            // Use the Wake Lock API
+            console.log('Using Wake Lock API');
+            const wakeLock = await (navigator as any).wakeLock.request('screen');
+
+            activeWakeLock = {
                 release: async () => {
-                    if (wakeLock) {
+                    try {
                         await wakeLock.release();
+                        activeWakeLock = null;
+                    } catch (err) {
+                        console.error('Error releasing wake lock:', err);
                     }
                 },
-                type: 'screen'
+                type: 'api'
             };
 
-            return { active: true, wakeLock: wakeLockInstance };
-        } catch (error) {
-            console.warn('Wake Lock API error:', error);
-            // Fall back to NoSleep.js
-            return useNoSleepFallback();
+            return activeWakeLock;
+        } else {
+            // Fall back to video element for iOS
+            console.log('Using video fallback for wake lock');
+            return useVideoFallback();
         }
-    } else {
-        // Wake Lock API not available, use NoSleep.js fallback
-        return useNoSleepFallback();
+    } catch (err) {
+        console.error('Error requesting wake lock:', err);
+        // Fall back to video if Wake Lock API fails
+        console.log('Falling back to video due to error');
+        return useVideoFallback();
     }
 }
 
 /**
- * NoSleep.js fallback implementation for browsers without Wake Lock API
- * @returns A wake lock instance and status using NoSleep.js
+ * Video element fallback implementation for browsers without Wake Lock API
+ * This works for iOS Safari and other browsers that keep screen on during video playback
+ * @returns A wake lock instance and status using a hidden video element
  */
-function useNoSleepFallback(): WakeLockStatus {
-    try {
-        // Create NoSleep instance if it doesn't exist
-        if (!noSleepInstance) {
-            noSleepInstance = new NoSleep();
-        }
+function useVideoFallback(): WakeLockInstance {
+    if (!videoElement) {
+        // Create a silent video element if it doesn't exist
+        videoElement = document.createElement('video');
+        videoElement.setAttribute('playsinline', '');
+        videoElement.setAttribute('muted', '');
+        videoElement.setAttribute('loop', '');
+        videoElement.style.width = '1px';
+        videoElement.style.height = '1px';
+        videoElement.style.position = 'absolute';
+        videoElement.style.opacity = '0.01';
+        videoElement.style.pointerEvents = 'none';
+        document.body.appendChild(videoElement);
 
-        // Enable NoSleep
-        noSleepInstance.enable();
-
-        // Create a wrapper object that mimics the Wake Lock API
-        const noSleepWrapper: WakeLockInstance = {
-            release: async () => {
-                if (noSleepInstance) {
-                    noSleepInstance.disable();
-                }
-            },
-            type: 'screen'
-        };
-
-        return { active: true, wakeLock: noSleepWrapper };
-    } catch (error) {
-        console.error('NoSleep fallback error:', error);
-        return { active: false, wakeLock: null };
+        // Create a simple source using a data URI with a 1x1 transparent video
+        const source = document.createElement('source');
+        source.src = 'data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAxttZGF0AAACrAYF//+43EXpvebZSLeWLNgg2SPu73gyNjQgLSBjb3JlIDE0OCByMjY0MyBmMGM3YzY5IC0gSC4yNjQvTVBFRy00IEFWQyBjb2RlYyAtIENvcHlsZWZ0IDIwMDMtMjAxNSAtIGh0dHA6Ly93d3cudmlkZW9sYW4ub3JnL3gyNjQuaHRtbCAtIG9wdGlvbnM6IGNhYmFjPTEgcmVmPTMgZGVibG9jaz0xOjA6MCBhbmFseXNlPTB4MzoweDExMyBtZT1oZXggc3VibWU9NyBwc3k9MSBwc3lfcmQ9MS4wMDowLjAwIG1peGVkX3JlZj0xIG1lX3JhbmdlPTE2IGNocm9tYV9tZT0xIHRyZWxsaXM9MSA4eDhkY3Q9MSBjcW09MCBkZWFkem9uZT0yMSwxMSBmYXN0X3Bza2lwPTEgY2hyb21hX3FwX29mZnNldD0tMiB0aHJlYWRzPTEgbG9va2FoZWFkX3RocmVhZHM9MSBzbGljZWRfdGhyZWFkcz0wIG5yPTAgZGVjaW1hdGU9MSBpbnRlcmxhY2VkPTAgYmx1cmF5X2NvbXBhdD0wIGNvbnN0cmFpbmVkX2ludHJhPTAgYmZyYW1lcz0zIGJfcHlyYW1pZD0yIGJfYWRhcHQ9MSBiX2JpYXM9MCBkaXJlY3Q9MSB3ZWlnaHRiPTEgb3Blbl9nb3A9MCB3ZWlnaHRwPTIga2V5aW50PWluZmluaXRlIGtleWludF9taW49Mjkgc2NlbmVjdXQ9NDAgaW50cmFfcmVmcmVzaD0wIHJjX2xvb2thaGVhZD00MCByYz1jcmYgbWJ0cmVlPTEgY3JmPTIzLjAgcWNvbXA9MC42MCBxcG1pbj0wIHFwbWF4PTY5IHFwc3RlcD00IGlwX3JhdGlvPTEuNDAgYXE9MToxLjAwAIAAABVoZYiEAC///vau/MoCqX+5iAAAQ9HPHFojbGFZbmNwUl9oRUFBQ2tRQUVmQWpIQUVBZEFCR2tBQUFDampnR0FCQUI1bGtnU0FJQUFBRUJDb0JyQUFuRWdBQUFwWVJiR1lBVkFBQUFDRWNwZENBZ0xKWVFBQUFBQUFBQUFCQUFBQUFBQUFBQUFBQUFBQUFBRUFBQUJzS0FBQWdBQUFCQkJLSlJRUUFDT1BUQUFBR1hFZ0lKVHVBQUFBQUJBUUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUJBQUFDUkZhQUFCQUFBQUFJeFJzU1lBQkFBQUFBQUhJQUdnQUJBQUFBQUI4QllBZ0FBQUFBQUFCQUFBQUFBQUFBQUFBQUFBQUJBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUdaQUFBQTZFQUFBQURBUG9RZ0NBQUFBQXB0dWIwbEFJOTZQZ0FBQUFJQU1Da0JBQUFBQUFBQUFBQUFBQUFBQUFBQW1KREFBQUFBQUVmL3Y3eDBBQUFBQVFhQUNnQUFBQUZDLzRPTHNnQUFBQUlBQUlBQUFBQUFFd0FBQUFJbnVpRzJ0cWJHczE4cnVGaVoyUmxjZ0FBQUFCb1RRQjRkV2RkeUlvQXRpeWt1OFg1UzJHaGJnQUFBQUVBQUFBQXZ3QUFBQmxXdS95QlJjZFh5cTc5QnA5UDNrN3RBQUFBQUFFQUFBQW9QZ0FBWndnZ2NrRUl3WFRMMzZzSGdMdlZLY3pqTHFLM3JvQUFBQUJBQUFBQUFBQUFBQUFBQUFBQkFBQUFBQUVBQUFBQUFBQWZBQUFBQUFBQUFBQUFZUUFBQUFBQUFBQUFBQUFBQUFBRUFBRnhBQUFBQUFBQUFBQUE=';
+        source.type = 'video/mp4';
+        videoElement.appendChild(source);
     }
+
+    // Ensure the video is playing
+    videoElement.muted = true;
+    const playPromise = videoElement.play();
+
+    if (playPromise !== undefined) {
+        playPromise.catch(error => {
+            console.error('Video play failed:', error);
+        });
+    }
+
+    // Create a wake lock instance for the video fallback
+    activeWakeLock = {
+        release: async () => {
+            if (videoElement) {
+                videoElement.pause();
+                try {
+                    if (document.body.contains(videoElement)) {
+                        document.body.removeChild(videoElement);
+                    }
+                    videoElement = null;
+                    activeWakeLock = null;
+                } catch (err) {
+                    console.error('Error removing video element:', err);
+                }
+            }
+        },
+        type: 'video'
+    };
+
+    return activeWakeLock;
 }
 
 /**
  * Release an active wake lock
- * @param wakeLockStatus The current wake lock status
- * @returns Updated wake lock status (always inactive)
  */
-export async function releaseWakeLock(wakeLockStatus: WakeLockStatus): Promise<WakeLockStatus> {
-    if (wakeLockStatus.active && wakeLockStatus.wakeLock) {
-        await wakeLockStatus.wakeLock.release();
+export function releaseWakeLock(): void {
+    if (activeWakeLock) {
+        activeWakeLock.release().catch(err => {
+            console.error('Error releasing wake lock:', err);
+        });
+        activeWakeLock = null;
     }
-    return { active: false, wakeLock: null };
 }
 
 /**
- * Hook for reacquiring wake lock when page visibility changes
- * @param wakeLockStatus Current wake lock status
- * @param onVisibilityChange Optional callback for visibility changes
+ * Add visibility change listener to handle browser tab changes
  */
-export function handleVisibilityChange(
-    wakeLockStatus: WakeLockStatus,
-    onVisibilityChange?: (isVisible: boolean) => void
-): void {
-    // When page becomes visible again
-    if (document.visibilityState === 'visible') {
-        onVisibilityChange?.(true);
-    } else {
-        onVisibilityChange?.(false);
-    }
+if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && activeWakeLock === null) {
+            // If the page becomes visible again and we had an active wake lock, try to reacquire it
+            console.log('Document became visible, attempting to reacquire wake lock');
+            requestWakeLock().catch(err => {
+                console.error('Failed to reacquire wake lock on visibility change:', err);
+            });
+        }
+    });
 } 

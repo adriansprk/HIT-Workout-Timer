@@ -145,7 +145,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
   });
 
   // Wake lock hook to prevent screen from sleeping
-  const { wakeLockStatus, requestLock, releaseLock, hasError } = useWakeLock();
+  const { isActive, request, release } = useWakeLock();
 
   // Keep the ref updated with the latest state values
   useEffect(() => {
@@ -353,16 +353,12 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
 
   // Enable wake lock when timer starts, and disable on completion or pause
   useEffect(() => {
-    const handleWakeLock = async (): Promise<void> => {
-      if (timerState !== "complete" && !isPaused) {
-        await requestLock();
-      } else {
-        await releaseLock();
-      }
-    };
-
-    void handleWakeLock();
-  }, [timerState, isPaused, requestLock, releaseLock]);
+    if (timerState !== "complete" && !isPaused) {
+      request();
+    } else {
+      release();
+    }
+  }, [timerState, isPaused, request, release]);
 
   const togglePause = () => {
     setIsPaused((prev) => !prev);
@@ -570,7 +566,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
 
       {/* Mute button and Wake Lock indicator - positioned at top right corner */}
       <div className="fixed top-4 right-4 z-20 flex items-center gap-2">
-        <WakeLockIndicator status={wakeLockStatus} />
+        <WakeLockIndicator />
         <MuteButton />
       </div>
 

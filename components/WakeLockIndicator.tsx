@@ -1,12 +1,10 @@
 'use client'
 
-import { type FC } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
-import { type WakeLockStatus } from '../lib/wakeLock';
+import React from 'react';
+import { useWakeLock } from '../hooks/useWakeLock';
+import { Monitor, MonitorOff } from 'lucide-react';
 
 interface WakeLockIndicatorProps {
-    /** Current wake lock status */
-    status: WakeLockStatus;
     /** Optional class name for styling */
     className?: string;
 }
@@ -15,29 +13,19 @@ interface WakeLockIndicatorProps {
  * A component that displays the current wake lock status
  * Shows an open eye when wake lock is active, closed eye when inactive
  */
-export const WakeLockIndicator: FC<WakeLockIndicatorProps> = ({
-    status,
-    className = ''
-}) => {
+export function WakeLockIndicator({ className = '' }: WakeLockIndicatorProps) {
+    const { isActive } = useWakeLock();
+
     return (
-        <div
-            className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${status.active
-                    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                    : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400'
-                } ${className}`}
-            aria-live="polite"
-        >
-            {status.active ? (
-                <>
-                    <Eye className="h-3 w-3" />
-                    <span>Screen active</span>
-                </>
+        <div className={`flex items-center gap-2 text-sm ${className}`}>
+            {isActive ? (
+                <Monitor className="h-4 w-4 text-green-500 dark:text-green-400" />
             ) : (
-                <>
-                    <EyeOff className="h-3 w-3" />
-                    <span>Screen may sleep</span>
-                </>
+                <MonitorOff className="h-4 w-4 text-gray-400 dark:text-gray-500" />
             )}
+            <span className={isActive ? 'text-green-500 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'}>
+                {isActive ? 'Screen active' : 'Screen can sleep'}
+            </span>
         </div>
     );
-}; 
+} 
