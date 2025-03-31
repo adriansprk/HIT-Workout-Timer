@@ -1,6 +1,7 @@
 export interface UserSettings {
     muted: boolean;
     workoutParams: WorkoutParams;
+    audioUnlocked: boolean;
 }
 
 export interface WorkoutParams {
@@ -16,6 +17,7 @@ const SETTINGS_KEY = 'hiit-timer-settings';
 // Default settings for first-time users
 const DEFAULT_SETTINGS: UserSettings = {
     muted: false,
+    audioUnlocked: false,
     workoutParams: {
         exerciseTime: 30,
         restTime: 10,
@@ -100,4 +102,22 @@ export const updateWorkoutParams = (params: Partial<WorkoutParams>): void => {
             ...params
         }
     });
+};
+
+/**
+ * Update the audio unlock status in localStorage
+ */
+export const saveAudioUnlockStatus = (isUnlocked: boolean): void => {
+    const currentSettings = loadSettings();
+    saveSettings({
+        ...currentSettings,
+        audioUnlocked: isUnlocked
+    });
+};
+
+/**
+ * Get the audio unlock status from localStorage
+ */
+export const getAudioUnlockStatus = (): boolean => {
+    return loadSettings().audioUnlocked;
 }; 

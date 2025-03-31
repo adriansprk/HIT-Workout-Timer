@@ -1,14 +1,16 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from './ui/button';
 import { useAudio } from '../contexts/AudioContext';
 import { unlockAudioForMobile, setAudioUnlocked } from '../lib/audio';
+import { getAudioUnlockStatus } from '../lib/settings';
 
 export const AudioUnlocker = () => {
     const [isUnlocked, setIsUnlocked] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
     const { playCountdownSound } = useAudio();
+    const unlockAttemptedRef = useRef(false);
 
     useEffect(() => {
         // Check if we're on a mobile device
@@ -17,20 +19,39 @@ export const AudioUnlocker = () => {
         );
 
         if (isMobile) {
-            // Only show the unlocker on mobile devices
-            // First check if audio is already unlocked
-            unlockAudioForMobile().then(unlocked => {
-                if (unlocked) {
-                    setIsUnlocked(true);
-                    setIsVisible(false);
-                } else {
-                    setIsVisible(true);
-                }
-            });
+            // First check localStorage to see if we've previously unlocked
+            const savedUnlockStatus = getAudioUnlockStatus();
+
+            if (savedUnlockStatus) {
+                // Audio was previously unlocked, no need to show the modal
+                setIsUnlocked(true);
+                setAudioUnlocked(true);
+                console.log('Audio: Using saved unlock status');
+            } else {
+                // Check if audio actually needs unlocking
+                unlockAudioForMobile().then(unlocked => {
+                    if (unlocked) {
+                        setIsUnlocked(true);
+                        setIsVisible(false);
+                    } else {
+                        setIsVisible(true);
+                    }
+                });
+            }
         }
     }, []);
 
     const unlockAudio = async () => {
+        if (unlockAttemptedRef.current) {
+            console.log('Audio: Unlock already attempted, forcing modal close');
+            setIsUnlocked(true);
+            setIsVisible(false);
+            setAudioUnlocked(true);
+            return;
+        }
+
+        unlockAttemptedRef.current = true;
+
         try {
             // Play a silent sound to unlock audio
             const audio = new Audio();
@@ -46,13 +67,25 @@ export const AudioUnlocker = () => {
                         })
                         .catch(err => {
                             console.error('Audio: Failed to unlock with test sound:', err);
+                            // Force unlock even if there was an error
+                            setAudioUnlocked(true);
+                            setIsUnlocked(true);
+                            setIsVisible(false);
                         });
                 })
                 .catch(err => {
                     console.error('Audio: Failed to unlock audio:', err);
+                    // Force unlock even if there was an error
+                    setAudioUnlocked(true);
+                    setIsUnlocked(true);
+                    setIsVisible(false);
                 });
         } catch (error) {
             console.error('Audio: Error in unlockAudio:', error);
+            // Force unlock even if there was an error
+            setAudioUnlocked(true);
+            setIsUnlocked(true);
+            setIsVisible(false);
         }
     };
 

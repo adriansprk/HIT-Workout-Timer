@@ -1,3 +1,5 @@
+import { saveAudioUnlockStatus, getAudioUnlockStatus as getSavedAudioUnlockStatus } from './settings';
+
 export type CountdownSound = 'three' | 'two' | 'one' | 'rest' | 'go';
 
 interface AudioCache {
@@ -15,6 +17,10 @@ let isAudioUnlocked = false;
  */
 export const setAudioUnlocked = (value: boolean): void => {
     isAudioUnlocked = value;
+
+    // Also save to localStorage for persistence
+    saveAudioUnlockStatus(value);
+
     if (value) {
         console.log('Audio: Unlock status set to true');
     }
@@ -25,6 +31,23 @@ export const setAudioUnlocked = (value: boolean): void => {
  */
 export const getAudioUnlockStatus = (): boolean => {
     return isAudioUnlocked;
+};
+
+/**
+ * Initialize audio module with stored preferences
+ */
+export const initAudio = (): void => {
+    // Try to get unlock status from localStorage
+    try {
+        const storedUnlockStatus = getSavedAudioUnlockStatus();
+        isAudioUnlocked = storedUnlockStatus;
+
+        if (storedUnlockStatus) {
+            console.log('Audio: Restored unlocked status from localStorage');
+        }
+    } catch (error) {
+        console.error('Audio: Error loading audio unlock status:', error);
+    }
 };
 
 /**
@@ -67,6 +90,18 @@ export const preloadSounds = async (): Promise<void> => {
  * Attempt to unlock audio on mobile devices
  */
 export const unlockAudioForMobile = async (): Promise<boolean> => {
+    // First check if we've already been unlocked according to localStorage
+    try {
+        const storedUnlockStatus = getSavedAudioUnlockStatus();
+        if (storedUnlockStatus) {
+            isAudioUnlocked = true;
+            console.log('Audio: Using stored unlock status from localStorage');
+            return true;
+        }
+    } catch (error) {
+        console.error('Audio: Error checking stored audio unlock status:', error);
+    }
+
     // Check if we're on a mobile device
     const isMobile = /iPhone|iPad|iPod|Android/i.test(
         typeof navigator !== 'undefined' ? navigator.userAgent : ''
@@ -75,6 +110,7 @@ export const unlockAudioForMobile = async (): Promise<boolean> => {
     if (!isMobile) {
         // Not a mobile device, no need to unlock
         isAudioUnlocked = true;
+        saveAudioUnlockStatus(true);
         return true;
     }
 
@@ -87,12 +123,14 @@ export const unlockAudioForMobile = async (): Promise<boolean> => {
             // If successful, audio is already unlocked
             audio.pause();
             isAudioUnlocked = true;
+            saveAudioUnlockStatus(true);
             console.log('Audio: Playback already unlocked');
             return true;
         }).catch(err => {
             // If it fails, audio is locked
             console.log('Audio: Playback locked, requires user interaction', err);
             isAudioUnlocked = false;
+            saveAudioUnlockStatus(false);
             return false;
         });
 
