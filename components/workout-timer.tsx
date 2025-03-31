@@ -29,7 +29,7 @@ interface WorkoutTimerProps {
   onEnd: () => void;
 }
 
-type TimerState = "exercise" | "rest" | "roundRest" | "complete" // Changed 'cooldown' to 'roundRest'
+type TimerState = "exercise" | "rest" | "roundRest" | "complete"
 
 const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
   exerciseTime,
@@ -48,8 +48,26 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
 
   // Track the previous timer state to detect transitions
   const [prevTimerState, setPrevTimerState] = useState<TimerState | null>(null)
-  // Keep track of already played sounds to avoid duplicates
-  const playedSoundsRef = useRef(new Set<string>());
+
+  // Store timer reference to access latest state in intervals
+  const timerRef = useRef({
+    timeRemaining,
+    timerState,
+    isPaused,
+    currentRound,
+    currentExercise
+  });
+
+  // Keep the ref updated with the latest state values
+  useEffect(() => {
+    timerRef.current = {
+      timeRemaining,
+      timerState,
+      isPaused,
+      currentRound,
+      currentExercise
+    };
+  }, [timeRemaining, timerState, isPaused, currentRound, currentExercise]);
 
   const getTimerColor = () => {
     switch (timerState) {
@@ -112,53 +130,81 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
     }
   }, [timerState, currentExercise, currentRound, exercises, rounds, restTime, exerciseTime, roundRestTime])
 
-  // Main timer effect
+  // Play transition sounds based on state changes
   useEffect(() => {
-    if (timerState === "complete" || isPaused) return
+    if (prevTimerState !== timerState) {
+      console.log(`Timer state changed: ${prevTimerState} → ${timerState}`);
 
-    // Start with the current time remaining
-    let currentTime = timeRemaining;
+      // Play transition sounds
+      if (timerState === "rest" || timerState === "roundRest") {
+        if (prevTimerState === "exercise") {
+          playCountdownSound('rest');
+          console.log('Playing REST sound on transition to rest');
+        }
+      } else if (timerState === "exercise") {
+        if (prevTimerState === "rest" || prevTimerState === "roundRest") {
+          playCountdownSound('go');
+          console.log('Playing GO sound on transition to exercise');
+        }
+      }
+    }
+  }, [timerState, prevTimerState, playCountdownSound]);
 
-    // Clear any previously played sounds
-    playedSoundsRef.current.clear();
+  // Main timer effect with stable interval
+  useEffect(() => {
+    if (timerState === "complete") return;
 
-    // Set up an interval that runs exactly every second
-    const intervalId = setInterval(() => {
-      // Play sounds based on current time
+    let intervalId: NodeJS.Timeout | null = null;
+    let lastSecondProcessed = -1;
+
+    // Function to handle the countdown logic
+    const tick = () => {
+      // Skip execution if paused
+      if (timerRef.current.isPaused) return;
+
+      // Get the current time from our ref
+      const currentTime = timerRef.current.timeRemaining;
+      const currentTimerState = timerRef.current.timerState;
+
+      // Prevent processing the same second twice
+      if (currentTime === lastSecondProcessed) return;
+      lastSecondProcessed = currentTime;
+
+      // Play countdown sounds if we're at 3, 2, or 1 seconds remaining
       if (currentTime === 3) {
         playCountdownSound('three');
-        console.log('Playing three at', currentTime);
+        console.log('Playing THREE at time 3');
       } else if (currentTime === 2) {
         playCountdownSound('two');
-        console.log('Playing two at', currentTime);
+        console.log('Playing TWO at time 2');
       } else if (currentTime === 1) {
         playCountdownSound('one');
-        console.log('Playing one at', currentTime);
-      } else if (currentTime === 0) {
-        // Handle transition sounds based on current timer state
-        if (timerState === "exercise") {
-          playCountdownSound('rest');
-          console.log('Playing rest at 0');
-        } else if (timerState === "rest" || timerState === "roundRest") {
-          playCountdownSound('go');
-          console.log('Playing go at 0');
-        }
+        console.log('Playing ONE at time 1');
+      }
 
-        // Only call moveToNextPhase if currentTime is 0
-        clearInterval(intervalId);
+      // If we've reached zero, advance to the next phase
+      if (currentTime <= 0) {
+        if (intervalId) {
+          clearInterval(intervalId);
+        }
         moveToNextPhase();
         return;
       }
 
-      // Decrement the local time variable
-      currentTime--;
+      // Otherwise decrement time and continue
+      setTimeRemaining(currentTime - 1);
+    };
 
-      // Update the UI with the decremented time
-      setTimeRemaining(currentTime);
-    }, 1000);
+    // Set up the initial interval that runs every second
+    intervalId = setInterval(tick, 1000);
 
-    return () => clearInterval(intervalId);
-  }, [timerState, isPaused, timeRemaining, moveToNextPhase, playCountdownSound]);
+    // Clean up the interval when the component unmounts or dependencies change
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [timerState, moveToNextPhase, playCountdownSound]);
 
   // When the workout is complete
   useEffect(() => {
