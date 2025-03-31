@@ -2,8 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { AudioProvider } from '../contexts/AudioContext'
 import { AudioUnlocker } from '../components/AudioUnlocker'
-// Commented out temporarily to fix TypeScript errors
-// import { ThemeProvider } from '../contexts/ThemeContext'
+import { ThemeProvider } from '../contexts/ThemeContext'
 
 export const metadata: Metadata = {
   title: 'v0 App',
@@ -23,11 +22,10 @@ export default function RootLayout({
       </head>
       <body suppressHydrationWarning>
         <AudioProvider>
-          {/* ThemeProvider commented out temporarily to fix TypeScript errors */}
-          {/* <ThemeProvider> */}
-          <AudioUnlocker />
-          {children}
-          {/* </ThemeProvider> */}
+          <ThemeProvider>
+            <AudioUnlocker />
+            {children}
+          </ThemeProvider>
         </AudioProvider>
       </body>
     </html>

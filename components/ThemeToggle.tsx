@@ -8,17 +8,19 @@ export function ThemeToggle() {
     const { isDarkMode, toggleDarkMode } = useTheme();
 
     return (
-        <button
-            className="relative w-14 h-7 bg-gray-200 dark:bg-gray-700 rounded-full p-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 dark:focus:ring-offset-gray-900"
+        <Button
+            variant="ghost"
+            size="icon"
             onClick={toggleDarkMode}
+            className="rounded-full focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 dark:focus:ring-indigo-400 dark:focus:ring-offset-gray-900"
             aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
         >
-            <span
-                className={`block w-5 h-5 rounded-full transition-transform duration-200 transform ${isDarkMode ? "translate-x-7 bg-indigo-500" : "translate-x-0 bg-white"
-                    }`}
-            />
-            <span className="sr-only">{isDarkMode ? "Dark mode" : "Light mode"}</span>
-        </button>
+            {isDarkMode ? (
+                <Sun className="h-5 w-5 text-yellow-500" />
+            ) : (
+                <Moon className="h-5 w-5 text-indigo-600" />
+            )}
+        </Button>
     );
 }
 

@@ -6,10 +6,10 @@ import { Button } from "../components/ui/button"
 import WorkoutTimer from "../components/workout-timer"
 import EditSliderModal from "../components/edit-slider-modal"
 import EditCounterModal from "../components/edit-counter-modal"
-// Commented out temporarily to fix TypeScript errors
-// import SettingsModal from "../components/settings-modal"
+import SettingsModal from "../components/settings-modal"
 import { loadWorkoutParams, updateWorkoutParams } from "../lib/settings"
 import { forceUnlockAudio } from "../lib/audio"
+import { useTheme } from "../contexts/ThemeContext"
 import Link from "next/link"
 
 export default function Home() {
@@ -22,6 +22,7 @@ export default function Home() {
   const [isWorkoutActive, setIsWorkoutActive] = useState(false)
   const [currentModal, setCurrentModal] = useState<string | null>(null)
   const [showSettings, setShowSettings] = useState(false)
+  const { isDarkMode, toggleDarkMode } = useTheme()
 
   // Load saved workout params from localStorage on component mount
   useEffect(() => {
@@ -93,9 +94,7 @@ export default function Home() {
   }
 
   const openSettings = () => {
-    // Show alert instead of opening settings modal (temporary fix)
-    alert("Settings feature is coming soon!");
-    // setShowSettings(true)
+    setShowSettings(true)
   }
 
   const closeSettings = () => {
@@ -393,10 +392,9 @@ export default function Home() {
         />
       )}
 
-      {/* Commented out temporarily to fix TypeScript errors */}
-      {/* {showSettings && (
+      {showSettings && (
         <SettingsModal onClose={closeSettings} />
-      )} */}
+      )}
     </main>
   )
 }
