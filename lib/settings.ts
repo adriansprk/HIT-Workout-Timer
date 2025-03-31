@@ -3,6 +3,7 @@ export interface UserSettings {
     workoutParams: WorkoutParams;
     audioUnlocked: boolean;
     workoutStreak: WorkoutStreak;
+    darkMode: boolean;
 }
 
 export interface WorkoutParams {
@@ -24,6 +25,7 @@ const SETTINGS_KEY = 'hiit-timer-settings';
 const DEFAULT_SETTINGS: UserSettings = {
     muted: false,
     audioUnlocked: false,
+    darkMode: true,
     workoutParams: {
         exerciseTime: 30,
         restTime: 10,
@@ -192,4 +194,22 @@ export const updateWorkoutStreak = (): WorkoutStreak => {
     });
 
     return newStreak;
+};
+
+/**
+ * Get the current dark mode setting
+ */
+export const getDarkMode = (): boolean => {
+    return loadSettings().darkMode;
+};
+
+/**
+ * Toggle or set dark mode
+ */
+export const setDarkMode = (enabled: boolean): void => {
+    const currentSettings = loadSettings();
+    saveSettings({
+        ...currentSettings,
+        darkMode: enabled
+    });
 }; 

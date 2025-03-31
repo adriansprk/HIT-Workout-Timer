@@ -2,36 +2,13 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { formatTime } from '../lib/utils';
-import { Button } from "../components/ui/button"
+import { Button } from "./ui/button"
 import { Progress } from "../components/ui/progress"
-import { X, Trophy, ChevronRight, Clock, Flame, RotateCcw, Dumbbell } from "lucide-react"
+import { X, Trophy, ChevronRight, Clock, Flame, RotateCcw, Dumbbell, Maximize, Minimize } from "lucide-react"
 import { useAudio } from "../contexts/AudioContext"
 import { MuteButton } from "./MuteButton"
 import Confetti from 'react-confetti';
 import { updateWorkoutStreak } from "../lib/settings";
-
-// Custom progress component with explicit indigo indicator color
-const CustomProgress = ({ value }: { value: number }) => {
-  return (
-    <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-      <div
-        className="h-full bg-indigo-600"
-        style={{ width: `${value}%`, transition: "width 0.5s ease" }}
-      ></div>
-    </div>
-  )
-}
-
-interface WorkoutTimerProps {
-  exerciseTime: number;
-  restTime: number;
-  roundRestTime: number;
-  exercises: number;
-  rounds: number;
-  onEnd: () => void;
-}
-
-type TimerState = "exercise" | "rest" | "roundRest" | "complete"
 
 // Array of motivational quotes for the completion screen
 const MOTIVATIONAL_QUOTES = [
@@ -44,6 +21,86 @@ const MOTIVATIONAL_QUOTES = [
   "The only way to define your limits is by going beyond them.",
   "What seems impossible today will one day become your warm-up.",
 ];
+
+interface WorkoutTimerProps {
+  exerciseTime: number;
+  restTime: number;
+  roundRestTime: number;
+  exercises: number;
+  rounds: number;
+  onEnd: () => void;
+}
+
+type TimerState = "exercise" | "rest" | "roundRest" | "complete"
+
+// Circular progress component specifically for timer
+const CircularProgress = ({ value, size = 300, strokeWidth = 14, timerState }: {
+  value: number,
+  size?: number,
+  strokeWidth?: number,
+  timerState: TimerState
+}) => {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const strokeDashoffset = circumference - (value / 100) * circumference;
+
+  // Color based on timer state
+  const getColor = () => {
+    switch (timerState) {
+      case "exercise":
+        return "#EF4444"; // red-500 - brighter for dark mode
+      case "rest":
+        return "#22C55E"; // green-500 - brighter for dark mode
+      case "roundRest":
+        return "#3B82F6"; // blue-500 - brighter for dark mode
+      default:
+        return "#818CF8"; // indigo-400 - brighter for dark mode
+    }
+  };
+
+  return (
+    <div className="relative inline-flex items-center justify-center">
+      {/* Background circle */}
+      <svg
+        width={size}
+        height={size}
+        viewBox={`0 0 ${size} ${size}`}
+        className="absolute"
+      >
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="transparent"
+          stroke="#E5E7EB" // gray-200
+          className="dark:stroke-gray-600"
+          strokeWidth={strokeWidth}
+        />
+      </svg>
+
+      {/* Progress circle */}
+      <svg
+        width={size}
+        height={size}
+        viewBox={`0 0 ${size} ${size}`}
+        className="absolute transform -rotate-90"
+      >
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke={getColor()}
+          strokeWidth={strokeWidth}
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+          style={{ transition: "stroke-dashoffset 0.5s ease" }}
+        />
+      </svg>
+    </div>
+  );
+};
 
 const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
   exerciseTime,
@@ -62,6 +119,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
   const [timerState, setTimerState] = useState<TimerState>("exercise")
   const [timeRemaining, setTimeRemaining] = useState(exerciseTime)
   const [isPaused, setIsPaused] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(false)
   const { playCountdownSound, isMuted } = useAudio()
 
   // Track the previous timer state to detect transitions
@@ -74,6 +132,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
 
   // Refs
   const streakUpdatedRef = useRef(false);
+  const timerContainerRef = useRef<HTMLDivElement>(null);
 
   // Store timer reference to access latest state in intervals
   const timerRef = useRef({
@@ -93,6 +152,9 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
       currentRound,
       currentExercise
     };
+
+    // Debug logging for pause state change
+    console.log("Pause state updated:", isPaused);
 
     // Safeguard against potential infinite loops
     if (currentExercise > validExercises * 2) {
@@ -185,6 +247,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
     const tickAndUpdateDisplay = () => {
       // Skip if paused
       if (timerRef.current.isPaused) {
+        console.log("Timer is paused, skipping tick");
         return;
       }
 
@@ -280,8 +343,31 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
     }
   }, [timerState]);
 
+  // Handle fullscreen logic
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
   const togglePause = () => {
-    setIsPaused((prev) => !prev)
+    console.log("Toggle pause called, current state:", isPaused);
+    setIsPaused((prev) => !prev);
+  }
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement && timerContainerRef.current) {
+      timerContainerRef.current.requestFullscreen().catch(err => {
+        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+      });
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
   }
 
   // Random quote selection function
@@ -317,7 +403,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
     const totalExerciseTime = calculateActiveTime(exerciseTime, validExercises, validRounds);
 
     return (
-      <div className="mx-auto p-4 max-w-md relative">
+      <div className="mx-auto p-4 max-w-md fixed inset-0 z-50 overflow-y-auto bg-black/90" style={{ height: '100dvh' }}>
         {/* Confetti effect */}
         <Confetti
           width={windowDimension.width}
@@ -329,14 +415,14 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
           colors={['#4F46E5', '#8B5CF6', '#EC4899', '#F59E0B', '#10B981']}
         />
 
-        <div className="rounded-xl bg-white p-6 shadow-sm">
+        <div className="rounded-xl bg-white dark:bg-gray-900 p-6 shadow-sm mt-4 mb-4">
           {/* Header with trophy icon */}
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-3">
               <div className="bg-yellow-100 p-3 rounded-full">
                 <Trophy className="h-6 w-6 text-yellow-500" />
               </div>
-              <h1 className="text-2xl font-bold">Workout Complete!</h1>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Workout Complete!</h1>
             </div>
             <Button
               variant="ghost"
@@ -344,7 +430,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
               className="rounded-full h-8 w-8"
               onClick={onEnd}
             >
-              <X className="h-4 w-4" />
+              <X className="h-4 w-4 text-gray-700 dark:text-white" />
             </Button>
           </div>
 
@@ -418,56 +504,211 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
     );
   }
 
+  // Get state indicator styles
+  const getStateIndicator = () => {
+    switch (timerState) {
+      case "exercise":
+        return {
+          text: "EXERCISE",
+          bg: "bg-red-600",
+          textColor: "text-white",
+        }
+      case "rest":
+        return {
+          text: "REST",
+          bg: "bg-green-600",
+          textColor: "text-white",
+        }
+      case "roundRest":
+        return {
+          text: "RECOVERY",
+          bg: "bg-blue-600",
+          textColor: "text-white",
+        }
+      default:
+        return {
+          text: "READY",
+          bg: "bg-gray-600",
+          textColor: "text-white",
+        }
+    }
+  }
+
+  const stateIndicator = getStateIndicator();
+
   return (
-    <div className="mx-auto p-6 max-w-md">
-      <div className="rounded-xl bg-white p-6 shadow-sm">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold">Workout</h1>
-          <div className="flex items-center gap-2">
-            <MuteButton />
-            <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-full h-8 w-8"
-              onClick={togglePause}
-            >
-              {isPaused ? (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="h-4 w-4"
-                >
-                  <polygon points="5 3 19 12 5 21 5 3" />
-                </svg>
-              ) : (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="h-4 w-4"
-                >
-                  <rect x="6" y="4" width="4" height="16" />
-                  <rect x="14" y="4" width="4" height="16" />
-                </svg>
-              )}
-            </Button>
+    <div
+      ref={timerContainerRef}
+      className={`mx-auto workout-timer-active ${isFullscreen ? 'h-screen w-screen' : 'max-w-md h-[100dvh]'} flex flex-col justify-between bg-white dark:bg-background relative overflow-hidden`}
+      style={{
+        height: '100dvh',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100%',
+        overflowY: 'hidden'
+      }}
+    >
+      {/* Volume control and Exit - positioned at top corners */}
+      <div className="fixed top-4 right-4 z-20">
+        <MuteButton />
+      </div>
+
+      <div className="fixed top-4 left-4 z-20">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onEnd}
+          aria-label="End workout"
+          className="h-10 w-10 rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 dark:border dark:border-gray-600 p-0 flex items-center justify-center focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 dark:focus:ring-indigo-400 dark:focus:ring-offset-gray-900"
+        >
+          <X className="h-5 w-5 text-gray-700 dark:text-white" />
+        </Button>
+      </div>
+
+      {/* Main timer section - takes most of the screen */}
+      <div className="flex-1 flex flex-col justify-center items-center mt-16 mb-28">
+        <div className="relative flex flex-col items-center">
+          {/* Timer circle */}
+          <div className="relative mb-8">
+            <CircularProgress value={progressPercentage} timerState={timerState} />
+
+            {/* Time display centered in circle */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              {/* Round info at top of circle */}
+              <div className="whitespace-nowrap mb-1">
+                <div className="flex items-center">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Round {currentRound}/{validRounds}
+                  </span>
+                  <span className="text-xs text-gray-400 dark:text-gray-500 mx-2">•</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {Math.min(currentExercise, validExercises)}/{validExercises}
+                  </span>
+                </div>
+              </div>
+
+              <div className={`text-8xl font-bold ${getTimerColor()}`}>
+                {formatTime(timeRemaining)}
+              </div>
+
+              {/* Status badge overlaid on timer */}
+              <div className={`px-4 py-1 rounded-full ${stateIndicator.bg} ${stateIndicator.textColor} font-semibold text-sm mt-4`}>
+                {stateIndicator.text}
+              </div>
+            </div>
           </div>
         </div>
+      </div>
 
-        <div className={`text-5xl font-bold text-center mb-4 ${getTimerColor()}`}>
-          {formatTime(timeRemaining)}
+      {/* Control section at bottom - fixed position */}
+      <div className="fixed bottom-8 left-0 right-0 pb-2 pt-2 z-20">
+        <div className="flex justify-center items-center gap-3 px-4">
+          {/* Skip backward button */}
+          <button
+            className="rounded-xl bg-gray-100 dark:bg-gray-700 w-14 h-14 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 dark:focus:ring-indigo-400 dark:focus:ring-offset-gray-900 transition-colors hover:bg-gray-200 dark:hover:bg-gray-600 dark:border dark:border-gray-600"
+            onClick={() => {
+              // Skip to previous exercise logic would go here
+              // For now, just show an alert
+              alert("Skip to previous exercise not implemented");
+            }}
+            aria-label="Previous exercise"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-gray-700 dark:text-white"
+            >
+              <polygon points="19 20 9 12 19 4 19 20"></polygon>
+              <line x1="5" y1="19" x2="5" y2="5"></line>
+            </svg>
+          </button>
+
+          {/* Pause/Play button */}
+          <button
+            className="rounded-full bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-8 py-3 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 dark:focus:ring-offset-gray-900 transition-colors hover:bg-gray-50 dark:hover:bg-gray-600"
+            onClick={() => togglePause()}
+            aria-label={isPaused ? "Play workout" : "Pause workout"}
+          >
+            <span className="font-semibold text-lg flex items-center text-gray-900 dark:text-white">
+              {isPaused ? (
+                <>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="mr-2"
+                  >
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                  </svg>
+                  Play
+                </>
+              ) : (
+                <>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="mr-2"
+                  >
+                    <rect x="6" y="4" width="4" height="16"></rect>
+                    <rect x="14" y="4" width="4" height="16"></rect>
+                  </svg>
+                  Pause
+                </>
+              )}
+            </span>
+          </button>
+
+          {/* Skip forward button */}
+          <button
+            className="rounded-xl bg-gray-100 dark:bg-gray-700 w-14 h-14 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 dark:focus:ring-indigo-400 dark:focus:ring-offset-gray-900 transition-colors hover:bg-gray-200 dark:hover:bg-gray-600 dark:border dark:border-gray-600"
+            onClick={() => {
+              // Skip to next exercise
+              moveToNextPhase();
+            }}
+            aria-label="Next exercise"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-gray-700 dark:text-white"
+            >
+              <polygon points="5 4 15 12 5 20 5 4"></polygon>
+              <line x1="19" y1="5" x2="19" y2="19"></line>
+            </svg>
+          </button>
         </div>
 
-        <CustomProgress value={progressPercentage} />
+        <Progress value={progressPercentage} />
 
         <div className="my-6 text-center">
           <span className="text-xl font-semibold">

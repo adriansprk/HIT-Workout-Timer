@@ -125,19 +125,19 @@ export const AudioUnlocker = () => {
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black/80 z-50 p-4">
-            <div className="bg-white rounded-lg p-6 max-w-md text-center">
-                <h2 className="text-xl font-bold mb-4">Enable Audio</h2>
-                <p className="mb-6">
+            <div className="bg-card rounded-lg p-6 max-w-md text-center">
+                <h2 className="text-xl font-bold mb-4 text-foreground">Permissions Dialog</h2>
+                <p className="mb-6 text-card-foreground">
                     To enable workout sounds on your mobile device, please tap the button below.
                     {clickCountRef.current === 1 && (
-                        <span className="block mt-2 text-orange-600 font-medium">
+                        <span className="block mt-2 text-orange-600 dark:text-orange-400 font-medium">
                             Tap again to continue if sounds don't work.
                         </span>
                     )}
                 </p>
                 <Button
                     onClick={unlockAudio}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md"
+                    className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white px-8 py-3 rounded-md text-lg w-full sm:w-auto"
                 >
                     Enable Sounds
                 </Button>
