@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { preloadSounds, playSound, type CountdownSound } from '../lib/audio';
+import { preloadSounds, playSound, unlockAudioForMobile, type CountdownSound } from '../lib/audio';
 import { loadSettings, saveSettings } from '../lib/settings';
 
 interface AudioContextType {
@@ -21,9 +21,12 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const settings = loadSettings();
         setIsMuted(settings.muted);
 
-        // Preload audio files
-        preloadSounds().then(() => {
-            setIsInitialized(true);
+        // Check if audio needs to be unlocked for mobile
+        unlockAudioForMobile().then(() => {
+            // Preload audio files
+            preloadSounds().then(() => {
+                setIsInitialized(true);
+            });
         });
 
         // Clean up audio resources on unmount if needed

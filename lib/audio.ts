@@ -7,6 +7,26 @@ interface AudioCache {
 // Cache for preloaded audio elements
 const audioCache: AudioCache = {};
 
+// Flag to track if audio has been unlocked for mobile
+let isAudioUnlocked = false;
+
+/**
+ * Set the audio unlock status
+ */
+export const setAudioUnlocked = (value: boolean): void => {
+    isAudioUnlocked = value;
+    if (value) {
+        console.log('Audio: Unlock status set to true');
+    }
+};
+
+/**
+ * Get the current audio unlock status
+ */
+export const getAudioUnlockStatus = (): boolean => {
+    return isAudioUnlocked;
+};
+
 /**
  * Preloads all countdown sound files
  */
@@ -44,12 +64,64 @@ export const preloadSounds = async (): Promise<void> => {
 };
 
 /**
+ * Attempt to unlock audio on mobile devices
+ */
+export const unlockAudioForMobile = async (): Promise<boolean> => {
+    // Check if we're on a mobile device
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(
+        typeof navigator !== 'undefined' ? navigator.userAgent : ''
+    );
+
+    if (!isMobile) {
+        // Not a mobile device, no need to unlock
+        isAudioUnlocked = true;
+        return true;
+    }
+
+    try {
+        // Create an empty audio element
+        const audio = new Audio();
+
+        // Try to play it (this will fail on mobile without user interaction)
+        const result = await audio.play().then(() => {
+            // If successful, audio is already unlocked
+            audio.pause();
+            isAudioUnlocked = true;
+            console.log('Audio: Playback already unlocked');
+            return true;
+        }).catch(err => {
+            // If it fails, audio is locked
+            console.log('Audio: Playback locked, requires user interaction', err);
+            isAudioUnlocked = false;
+            return false;
+        });
+
+        return result;
+    } catch (error) {
+        console.error('Audio: Error checking audio unlock status:', error);
+        return false;
+    }
+};
+
+/**
  * Plays the specified countdown sound if not muted
  */
 export const playSound = async (sound: CountdownSound, isMuted: boolean): Promise<void> => {
     if (isMuted) {
         console.log(`Audio: Skipping ${sound} (muted)`);
         return;
+    }
+
+    // Check if we're on mobile and audio is not unlocked
+    if (!isAudioUnlocked) {
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(
+            typeof navigator !== 'undefined' ? navigator.userAgent : ''
+        );
+
+        if (isMobile) {
+            console.log(`Audio: Not playing ${sound} - audio not yet unlocked on mobile`);
+            return;
+        }
     }
 
     try {
@@ -96,6 +168,7 @@ export const playSound = async (sound: CountdownSound, isMuted: boolean): Promis
             // Handle browsers with autoplay restrictions
             if (err.name === 'NotAllowedError') {
                 console.warn('Audio: Playback was blocked by the browser. User interaction is required first.');
+                isAudioUnlocked = false;
             }
         });
     } catch (error) {
