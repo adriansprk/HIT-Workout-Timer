@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { formatTime } from '../lib/utils';
 import { Button } from "./ui/button"
-import { Progress } from "../components/ui/progress"
 import { X, Trophy, ChevronRight, Clock, Flame, RotateCcw, Dumbbell, Maximize, Minimize } from "lucide-react"
 import { useAudio } from "../contexts/AudioContext"
 import { MuteButton } from "./MuteButton"
@@ -591,49 +590,6 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
         </div>
       </div>
 
-      {/* Progress indicator */}
-      <div className="h-2 bg-gray-900 w-full">
-        <div
-          className="h-full bg-white"
-          style={{
-            width: `${progressPercentage}%`,
-            transition: "width 0.5s ease"
-          }}
-        ></div>
-      </div>
-
-      {/* Exercise label */}
-      <div className="text-center py-6">
-        <div className="text-xl font-semibold text-white">
-          {timerState === "exercise"
-            ? "Exercise"
-            : timerState === "rest"
-              ? "Rest"
-              : "Recovery Time"}
-        </div>
-        {timerState === "roundRest" && (
-          <p className="text-sm text-gray-400 mt-1">
-            Get ready for Round {currentRound + 1}
-          </p>
-        )}
-      </div>
-
-      {/* Round/exercise counters */}
-      <div className="grid grid-cols-2 gap-4 px-8 mb-6">
-        <div className="bg-gray-900 rounded-lg p-4 text-center">
-          <div className="text-sm text-gray-400 mb-1">Round</div>
-          <div className="text-xl font-semibold text-white">
-            {currentRound} / {validRounds}
-          </div>
-        </div>
-        <div className="bg-gray-900 rounded-lg p-4 text-center">
-          <div className="text-sm text-gray-400 mb-1">Exercise</div>
-          <div className="text-xl font-semibold text-white">
-            {Math.min(currentExercise, validExercises)} / {validExercises}
-          </div>
-        </div>
-      </div>
-
       {/* Control buttons - positioned at bottom */}
       <div className="fixed bottom-0 left-0 right-0 p-4 pt-0 z-20 bg-slate-950">
         <div className="flex justify-center items-center gap-3 px-4 mb-4">
@@ -734,14 +690,6 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
             </svg>
           </button>
         </div>
-
-        <Button
-          variant="destructive"
-          className="w-full rounded-xl py-4 text-base font-medium mb-2"
-          onClick={onEnd}
-        >
-          End Workout
-        </Button>
       </div>
     </div>
   );
