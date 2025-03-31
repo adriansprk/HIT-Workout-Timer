@@ -113,7 +113,7 @@ export default function Home() {
           onEnd={endWorkout}
         />
       ) : (
-        <div className="max-w-md mx-auto p-4 pb-32">
+        <div className="max-w-md mx-auto p-4 pb-16">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">HIIT Workout</h1>
             <Button variant="ghost" size="icon" className="rounded-full" onClick={openSettings}>
@@ -309,7 +309,7 @@ export default function Home() {
             <span className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{formatTime(totalTimeInSeconds)}</span>
           </div>
 
-          <div className="mt-6 mb-24 flex flex-col items-center space-y-4">
+          <div className="mt-6 mb-8 flex flex-col items-center space-y-4">
             <Button
               className="w-full py-6 text-xl font-medium bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-700 rounded-xl text-white focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 dark:focus:ring-offset-gray-900 transition-colors"
               onClick={startWorkout}
@@ -321,7 +321,7 @@ export default function Home() {
             </Button>
           </div>
 
-          <div className="h-16 md:hidden"></div>
+          <div className="h-8 md:hidden"></div>
         </div>
       )}
 
