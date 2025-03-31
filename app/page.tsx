@@ -1,13 +1,15 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Settings, Timer, Dumbbell, RotateCcw, Clock, RefreshCw } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import WorkoutTimer from "@/components/workout-timer"
-import EditSliderModal from "@/components/edit-slider-modal"
-import EditCounterModal from "@/components/edit-counter-modal"
+import { Button } from "../components/ui/button"
+import WorkoutTimer from "../components/workout-timer"
+import EditSliderModal from "../components/edit-slider-modal"
+import EditCounterModal from "../components/edit-counter-modal"
+import { loadWorkoutParams, updateWorkoutParams } from "../lib/settings"
 
 export default function Home() {
+  // Initialize state with default values
   const [exerciseTime, setExerciseTime] = useState(45)
   const [restTime, setRestTime] = useState(15)
   const [roundRestTime, setRoundRestTime] = useState(60)
@@ -15,6 +17,42 @@ export default function Home() {
   const [rounds, setRounds] = useState(3)
   const [isWorkoutActive, setIsWorkoutActive] = useState(false)
   const [currentModal, setCurrentModal] = useState<string | null>(null)
+
+  // Load saved workout params from localStorage on component mount
+  useEffect(() => {
+    const savedParams = loadWorkoutParams()
+    setExerciseTime(savedParams.exerciseTime)
+    setRestTime(savedParams.restTime)
+    setRoundRestTime(savedParams.roundRestTime)
+    setExercises(savedParams.exercises)
+    setRounds(savedParams.rounds)
+  }, [])
+
+  // Create wrapper functions to update both state and localStorage
+  const updateExerciseTime = (value: number) => {
+    setExerciseTime(value)
+    updateWorkoutParams({ exerciseTime: value })
+  }
+
+  const updateRestTime = (value: number) => {
+    setRestTime(value)
+    updateWorkoutParams({ restTime: value })
+  }
+
+  const updateRoundRestTime = (value: number) => {
+    setRoundRestTime(value)
+    updateWorkoutParams({ roundRestTime: value })
+  }
+
+  const updateExercises = (value: number) => {
+    setExercises(value)
+    updateWorkoutParams({ exercises: value })
+  }
+
+  const updateRounds = (value: number) => {
+    setRounds(value)
+    updateWorkoutParams({ rounds: value })
+  }
 
   // Calculate total workout time in seconds
   const calculateTotalTime = () => {
@@ -264,7 +302,7 @@ export default function Home() {
         <EditSliderModal
           title="Edit Exercise Time"
           value={exerciseTime}
-          onChange={setExerciseTime}
+          onChange={updateExerciseTime}
           onClose={closeModal}
           min={0}
           max={120}
@@ -279,7 +317,7 @@ export default function Home() {
         <EditSliderModal
           title="Edit Rest Time"
           value={restTime}
-          onChange={setRestTime}
+          onChange={updateRestTime}
           onClose={closeModal}
           min={0}
           max={60}
@@ -294,7 +332,7 @@ export default function Home() {
         <EditSliderModal
           title="Edit Round Rest Time"
           value={roundRestTime}
-          onChange={setRoundRestTime}
+          onChange={updateRoundRestTime}
           onClose={closeModal}
           min={0}
           max={120}
@@ -309,7 +347,7 @@ export default function Home() {
         <EditCounterModal
           title="Exercises"
           value={exercises}
-          onChange={setExercises}
+          onChange={updateExercises}
           onClose={closeModal}
           min={1}
           max={20}
@@ -320,7 +358,7 @@ export default function Home() {
         <EditCounterModal
           title="Edit Rounds"
           value={rounds}
-          onChange={setRounds}
+          onChange={updateRounds}
           onClose={closeModal}
           min={1}
           max={10}
