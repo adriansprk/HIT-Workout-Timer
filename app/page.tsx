@@ -305,13 +305,13 @@ export default function Home() {
 
           <div className="space-y-2">
             <div className="text-center flex items-center justify-center py-2">
-              <Clock className="h-4 w-4 text-gray-500 mr-1.5" />
-              <span className="text-sm font-medium text-gray-600 mr-1.5">Total Workout Time:</span>
-              <span className="text-lg font-bold text-indigo-600">{formatTime(totalTimeInSeconds)}</span>
+              <Clock className="h-4 w-4 text-gray-500 dark:text-gray-400 mr-1.5" />
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-300 mr-1.5">Total Workout Time:</span>
+              <span className="text-lg font-bold text-indigo-600 dark:text-indigo-300">{formatTime(totalTimeInSeconds)}</span>
             </div>
 
             <Button
-              className="w-full py-6 text-lg bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white"
+              className="w-full py-6 text-lg bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white mt-4"
               size="lg"
               onClick={startWorkout}
             >
