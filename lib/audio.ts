@@ -9,6 +9,9 @@ interface AudioCache {
 // Cache for preloaded audio elements
 const audioCache: AudioCache = {};
 
+// Create a persistent Audio element for iOS
+let masterAudioElement: HTMLAudioElement | null = null;
+
 // Flag to track if audio has been unlocked for mobile
 let isAudioUnlocked = false;
 
@@ -31,6 +34,65 @@ export const setAudioUnlocked = (value: boolean): void => {
  */
 export const getAudioUnlockStatus = (): boolean => {
     return isAudioUnlocked;
+};
+
+/**
+ * Completely unlock audio playback on iOS devices
+ * This will play a silent sound to unlock the Audio API
+ */
+export const forceUnlockAudio = async (): Promise<boolean> => {
+    try {
+        console.log('Audio: Attempting to force unlock audio playback');
+
+        // Create a master audio element if we don't have one yet
+        if (!masterAudioElement) {
+            masterAudioElement = new Audio();
+        }
+
+        // iOS hack: play a silent base64-encoded MP3
+        masterAudioElement.src = "data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV";
+        masterAudioElement.autoplay = true;
+        masterAudioElement.load();
+
+        // iOS requires a play attempt from a user gesture
+        // This would be called from a button click
+        await masterAudioElement.play()
+            .then(() => {
+                console.log('Audio: Successfully unlocked audio with silent sound');
+                isAudioUnlocked = true;
+                saveAudioUnlockStatus(true);
+
+                // Now try to unlock all the cached sounds by quickly playing them
+                // This is a key step for iOS Safari
+                Object.values(audioCache).forEach(audio => {
+                    try {
+                        console.log(`Audio: Unlocking cached sound: ${audio.src}`);
+                        const promise = audio.play();
+                        if (promise !== undefined) {
+                            promise
+                                .then(() => {
+                                    audio.pause();
+                                    audio.currentTime = 0;
+                                })
+                                .catch(e => console.log('Audio unlock attempt ignored:', e));
+                        }
+                    } catch (e) {
+                        console.log('Error attempting to unlock audio:', e);
+                    }
+                });
+
+                return true;
+            })
+            .catch(e => {
+                console.error('Audio: Failed to unlock audio:', e);
+                return false;
+            });
+
+        return isAudioUnlocked;
+    } catch (error) {
+        console.error('Audio: Error in forceUnlockAudio:', error);
+        return false;
+    }
 };
 
 /**

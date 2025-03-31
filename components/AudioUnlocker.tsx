@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from './ui/button';
 import { useAudio } from '../contexts/AudioContext';
-import { unlockAudioForMobile, setAudioUnlocked } from '../lib/audio';
+import { unlockAudioForMobile, setAudioUnlocked, forceUnlockAudio } from '../lib/audio';
 import { getAudioUnlockStatus } from '../lib/settings';
 
 export const AudioUnlocker = () => {
@@ -11,6 +11,7 @@ export const AudioUnlocker = () => {
     const [isVisible, setIsVisible] = useState(false);
     const { playCountdownSound } = useAudio();
     const unlockAttemptedRef = useRef(false);
+    const clickCountRef = useRef(0);
 
     useEffect(() => {
         // Check if we're on a mobile device
@@ -42,6 +43,20 @@ export const AudioUnlocker = () => {
     }, []);
 
     const unlockAudio = async () => {
+        // Increment click count - iOS sometimes requires multiple attempts
+        clickCountRef.current += 1;
+        console.log(`Audio: Unlock attempt #${clickCountRef.current}`);
+
+        // If this is the second click or later, force close the modal
+        if (clickCountRef.current >= 2) {
+            console.log('Audio: Second click detected, forcing modal close');
+            setIsUnlocked(true);
+            setIsVisible(false);
+            setAudioUnlocked(true);
+            return;
+        }
+
+        // If we've already attempted to unlock, make doubly sure the modal closes
         if (unlockAttemptedRef.current) {
             console.log('Audio: Unlock already attempted, forcing modal close');
             setIsUnlocked(true);
@@ -53,7 +68,18 @@ export const AudioUnlocker = () => {
         unlockAttemptedRef.current = true;
 
         try {
-            // Play a silent sound to unlock audio
+            // Try the enhanced iOS unlock method first
+            const iosUnlocked = await forceUnlockAudio();
+
+            if (iosUnlocked) {
+                console.log('Audio: iOS specific unlock method succeeded');
+                setAudioUnlocked(true);
+                setIsUnlocked(true);
+                setIsVisible(false);
+                return;
+            }
+
+            // If iOS method didn't work, try the standard method
             const audio = new Audio();
             audio.play()
                 .then(() => {
@@ -75,17 +101,21 @@ export const AudioUnlocker = () => {
                 })
                 .catch(err => {
                     console.error('Audio: Failed to unlock audio:', err);
-                    // Force unlock even if there was an error
-                    setAudioUnlocked(true);
-                    setIsUnlocked(true);
-                    setIsVisible(false);
+                    // Force unlock even if there was an error - iOS will get a second chance on the next click
+                    if (clickCountRef.current >= 2) {
+                        setAudioUnlocked(true);
+                        setIsUnlocked(true);
+                        setIsVisible(false);
+                    }
                 });
         } catch (error) {
             console.error('Audio: Error in unlockAudio:', error);
             // Force unlock even if there was an error
-            setAudioUnlocked(true);
-            setIsUnlocked(true);
-            setIsVisible(false);
+            if (clickCountRef.current >= 2) {
+                setAudioUnlocked(true);
+                setIsUnlocked(true);
+                setIsVisible(false);
+            }
         }
     };
 
@@ -99,6 +129,11 @@ export const AudioUnlocker = () => {
                 <h2 className="text-xl font-bold mb-4">Enable Audio</h2>
                 <p className="mb-6">
                     To enable workout sounds on your mobile device, please tap the button below.
+                    {clickCountRef.current === 1 && (
+                        <span className="block mt-2 text-orange-600 font-medium">
+                            Tap again to continue if sounds don't work.
+                        </span>
+                    )}
                 </p>
                 <Button
                     onClick={unlockAudio}
