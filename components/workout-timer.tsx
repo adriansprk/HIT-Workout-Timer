@@ -8,6 +8,8 @@ import { useAudio } from "../contexts/AudioContext"
 import { MuteButton } from "./MuteButton"
 import Confetti from 'react-confetti';
 import { updateWorkoutStreak } from "../lib/settings";
+import { useWakeLock } from "../hooks/useWakeLock";
+import { WakeLockIndicator } from "./WakeLockIndicator";
 
 // Array of motivational quotes for the completion screen
 const MOTIVATIONAL_QUOTES = [
@@ -141,6 +143,9 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
     currentRound,
     currentExercise
   });
+
+  // Wake lock hook to prevent screen from sleeping
+  const { wakeLockStatus, requestLock, releaseLock, hasError } = useWakeLock();
 
   // Keep the ref updated with the latest state values
   useEffect(() => {
@@ -346,6 +351,19 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
+  // Enable wake lock when timer starts, and disable on completion or pause
+  useEffect(() => {
+    const handleWakeLock = async (): Promise<void> => {
+      if (timerState !== "complete" && !isPaused) {
+        await requestLock();
+      } else {
+        await releaseLock();
+      }
+    };
+
+    void handleWakeLock();
+  }, [timerState, isPaused, requestLock, releaseLock]);
+
   const togglePause = () => {
     setIsPaused((prev) => !prev);
   }
@@ -550,8 +568,9 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
         </Button>
       </div>
 
-      {/* Mute button - positioned at top right corner */}
-      <div className="fixed top-4 right-4 z-20">
+      {/* Mute button and Wake Lock indicator - positioned at top right corner */}
+      <div className="fixed top-4 right-4 z-20 flex items-center gap-2">
+        <WakeLockIndicator status={wakeLockStatus} />
         <MuteButton />
       </div>
 
