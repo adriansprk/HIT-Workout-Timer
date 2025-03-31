@@ -275,26 +275,20 @@ export const playSound = async (sound: CountdownSound, isMuted: boolean): Promis
         let buffer = audioBuffers[sound];
         if (!buffer) {
             console.log(`Audio: ${sound} not in cache, loading now...`);
-            buffer = await preloadSound(sound);
-            if (!buffer) {
+            const loadedBuffer = await preloadSound(sound);
+            if (!loadedBuffer) {
                 console.error(`Audio: Failed to load ${sound}`);
                 playingSounds.delete(sound);
                 return;
             }
+            buffer = loadedBuffer; // Now buffer is guaranteed to be AudioBuffer, not null
         }
 
         // Create audio source
         const source = audioContext.createBufferSource();
 
-        // We know buffer is not null at this point due to the previous check
-        if (!buffer) {
-            console.error(`Audio: Buffer for ${sound} is null even after loading check`);
-            playingSounds.delete(sound);
-            return;
-        }
-
-        // Use type assertion since we've verified buffer is not null
-        source.buffer = buffer as AudioBuffer;
+        // Buffer is guaranteed to be non-null at this point
+        source.buffer = buffer;
 
         // Create gain node for volume control
         const gainNode = audioContext.createGain();
