@@ -134,70 +134,74 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
   useEffect(() => {
     if (timerState === "complete") return;
 
+    // Initialize time from the beginning
+    let currentTime = timeRemaining;
     let intervalId: NodeJS.Timeout | null = null;
 
-    // Play a sound based on the current time
-    const playTimerSound = (time: number) => {
-      if (time === 3) {
+    // Function to handle countdown logic and sound
+    const tickAndUpdateDisplay = () => {
+      // Skip if paused
+      if (timerRef.current.isPaused) {
+        return;
+      }
+
+      // Display current time
+      setTimeRemaining(currentTime);
+
+      // Play appropriate sound based on the time we just set to display
+      if (currentTime === 3) {
         playCountdownSound('three');
-        console.log('Playing THREE at display time 3');
-      } else if (time === 2) {
+        console.log('Playing THREE at 0:03 on display');
+      }
+      else if (currentTime === 2) {
         playCountdownSound('two');
-        console.log('Playing TWO at display time 2');
-      } else if (time === 1) {
+        console.log('Playing TWO at 0:02 on display');
+      }
+      else if (currentTime === 1) {
         playCountdownSound('one');
-        console.log('Playing ONE at display time 1');
-      } else if (time === 0) {
-        // Play state transition sounds
+        console.log('Playing ONE at 0:01 on display');
+      }
+      else if (currentTime === 0) {
+        // Play end of interval sound
         if (timerRef.current.timerState === "exercise") {
           playCountdownSound('rest');
-          console.log('Playing REST at display time 0');
-        } else if (timerRef.current.timerState === "rest" || timerRef.current.timerState === "roundRest") {
-          playCountdownSound('go');
-          console.log('Playing GO at display time 0');
+          console.log('Playing REST at 0:00 on display');
         }
-      }
-    };
+        else if (timerRef.current.timerState === "rest" || timerRef.current.timerState === "roundRest") {
+          playCountdownSound('go');
+          console.log('Playing GO at 0:00 on display');
+        }
 
-    // Function to handle the countdown logic
-    const tick = () => {
-      // Skip execution if paused
-      if (timerRef.current.isPaused) return;
-
-      // Get the current time from our ref
-      const currentTime = timerRef.current.timeRemaining;
-
-      // CRUCIAL: Play sound for the CURRENT time before updating display
-      // This ensures each sound plays at the exact time showing on the display
-      playTimerSound(currentTime);
-
-      // If we've reached zero, move to next phase after a small delay
-      if (currentTime <= 0) {
+        // At 0, move to next stage after allowing sound to play
         if (intervalId) {
           clearInterval(intervalId);
         }
 
-        // Small delay to allow the sound to play before state transition
+        // Small delay to allow sound to play before changing state
         setTimeout(() => {
           moveToNextPhase();
-        }, 100);
+        }, 200);
+
         return;
       }
 
-      // Update display with the decremented time for the NEXT second
-      setTimeRemaining(currentTime - 1);
+      // Decrement for next tick
+      currentTime -= 1;
     };
 
-    // Set up the recurring interval that runs every second
-    intervalId = setInterval(tick, 1000);
+    // Start immediately with current value
+    tickAndUpdateDisplay();
 
-    // Clean up the interval when the component unmounts or dependencies change
+    // Then continue on interval
+    intervalId = setInterval(tickAndUpdateDisplay, 1000);
+
+    // Clean up on unmount
     return () => {
       if (intervalId) {
         clearInterval(intervalId);
       }
     };
-  }, [timerState, moveToNextPhase, playCountdownSound]);
+  }, [timerState, timeRemaining, moveToNextPhase, playCountdownSound]);
 
   // When the workout is complete
   useEffect(() => {
