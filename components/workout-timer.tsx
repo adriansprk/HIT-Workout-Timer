@@ -45,6 +45,9 @@ export default function WorkoutTimer({
   const [isPaused, setIsPaused] = useState(false)
   const { playCountdownSound } = useAudio()
 
+  // Track the previous timer state to detect transitions
+  const [prevTimerState, setPrevTimerState] = useState<TimerState>(timerState)
+
   const getTimerColor = () => {
     return "bg-indigo-500"
   }
@@ -132,6 +135,13 @@ export default function WorkoutTimer({
     return () => clearInterval(timer)
   }, [timerState, isPaused, moveToNextPhase])
 
+  // Track timer state changes
+  useEffect(() => {
+    if (prevTimerState !== timerState) {
+      setPrevTimerState(timerState);
+    }
+  }, [timerState, prevTimerState]);
+
   // Audio countdown effect for both exercise and rest periods
   useEffect(() => {
     if (isPaused) return;
@@ -142,26 +152,27 @@ export default function WorkoutTimer({
       else if (timeRemaining === 2) playCountdownSound('two');
       else if (timeRemaining === 1) playCountdownSound('one');
     }
+  }, [timeRemaining, isPaused, playCountdownSound]);
 
-    // Play "go" when we're about to transition from rest to exercise
-    if ((timerState === "rest" || timerState === "roundRest") && timeRemaining === 1) {
-      // We'll also play the "go" sound when there's 1 second left in rest
-      // This will create a small overlap with "one", but it ensures the user hears "go"
-      setTimeout(() => {
-        if (!isPaused) playCountdownSound('go');
-      }, 500);
-    }
-  }, [timeRemaining, timerState, isPaused, playCountdownSound]);
-
-  // Play "rest" sound when transitioning to rest periods
+  // Play transition sounds between states
   useEffect(() => {
-    if (!isPaused) {
+    if (isPaused) return;
+
+    // Play sounds on state transitions
+    if (prevTimerState !== timerState) {
+      console.log(`Transition: ${prevTimerState} -> ${timerState}`);
+
       // Play 'rest' when transitioning to rest periods
       if (timerState === "rest" || timerState === "roundRest") {
         playCountdownSound('rest');
       }
+
+      // Play 'go' when transitioning to exercise (but not at very beginning)
+      if (timerState === "exercise" && (prevTimerState === "rest" || prevTimerState === "roundRest")) {
+        playCountdownSound('go');
+      }
     }
-  }, [timerState, isPaused, playCountdownSound]);
+  }, [timerState, prevTimerState, isPaused, playCountdownSound]);
 
   const togglePause = () => {
     setIsPaused((prev) => !prev)
