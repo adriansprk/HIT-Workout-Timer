@@ -32,7 +32,7 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
                                 <h3 className="text-lg font-medium text-gray-900 dark:text-white">Dark Mode</h3>
                                 <p className="text-sm text-gray-500 dark:text-gray-400">Switch between light and dark theme</p>
                             </div>
-                            <ThemeToggle />
+                            <MuteButton variant="toggle" />
                         </div>
 
                         {/* Sound toggle */}
@@ -41,7 +41,7 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
                                 <h3 className="text-lg font-medium text-gray-900 dark:text-white">Sound</h3>
                                 <p className="text-sm text-gray-500 dark:text-gray-400">{isMuted ? "Unmute" : "Mute"} workout sounds</p>
                             </div>
-                            <MuteButton />
+                            <MuteButton variant="toggle" />
                         </div>
                     </div>
                 </div>
@@ -49,7 +49,7 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
                 <div className="p-5 border-t dark:border-gray-700">
                     <Button
                         onClick={onClose}
-                        className="w-full py-6 text-lg font-medium rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-700 dark:hover:bg-indigo-800 focus:ring-2 focus:ring-offset-2 dark:focus:ring-indigo-400 dark:focus:ring-offset-gray-900"
+                        className="w-full py-6 text-lg font-medium rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 focus:ring-2 focus:ring-offset-2 dark:focus:ring-indigo-400 dark:focus:ring-offset-gray-900"
                     >
                         Done
                     </Button>
