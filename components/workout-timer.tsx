@@ -95,48 +95,69 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
         setTimeRemaining(roundRestTime)
         setCurrentRound((prev) => prev + 1)
         setCurrentExercise(1)
-        // Play rest sound at the start of rest period instead of at the transition
       } else {
         // Move to rest period
         setTimerState("rest")
         setTimeRemaining(restTime)
-        // Play rest sound at the start of rest period instead of at the transition
       }
     } else if (timerState === "rest") {
       // Move to next exercise
       setTimerState("exercise")
       setTimeRemaining(exerciseTime)
       setCurrentExercise((prev) => prev + 1)
-      playCountdownSound('go');
     } else if (timerState === "roundRest") {
       // Move to first exercise of next round
       setTimerState("exercise")
       setTimeRemaining(exerciseTime)
-      playCountdownSound('go');
     }
-  }, [timerState, currentExercise, currentRound, exercises, rounds, restTime, exerciseTime, roundRestTime, playCountdownSound])
+  }, [timerState, currentExercise, currentRound, exercises, rounds, restTime, exerciseTime, roundRestTime])
 
+  // Main timer effect
   useEffect(() => {
     if (timerState === "complete" || isPaused) return
 
+    let lastSecondProcessed = -1;
+
     const intervalId = setInterval(() => {
       setTimeRemaining((prev) => {
-        // Play countdown sounds (3,2,1) for specific times
-        if (prev === 3 || prev === 2 || prev === 1) {
-          const countdownSound = prev === 3 ? 'three' : prev === 2 ? 'two' : 'one';
-          const soundKey = `${timerState}-${countdownSound}-${currentRound}-${currentExercise}`;
+        // Don't process the same second twice
+        if (prev === lastSecondProcessed) return prev;
 
-          // Only play the sound if we haven't played it for this specific countdown instance
-          if (!playedSoundsRef.current.has(soundKey)) {
-            playedSoundsRef.current.add(soundKey);
-            // Play the sound exactly at the right time
-            playCountdownSound(countdownSound);
-            console.log(`Playing ${countdownSound} at time ${prev}`);
-          }
+        // Play sounds at the right moments
+        if (prev === 3) {
+          playCountdownSound('three');
+          console.log('Playing three');
+        } else if (prev === 2) {
+          playCountdownSound('two');
+          console.log('Playing two');
+        } else if (prev === 1) {
+          playCountdownSound('one');
+          console.log('Playing one');
         }
 
+        // Store the second we just processed
+        lastSecondProcessed = prev;
+
+        // Handle timer end
         if (prev <= 1) {
           clearInterval(intervalId);
+
+          // Only when changing from exercise to rest, play the rest sound
+          if (timerState === "exercise") {
+            setTimeout(() => {
+              playCountdownSound('rest');
+              console.log('Playing rest');
+            }, 100);
+          }
+
+          // Only when changing to exercise state, play the go sound
+          if (timerState === "rest" || timerState === "roundRest") {
+            setTimeout(() => {
+              playCountdownSound('go');
+              console.log('Playing go');
+            }, 100);
+          }
+
           moveToNextPhase();
           return 0;
         }
@@ -146,22 +167,9 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
     }, 1000);
 
     return () => clearInterval(intervalId);
-  }, [timerState, isPaused, moveToNextPhase, playCountdownSound, currentRound, currentExercise]);
+  }, [timerState, isPaused, moveToNextPhase, playCountdownSound]);
 
-  // Play rest sound when entering rest state
-  useEffect(() => {
-    if (prevTimerState !== timerState) {
-      console.log(`Timer state changed from ${prevTimerState} to ${timerState}`);
-
-      // Play 'rest' sound when entering rest or roundRest state
-      if ((timerState === 'rest' || timerState === 'roundRest') &&
-        (prevTimerState === 'exercise')) {
-        playCountdownSound('rest');
-      }
-    }
-  }, [timerState, prevTimerState, playCountdownSound]);
-
-  // Clear played sounds when starting a new interval
+  // Clear previous state tracker when timer state changes
   useEffect(() => {
     playedSoundsRef.current.clear();
   }, [timerState, currentExercise, currentRound]);
