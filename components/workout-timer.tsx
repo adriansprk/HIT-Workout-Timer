@@ -403,7 +403,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
     const totalExerciseTime = calculateActiveTime(exerciseTime, validExercises, validRounds);
 
     return (
-      <div className="mx-auto p-4 max-w-md relative">
+      <div className="mx-auto p-4 max-w-md fixed inset-0 z-50 overflow-y-auto bg-black/90" style={{ height: '100dvh' }}>
         {/* Confetti effect */}
         <Confetti
           width={windowDimension.width}
@@ -415,14 +415,14 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
           colors={['#4F46E5', '#8B5CF6', '#EC4899', '#F59E0B', '#10B981']}
         />
 
-        <div className="rounded-xl bg-white p-6 shadow-sm">
+        <div className="rounded-xl bg-white dark:bg-gray-900 p-6 shadow-sm mt-4 mb-4">
           {/* Header with trophy icon */}
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-3">
               <div className="bg-yellow-100 p-3 rounded-full">
                 <Trophy className="h-6 w-6 text-yellow-500" />
               </div>
-              <h1 className="text-2xl font-bold">Workout Complete!</h1>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Workout Complete!</h1>
             </div>
             <Button
               variant="ghost"
@@ -430,7 +430,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
               className="rounded-full h-8 w-8"
               onClick={onEnd}
             >
-              <X className="h-4 w-4" />
+              <X className="h-4 w-4 text-gray-700 dark:text-white" />
             </Button>
           </div>
 
@@ -539,18 +539,24 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
   return (
     <div
       ref={timerContainerRef}
-      className={`mx-auto ${isFullscreen ? 'h-screen w-screen' : 'max-w-md'} flex flex-col justify-between bg-white dark:bg-background relative`}
+      className={`mx-auto ${isFullscreen ? 'h-screen w-screen' : 'max-w-md h-[100dvh]'} flex flex-col justify-between bg-white dark:bg-background relative overflow-hidden`}
       style={{
-        minHeight: isFullscreen ? '100vh' : '100vh',
-        maxHeight: isFullscreen ? '100vh' : '100vh'
+        height: '100dvh',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100%',
+        overflowY: 'hidden'
       }}
     >
       {/* Volume control and Exit - positioned at top corners */}
-      <div className="absolute top-4 right-4 z-10">
+      <div className="fixed top-4 right-4 z-20">
         <MuteButton />
       </div>
 
-      <div className="absolute top-4 left-4 z-10">
+      <div className="fixed top-4 left-4 z-20">
         <Button
           variant="ghost"
           size="icon"
@@ -563,7 +569,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
       </div>
 
       {/* Main timer section - takes most of the screen */}
-      <div className="flex-1 flex flex-col justify-center items-center mt-16 mb-auto">
+      <div className="flex-1 flex flex-col justify-center items-center mt-16 mb-28">
         <div className="relative flex flex-col items-center">
           {/* Timer circle */}
           <div className="relative mb-8">
@@ -607,7 +613,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
       </div>
 
       {/* Control section at bottom - fixed position */}
-      <div className="pb-10 pt-2">
+      <div className="fixed bottom-8 left-0 right-0 pb-2 pt-2 z-20">
         <div className="flex justify-center items-center gap-3 px-4">
           {/* Skip backward button */}
           <button
