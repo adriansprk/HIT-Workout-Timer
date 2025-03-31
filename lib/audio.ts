@@ -210,7 +210,8 @@ export const playSound = async (sound: CountdownSound, isMuted: boolean): Promis
 
         if (isMobile) {
             console.log(`Audio: Not playing ${sound} - audio not yet unlocked on mobile`);
-            return;
+            // Try to unlock it anyway as a last resort
+            await forceUnlockAudio();
         }
     }
 
@@ -234,6 +235,7 @@ export const playSound = async (sound: CountdownSound, isMuted: boolean): Promis
 
             // Important for iOS: set preload to auto
             audioToPlay.preload = 'auto';
+            audioToPlay.volume = 1.0; // Ensure full volume
 
             audioToPlay.onerror = (e) => {
                 console.error(`Audio: Error loading ${sound}.mp3 on demand:`, e);
@@ -247,6 +249,7 @@ export const playSound = async (sound: CountdownSound, isMuted: boolean): Promis
         } else {
             // Use fresh copy to avoid issues with concurrent playback
             audioToPlay = audio.cloneNode() as HTMLAudioElement;
+            audioToPlay.volume = 1.0; // Ensure full volume
         }
 
         // Reset playback position to ensure it plays from the start

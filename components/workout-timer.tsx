@@ -121,13 +121,8 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
 
     const intervalId = setInterval(() => {
       setTimeRemaining((prev) => {
-        if (prev <= 1) {
-          clearInterval(intervalId)
-          moveToNextPhase()
-          return 0
-        }
-
-        // Play countdown sounds (3,2,1) for both exercise and rest periods
+        // Play countdown sounds (3,2,1) immediately when we reach these values
+        // rather than waiting until after decrementing the counter
         if (prev <= 3 && prev > 0) {
           const countdownSound = prev === 3 ? 'three' : prev === 2 ? 'two' : 'one';
           const soundKey = `${timerState}-${countdownSound}-${currentRound}-${currentExercise}`;
@@ -135,8 +130,16 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
           // Only play the sound if we haven't played it for this specific countdown instance
           if (!playedSoundsRef.current.has(soundKey)) {
             playedSoundsRef.current.add(soundKey);
+            // Play the sound immediately before reducing the timer
             playCountdownSound(countdownSound);
+            console.log(`Playing ${countdownSound} at time ${prev}`);
           }
+        }
+
+        if (prev <= 1) {
+          clearInterval(intervalId)
+          moveToNextPhase()
+          return 0
         }
 
         return prev - 1
