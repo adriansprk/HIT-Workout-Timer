@@ -1,9 +1,11 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
+import { Button } from "../components/ui/button"
+import { Progress } from "../components/ui/progress"
 import { X } from "lucide-react"
+import { useAudio } from "../contexts/AudioContext"
+import { MuteButton } from "./MuteButton"
 
 // Custom progress component with explicit indigo indicator color
 const CustomProgress = ({ value }: { value: number }) => {
@@ -41,6 +43,10 @@ export default function WorkoutTimer({
   const [timerState, setTimerState] = useState<TimerState>("exercise")
   const [timeRemaining, setTimeRemaining] = useState(exerciseTime)
   const [isPaused, setIsPaused] = useState(false)
+  const { playCountdownSound } = useAudio()
+
+  // Track the previous timer state to detect transitions
+  const [prevTimerState, setPrevTimerState] = useState<TimerState>(timerState)
 
   const getTimerColor = () => {
     return "bg-indigo-500"
@@ -129,6 +135,45 @@ export default function WorkoutTimer({
     return () => clearInterval(timer)
   }, [timerState, isPaused, moveToNextPhase])
 
+  // Track timer state changes
+  useEffect(() => {
+    if (prevTimerState !== timerState) {
+      setPrevTimerState(timerState);
+    }
+  }, [timerState, prevTimerState]);
+
+  // Audio countdown effect for both exercise and rest periods
+  useEffect(() => {
+    if (isPaused) return;
+
+    // Handle the 3,2,1 countdown for any timer state
+    if (timeRemaining <= 3 && timeRemaining > 0) {
+      if (timeRemaining === 3) playCountdownSound('three');
+      else if (timeRemaining === 2) playCountdownSound('two');
+      else if (timeRemaining === 1) playCountdownSound('one');
+    }
+  }, [timeRemaining, isPaused, playCountdownSound]);
+
+  // Play transition sounds between states
+  useEffect(() => {
+    if (isPaused) return;
+
+    // Play sounds on state transitions
+    if (prevTimerState !== timerState) {
+      console.log(`Transition: ${prevTimerState} -> ${timerState}`);
+
+      // Play 'rest' when transitioning to rest periods
+      if (timerState === "rest" || timerState === "roundRest") {
+        playCountdownSound('rest');
+      }
+
+      // Play 'go' when transitioning to exercise (but not at very beginning)
+      if (timerState === "exercise" && (prevTimerState === "rest" || prevTimerState === "roundRest")) {
+        playCountdownSound('go');
+      }
+    }
+  }, [timerState, prevTimerState, isPaused, playCountdownSound]);
+
   const togglePause = () => {
     setIsPaused((prev) => !prev)
   }
@@ -155,14 +200,19 @@ export default function WorkoutTimer({
             </span>
           </div>
 
-          <div className="text-center my-12">
-            <span className="text-7xl font-bold tabular-nums">{formatTime(timeRemaining)}</span>
+          <div className="text-center my-12 relative">
+            <div className="flex items-center justify-center">
+              <span className="text-7xl font-bold tabular-nums">{formatTime(timeRemaining)}</span>
+              <div className="ml-3">
+                <MuteButton />
+              </div>
+            </div>
           </div>
 
           <CustomProgress value={progressPercentage} />
         </div>
 
-        <div className="flex gap-4">
+        <div className="flex gap-4 items-center">
           <Button variant="outline" className="flex-1 py-6" onClick={togglePause}>
             {isPaused ? "Resume" : "Pause"}
           </Button>
