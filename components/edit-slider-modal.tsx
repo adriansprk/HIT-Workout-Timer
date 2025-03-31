@@ -138,26 +138,31 @@ export default function EditSliderModal({
           </Button>
         </div>
 
-        <div className="py-16 px-10">
+        <div className="py-16 px-6 sm:px-10">
           {/* Simplified description label - plain text in black */}
           <div className="mb-8">
             <span className="font-medium text-gray-900 dark:text-white text-2xl">{getLabelText()}</span>
           </div>
 
-          {/* Custom slider implementation with cleaner layering */}
+          {/* Touch hint indicator */}
+          <div className="text-center mb-2 text-sm text-gray-500 dark:text-gray-400">
+            <span>Slide to adjust ↔️</span>
+          </div>
+
+          {/* Custom slider implementation with cleaner layering and larger touch area */}
           <div
             ref={sliderAreaRef}
-            className="relative h-12 mb-20"
+            className="relative h-24 mb-16"
             style={{ touchAction: "pan-x" }}
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
           >
             {/* Base track */}
-            <div className="absolute top-5 h-2 w-full bg-gray-200 dark:bg-gray-800 rounded-full"></div>
+            <div className="absolute top-11 h-3 w-full bg-gray-200 dark:bg-gray-800 rounded-full"></div>
 
             {/* Filled track */}
             <div
-              className="absolute top-5 h-2 rounded-l-full bg-indigo-600 dark:bg-indigo-600"
+              className="absolute top-11 h-3 rounded-l-full bg-indigo-600 dark:bg-indigo-600"
               style={{
                 width: `${((sliderValue - min) / (max - min)) * 100}%`,
                 maxWidth: "100%",
@@ -173,22 +178,22 @@ export default function EditSliderModal({
               return (
                 <div
                   key={point}
-                  className={`absolute top-3 h-6 w-0.5 transition-colors duration-150 ${isActive || isPassed ? "bg-indigo-600 dark:bg-indigo-500" : "bg-gray-300 dark:bg-gray-600"
+                  className={`absolute top-7 h-10 w-1 transition-colors duration-150 ${isActive || isPassed ? "bg-indigo-600 dark:bg-indigo-500" : "bg-gray-300 dark:bg-gray-600"
                     }`}
                   style={{ left: `${position}%` }}
                 ></div>
               )
             })}
 
-            {/* Slider handle */}
+            {/* Slider handle - increased size for better touch target */}
             <div
-              className="absolute top-3 w-6 h-6 rounded-full border-2 border-white dark:border-gray-800 shadow-md transform -translate-x-1/2 transition-colors duration-150 bg-indigo-600 dark:bg-indigo-500"
+              className="absolute top-7 w-10 h-10 rounded-full border-3 border-white dark:border-gray-800 shadow-md transform -translate-x-1/2 transition-colors duration-150 bg-indigo-600 dark:bg-indigo-500"
               style={{
                 left: `${((sliderValue - min) / (max - min)) * 100}%`,
               }}
             ></div>
 
-            {/* Invisible slider for interaction */}
+            {/* Invisible slider for interaction - expanded height for better touch area */}
             <Slider
               value={[sliderValue]}
               min={min}
