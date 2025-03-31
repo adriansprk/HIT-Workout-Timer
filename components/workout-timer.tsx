@@ -48,13 +48,13 @@ const CircularProgress = ({ value, size = 300, strokeWidth = 14, timerState }: {
   const getColor = () => {
     switch (timerState) {
       case "exercise":
-        return "#DC2626"; // red-600
+        return "#EF4444"; // red-500 - brighter for dark mode
       case "rest":
-        return "#16A34A"; // green-600
+        return "#22C55E"; // green-500 - brighter for dark mode
       case "roundRest":
-        return "#2563EB"; // blue-600
+        return "#3B82F6"; // blue-500 - brighter for dark mode
       default:
-        return "#6366F1"; // indigo-600
+        return "#818CF8"; // indigo-400 - brighter for dark mode
     }
   };
 
@@ -73,7 +73,7 @@ const CircularProgress = ({ value, size = 300, strokeWidth = 14, timerState }: {
           r={radius}
           fill="transparent"
           stroke="#E5E7EB" // gray-200
-          className="dark:stroke-gray-700"
+          className="dark:stroke-gray-600"
           strokeWidth={strokeWidth}
         />
       </svg>
@@ -556,9 +556,9 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
           size="icon"
           onClick={onEnd}
           aria-label="End workout"
-          className="h-10 w-10 rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 p-0 flex items-center justify-center"
+          className="h-10 w-10 rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 dark:border dark:border-gray-600 p-0 flex items-center justify-center focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 dark:focus:ring-indigo-400 dark:focus:ring-offset-gray-900"
         >
-          <X className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+          <X className="h-5 w-5 text-gray-700 dark:text-white" />
         </Button>
       </div>
 
@@ -611,7 +611,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
         <div className="flex justify-center items-center gap-3 px-4">
           {/* Skip backward button */}
           <button
-            className="rounded-xl bg-gray-100 dark:bg-gray-800 w-14 h-14 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 dark:focus:ring-gray-600 transition-colors"
+            className="rounded-xl bg-gray-100 dark:bg-gray-700 w-14 h-14 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 dark:focus:ring-indigo-400 dark:focus:ring-offset-gray-900 transition-colors hover:bg-gray-200 dark:hover:bg-gray-600 dark:border dark:border-gray-600"
             onClick={() => {
               // Skip to previous exercise logic would go here
               // For now, just show an alert
@@ -629,7 +629,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="text-gray-700 dark:text-gray-300"
+              className="text-gray-700 dark:text-white"
             >
               <polygon points="19 20 9 12 19 4 19 20"></polygon>
               <line x1="5" y1="19" x2="5" y2="5"></line>
@@ -638,7 +638,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
 
           {/* Pause/Play button */}
           <button
-            className="rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-8 py-3 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-indigo-600 transition-colors"
+            className="rounded-full bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-8 py-3 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 dark:focus:ring-offset-gray-900 transition-colors hover:bg-gray-50 dark:hover:bg-gray-600"
             onClick={() => togglePause()}
             aria-label={isPaused ? "Play workout" : "Pause workout"}
           >
@@ -686,7 +686,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
 
           {/* Skip forward button */}
           <button
-            className="rounded-xl bg-gray-100 dark:bg-gray-800 w-14 h-14 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 dark:focus:ring-gray-600 transition-colors"
+            className="rounded-xl bg-gray-100 dark:bg-gray-700 w-14 h-14 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 dark:focus:ring-indigo-400 dark:focus:ring-offset-gray-900 transition-colors hover:bg-gray-200 dark:hover:bg-gray-600 dark:border dark:border-gray-600"
             onClick={() => {
               // Skip to next exercise
               moveToNextPhase();
@@ -703,7 +703,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="text-gray-700 dark:text-gray-300"
+              className="text-gray-700 dark:text-white"
             >
               <polygon points="5 4 15 12 5 20 5 4"></polygon>
               <line x1="19" y1="5" x2="19" y2="19"></line>

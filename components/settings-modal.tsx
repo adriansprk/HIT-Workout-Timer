@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { Moon, Sun, X } from 'lucide-react';
 import { Button } from './ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 
 interface SettingsModalProps {
     onClose: () => void;
@@ -29,42 +30,21 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 transition-opacity duration-300"
-            style={{ opacity: isVisible ? 1 : 0 }}
-            onClick={handleClose}
-        >
-            <div
-                className="relative w-full max-w-md transform rounded-lg bg-white dark:bg-gray-800 p-6 shadow-xl transition-all duration-300"
-                style={{
-                    transform: isVisible ? 'translateY(0)' : 'translateY(20px)',
-                }}
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div className="flex items-center justify-between mb-5">
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Settings</h2>
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={handleClose}
-                        className="rounded-full h-8 w-8"
-                    >
-                        <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-                        <span className="sr-only">Close</span>
-                    </Button>
-                </div>
+        <Dialog open={isVisible} onOpenChange={handleClose}>
+            <DialogContent className="sm:max-w-lg rounded-xl dark:bg-gray-900 dark:border-gray-800">
+                <DialogHeader>
+                    <DialogTitle className="text-2xl font-bold text-center">Settings</DialogTitle>
+                    <DialogDescription className="text-center text-gray-600 dark:text-gray-400">
+                        Customize your workout experience.
+                    </DialogDescription>
+                </DialogHeader>
 
                 <div className="space-y-4">
                     {/* Dark Mode Toggle */}
-                    <div className="flex items-center justify-between p-4 rounded-lg border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-700">
-                        <div className="flex items-center gap-3">
-                            <div className={`p-2 rounded-lg ${isDarkMode ? "bg-blue-100 dark:bg-blue-900" : "bg-yellow-100"}`}>
-                                {isDarkMode ? (
-                                    <Moon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                                ) : (
-                                    <Sun className="h-5 w-5 text-yellow-600" />
-                                )}
-                            </div>
-                            <span className="font-medium text-gray-900 dark:text-white">Dark Mode</span>
+                    <div className="flex justify-between items-center py-4 border-t border-gray-200 dark:border-gray-800">
+                        <div className="flex flex-col">
+                            <h3 className="font-medium text-gray-900 dark:text-white">Dark Mode</h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Toggle between light and dark theme</p>
                         </div>
                         <div className="flex items-center">
                             <label className="relative inline-flex items-center cursor-pointer">
@@ -86,15 +66,22 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
                     </div>
                 </div>
 
-                <div className="mt-6">
+                <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-800">
                     <Button
-                        className="w-full"
+                        variant="outline"
+                        className="dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800 focus:ring-2 focus:ring-offset-2 dark:focus:ring-indigo-400 dark:focus:ring-offset-gray-900"
                         onClick={handleClose}
                     >
-                        Done
+                        Cancel
+                    </Button>
+                    <Button
+                        className="dark:bg-indigo-600 dark:hover:bg-indigo-700 dark:text-white focus:ring-2 focus:ring-offset-2 dark:focus:ring-indigo-400 dark:focus:ring-offset-gray-900"
+                        onClick={handleClose}
+                    >
+                        Save
                     </Button>
                 </div>
-            </div>
-        </div>
+            </DialogContent>
+        </Dialog>
     );
 } 

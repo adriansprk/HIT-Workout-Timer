@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { X } from "lucide-react"
+import { Label } from "@/components/ui/label"
 
 interface EditSliderModalProps {
   title: string
@@ -128,7 +129,7 @@ export default function EditSliderModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl w-full max-w-md overflow-hidden">
+      <div className="bg-white dark:bg-gray-900 rounded-xl w-full max-w-md overflow-hidden">
         <div className="flex justify-between items-center p-5 border-b dark:border-gray-700">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{title}</h2>
           <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full h-9 w-9 hover:bg-gray-100 dark:hover:bg-gray-700">
@@ -137,26 +138,26 @@ export default function EditSliderModal({
           </Button>
         </div>
 
-        <div className="p-10">
+        <div className="py-16 px-10">
           {/* Simplified description label - plain text in black */}
-          <div className="mb-6">
-            <span className="font-medium text-gray-900 dark:text-white text-lg">{getLabelText()}</span>
+          <div className="mb-8">
+            <span className="font-medium text-gray-900 dark:text-white text-2xl">{getLabelText()}</span>
           </div>
 
           {/* Custom slider implementation with cleaner layering */}
           <div
             ref={sliderAreaRef}
-            className="relative h-12 mb-16"
+            className="relative h-12 mb-20"
             style={{ touchAction: "pan-x" }}
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
           >
             {/* Base track */}
-            <div className="absolute top-5 h-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+            <div className="absolute top-5 h-2 w-full bg-gray-200 dark:bg-gray-800 rounded-full"></div>
 
             {/* Filled track */}
             <div
-              className="absolute top-5 h-2 rounded-l-full bg-indigo-600 dark:bg-indigo-500"
+              className="absolute top-5 h-2 rounded-l-full bg-indigo-600 dark:bg-indigo-600"
               style={{
                 width: `${((sliderValue - min) / (max - min)) * 100}%`,
                 maxWidth: "100%",
@@ -194,7 +195,7 @@ export default function EditSliderModal({
               max={max}
               step={step}
               onValueChange={handleSliderChange}
-              className="absolute inset-0 opacity-0 cursor-pointer"
+              className="absolute inset-0 opacity-0 cursor-pointer [&>.SliderTrack]:dark:bg-gray-600 [&>.SliderRange]:dark:bg-indigo-500 [&>.SliderThumb]:dark:border-indigo-400 [&>.SliderThumb]:focus-visible:ring-indigo-400"
             />
           </div>
 
@@ -205,10 +206,10 @@ export default function EditSliderModal({
         </div>
 
         <div className="grid grid-cols-2 gap-4 p-5 border-t dark:border-gray-700">
-          <Button variant="outline" onClick={onClose} className="py-6 text-lg font-medium rounded-xl border-gray-200 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700">
+          <Button variant="outline" onClick={onClose} className="py-6 text-lg font-medium rounded-xl border-gray-200 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700 focus:ring-2 focus:ring-offset-2 dark:focus:ring-indigo-400 dark:focus:ring-offset-gray-900">
             Cancel
           </Button>
-          <Button onClick={handleSave} className="py-6 text-lg font-medium rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-700 dark:hover:bg-indigo-800">
+          <Button onClick={handleSave} className="py-6 text-lg font-medium rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-700 dark:hover:bg-indigo-800 focus:ring-2 focus:ring-offset-2 dark:focus:ring-indigo-400 dark:focus:ring-offset-gray-900">
             Save
           </Button>
         </div>

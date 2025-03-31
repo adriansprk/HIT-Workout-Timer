@@ -30,14 +30,14 @@ export const MuteButton = () => {
             variant="ghost"
             aria-label={isMuted ? "Unmute" : "Mute"}
             onClick={handleToggleMute}
-            className="relative h-10 w-10 rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 p-0 flex items-center justify-center"
+            className="h-10 w-10 rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 dark:border dark:border-gray-600 p-0 flex items-center justify-center focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 dark:focus:ring-indigo-400 dark:focus:ring-offset-gray-900"
         >
             <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${isMuted ? (isAnimating ? 'opacity-0' : 'opacity-100') : 'opacity-0'}`}>
-                <VolumeX className={`h-5 w-5 transition-transform duration-300 ${isAnimating ? 'rotate-90' : 'rotate-0'} text-gray-600 dark:text-gray-300`} />
+                <VolumeX className={`h-5 w-5 transition-transform duration-300 ${isAnimating ? 'rotate-90' : 'rotate-0'} text-gray-700 dark:text-white`} />
             </div>
 
             <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${isMuted ? 'opacity-0' : (isAnimating ? 'opacity-0' : 'opacity-100')}`}>
-                <Volume2 className={`h-5 w-5 transition-transform duration-300 ${isAnimating ? 'rotate-90' : 'rotate-0'} text-gray-600 dark:text-gray-300`} />
+                <Volume2 className={`h-5 w-5 transition-transform duration-300 ${isAnimating ? 'rotate-90' : 'rotate-0'} text-gray-700 dark:text-white`} />
             </div>
         </Button>
     );
