@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { AudioProvider } from '../contexts/AudioContext'
+import { AudioUnlocker } from '../components/AudioUnlocker'
 
 export const metadata: Metadata = {
   title: 'v0 App',
@@ -17,6 +18,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning>
         <AudioProvider>
+          <AudioUnlocker />
           {children}
         </AudioProvider>
       </body>

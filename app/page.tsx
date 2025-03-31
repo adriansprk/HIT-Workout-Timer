@@ -7,6 +7,8 @@ import WorkoutTimer from "../components/workout-timer"
 import EditSliderModal from "../components/edit-slider-modal"
 import EditCounterModal from "../components/edit-counter-modal"
 import { loadWorkoutParams, updateWorkoutParams } from "../lib/settings"
+import { forceUnlockAudio } from "../lib/audio"
+import Link from "next/link"
 
 export default function Home() {
   // Initialize state with default values
@@ -69,8 +71,10 @@ export default function Home() {
 
   const totalTimeInSeconds = calculateTotalTime()
 
-  const startWorkout = () => {
-    setIsWorkoutActive(true)
+  const startWorkout = async () => {
+    // Unlock audio first to ensure sounds work throughout the workout
+    await forceUnlockAudio();
+    setIsWorkoutActive(true);
   }
 
   const endWorkout = () => {
@@ -287,14 +291,21 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="flex items-center justify-center gap-2 mb-6">
-            <Clock className="h-6 w-6 text-gray-600" />
-            <span className="text-xl font-medium">Total Workout Time: {formatTime(totalTimeInSeconds)}</span>
-          </div>
+          <div className="space-y-2">
+            <div className="text-center flex items-center justify-center py-2">
+              <Clock className="h-4 w-4 text-gray-500 mr-1.5" />
+              <span className="text-sm font-medium text-gray-600 mr-1.5">Total Workout Time:</span>
+              <span className="text-lg font-bold text-indigo-600">{formatTime(totalTimeInSeconds)}</span>
+            </div>
 
-          <Button className="w-full py-6 text-lg bg-indigo-600 hover:bg-indigo-700" onClick={startWorkout}>
-            Start Workout
-          </Button>
+            <Button
+              className="w-full py-6 text-lg bg-indigo-600 hover:bg-indigo-700"
+              size="lg"
+              onClick={startWorkout}
+            >
+              Start Workout
+            </Button>
+          </div>
         </div>
       )}
 

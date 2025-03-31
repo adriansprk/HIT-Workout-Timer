@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { X } from "lucide-react"
@@ -23,6 +23,20 @@ export default function EditDurationModal({
   max = 100,
 }: EditDurationModalProps) {
   const [inputValue, setInputValue] = useState(value)
+
+  // Prevent body scrolling when modal is open
+  useEffect(() => {
+    // Save original body style
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+
+    // Prevent scrolling on body
+    document.body.style.overflow = 'hidden';
+
+    // Restore original body style when component unmounts
+    return () => {
+      document.body.style.overflow = originalStyle;
+    };
+  }, []);
 
   const handleSave = () => {
     // Ensure value is within bounds

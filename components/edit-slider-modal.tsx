@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { X } from "lucide-react"
@@ -32,6 +32,8 @@ export default function EditSliderModal({
 }: EditSliderModalProps) {
   const [sliderValue, setSliderValue] = useState(value)
   const [activeSnapPoint, setActiveSnapPoint] = useState<number | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const sliderAreaRef = useRef<HTMLDivElement>(null)
   const snapThreshold = 2 // +/- 2 seconds snap threshold
 
   // Check if the current value is snapped to any snap point
@@ -59,6 +61,20 @@ export default function EditSliderModal({
     }
   }, [sliderValue, snapPoints, snapThreshold])
 
+  // Prevent body scrolling when modal is open
+  useEffect(() => {
+    // Save original body style
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+
+    // Prevent scrolling on body
+    document.body.style.overflow = 'hidden';
+
+    // Restore original body style when component unmounts
+    return () => {
+      document.body.style.overflow = originalStyle;
+    };
+  }, []);
+
   const handleSliderChange = (newValue: number[]) => {
     setSliderValue(newValue[0])
   }
@@ -82,6 +98,34 @@ export default function EditSliderModal({
     }
   }
 
+  // Prevent default touch move behavior when dragging
+  const handleTouchStart = () => {
+    setIsDragging(true)
+  }
+
+  const handleTouchEnd = () => {
+    setIsDragging(false)
+  }
+
+  // Prevent page scrolling when dragging the slider
+  useEffect(() => {
+    const preventScroll = (e: TouchEvent) => {
+      if (isDragging) {
+        e.preventDefault()
+      }
+    }
+
+    if (sliderAreaRef.current) {
+      sliderAreaRef.current.addEventListener('touchmove', preventScroll, { passive: false })
+    }
+
+    return () => {
+      if (sliderAreaRef.current) {
+        sliderAreaRef.current.removeEventListener('touchmove', preventScroll)
+      }
+    }
+  }, [isDragging])
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl w-full max-w-md overflow-hidden">
@@ -100,7 +144,13 @@ export default function EditSliderModal({
           </div>
 
           {/* Custom slider implementation with cleaner layering */}
-          <div className="relative h-12 mb-16">
+          <div
+            ref={sliderAreaRef}
+            className="relative h-12 mb-16"
+            style={{ touchAction: "pan-x" }}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
             {/* Base track */}
             <div className="absolute top-5 h-2 w-full bg-gray-200 rounded-full"></div>
 
