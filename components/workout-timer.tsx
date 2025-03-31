@@ -95,12 +95,12 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
         setTimeRemaining(roundRestTime)
         setCurrentRound((prev) => prev + 1)
         setCurrentExercise(1)
-        playCountdownSound('rest');
+        // Play rest sound at the start of rest period instead of at the transition
       } else {
         // Move to rest period
         setTimerState("rest")
         setTimeRemaining(restTime)
-        playCountdownSound('rest');
+        // Play rest sound at the start of rest period instead of at the transition
       }
     } else if (timerState === "rest") {
       // Move to next exercise
@@ -121,45 +121,50 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
 
     const intervalId = setInterval(() => {
       setTimeRemaining((prev) => {
-        // Play countdown sounds (3,2,1) immediately when we reach these values
-        // rather than waiting until after decrementing the counter
-        if (prev <= 3 && prev > 0) {
+        // Play countdown sounds (3,2,1) for specific times
+        if (prev === 3 || prev === 2 || prev === 1) {
           const countdownSound = prev === 3 ? 'three' : prev === 2 ? 'two' : 'one';
           const soundKey = `${timerState}-${countdownSound}-${currentRound}-${currentExercise}`;
 
           // Only play the sound if we haven't played it for this specific countdown instance
           if (!playedSoundsRef.current.has(soundKey)) {
             playedSoundsRef.current.add(soundKey);
-            // Play the sound immediately before reducing the timer
+            // Play the sound exactly at the right time
             playCountdownSound(countdownSound);
             console.log(`Playing ${countdownSound} at time ${prev}`);
           }
         }
 
         if (prev <= 1) {
-          clearInterval(intervalId)
-          moveToNextPhase()
-          return 0
+          clearInterval(intervalId);
+          moveToNextPhase();
+          return 0;
         }
 
-        return prev - 1
-      })
-    }, 1000)
+        return prev - 1;
+      });
+    }, 1000);
 
-    return () => clearInterval(intervalId)
-  }, [timerState, isPaused, moveToNextPhase, playCountdownSound, currentRound, currentExercise])
+    return () => clearInterval(intervalId);
+  }, [timerState, isPaused, moveToNextPhase, playCountdownSound, currentRound, currentExercise]);
+
+  // Play rest sound when entering rest state
+  useEffect(() => {
+    if (prevTimerState !== timerState) {
+      console.log(`Timer state changed from ${prevTimerState} to ${timerState}`);
+
+      // Play 'rest' sound when entering rest or roundRest state
+      if ((timerState === 'rest' || timerState === 'roundRest') &&
+        (prevTimerState === 'exercise')) {
+        playCountdownSound('rest');
+      }
+    }
+  }, [timerState, prevTimerState, playCountdownSound]);
 
   // Clear played sounds when starting a new interval
   useEffect(() => {
     playedSoundsRef.current.clear();
   }, [timerState, currentExercise, currentRound]);
-
-  // Play sounds on state transitions
-  useEffect(() => {
-    if (prevTimerState !== timerState) {
-      console.log(`Timer state changed from ${prevTimerState} to ${timerState}`);
-    }
-  }, [timerState, prevTimerState, isPaused, playCountdownSound]);
 
   // When the workout is complete
   useEffect(() => {
