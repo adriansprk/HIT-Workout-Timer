@@ -7,6 +7,7 @@ import WorkoutTimer from "../components/workout-timer"
 import EditSliderModal from "../components/edit-slider-modal"
 import EditCounterModal from "../components/edit-counter-modal"
 import { loadWorkoutParams, updateWorkoutParams } from "../lib/settings"
+import { forceUnlockAudio } from "../lib/audio"
 import Link from "next/link"
 
 export default function Home() {
@@ -70,8 +71,10 @@ export default function Home() {
 
   const totalTimeInSeconds = calculateTotalTime()
 
-  const startWorkout = () => {
-    setIsWorkoutActive(true)
+  const startWorkout = async () => {
+    // Unlock audio first to ensure sounds work throughout the workout
+    await forceUnlockAudio();
+    setIsWorkoutActive(true);
   }
 
   const endWorkout = () => {
@@ -298,17 +301,13 @@ export default function Home() {
             </div>
           </div>
 
-          <Link href="/workout-timer" className="w-full">
-            <Button className="w-full py-6 text-lg bg-indigo-600 hover:bg-indigo-700" size="lg">
-              Start Workout
-            </Button>
-          </Link>
-
-          <Link href="/audio-debug" className="w-full mt-2">
-            <Button variant="outline" className="w-full" size="lg">
-              Audio Debug Tool
-            </Button>
-          </Link>
+          <Button
+            className="w-full py-6 text-lg bg-indigo-600 hover:bg-indigo-700"
+            size="lg"
+            onClick={startWorkout}
+          >
+            Start Workout
+          </Button>
         </div>
       )}
 
