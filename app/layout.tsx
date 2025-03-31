@@ -5,7 +5,7 @@ import { AudioUnlocker } from '../components/AudioUnlocker'
 import { ThemeProvider } from '../contexts/ThemeContext'
 
 export const metadata: Metadata = {
-  title: 'v0 App',
+  title: 'Simple HIT Timer',
   description: 'Created with v0',
   generator: 'v0.dev',
 }
