@@ -116,82 +116,49 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
   useEffect(() => {
     if (timerState === "complete" || isPaused) return
 
-    // Sound flags to ensure sounds play exactly once per second
-    const soundFlags = {
-      three: false,
-      two: false,
-      one: false,
-      rest: false,
-      go: false
-    };
+    // Start with the current time remaining
+    let currentTime = timeRemaining;
 
-    // Function to handle countdown and sound logic
-    const handleTick = () => {
-      setTimeRemaining((prev) => {
-        // Play sounds based on the CURRENT time value
-        if (prev === 3 && !soundFlags.three) {
-          soundFlags.three = true;
-          playCountdownSound('three');
-          console.log('Playing three at', prev);
-        }
-        else if (prev === 2 && !soundFlags.two) {
-          soundFlags.two = true;
-          playCountdownSound('two');
-          console.log('Playing two at', prev);
-        }
-        else if (prev === 1 && !soundFlags.one) {
-          soundFlags.one = true;
-          playCountdownSound('one');
-          console.log('Playing one at', prev);
-        }
-        else if (prev === 0) {
-          // Handle the transition sounds
-          if (timerState === "exercise" && !soundFlags.rest) {
-            soundFlags.rest = true;
-            playCountdownSound('rest');
-            console.log('Playing rest at', prev);
-          }
-          else if ((timerState === "rest" || timerState === "roundRest") && !soundFlags.go) {
-            soundFlags.go = true;
-            playCountdownSound('go');
-            console.log('Playing go at', prev);
-          }
-
-          // At 0, move to next phase
-          moveToNextPhase();
-          return 0;
-        }
-
-        // Normal countdown
-        if (prev > 0) {
-          return prev - 1;
-        }
-
-        return prev;
-      });
-    };
-
-    // Initial setup - schedule first tick immediately to sync with UI
-    const initialDelayTimeout = setTimeout(() => {
-      handleTick();
-
-      // Then set up the recurring interval
-      const intervalId = setInterval(handleTick, 1000);
-
-      // Clear interval on cleanup
-      return () => {
-        clearInterval(intervalId);
-        clearTimeout(initialDelayTimeout);
-      };
-    }, 0);
-
-    return () => clearTimeout(initialDelayTimeout);
-  }, [timerState, isPaused, moveToNextPhase, playCountdownSound]);
-
-  // Clear sound state when timer state changes
-  useEffect(() => {
+    // Clear any previously played sounds
     playedSoundsRef.current.clear();
-  }, [timerState, currentExercise, currentRound]);
+
+    // Set up an interval that runs exactly every second
+    const intervalId = setInterval(() => {
+      // Play sounds based on current time
+      if (currentTime === 3) {
+        playCountdownSound('three');
+        console.log('Playing three at', currentTime);
+      } else if (currentTime === 2) {
+        playCountdownSound('two');
+        console.log('Playing two at', currentTime);
+      } else if (currentTime === 1) {
+        playCountdownSound('one');
+        console.log('Playing one at', currentTime);
+      } else if (currentTime === 0) {
+        // Handle transition sounds based on current timer state
+        if (timerState === "exercise") {
+          playCountdownSound('rest');
+          console.log('Playing rest at 0');
+        } else if (timerState === "rest" || timerState === "roundRest") {
+          playCountdownSound('go');
+          console.log('Playing go at 0');
+        }
+
+        // Only call moveToNextPhase if currentTime is 0
+        clearInterval(intervalId);
+        moveToNextPhase();
+        return;
+      }
+
+      // Decrement the local time variable
+      currentTime--;
+
+      // Update the UI with the decremented time
+      setTimeRemaining(currentTime);
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [timerState, isPaused, timeRemaining, moveToNextPhase, playCountdownSound]);
 
   // When the workout is complete
   useEffect(() => {
