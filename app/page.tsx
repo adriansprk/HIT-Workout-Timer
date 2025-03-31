@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Settings, Timer, Dumbbell, RotateCcw, Clock, RefreshCw } from "lucide-react"
+import { Settings, Timer, Dumbbell, RotateCcw, Clock, RefreshCw, Play } from "lucide-react"
 import { Button } from "../components/ui/button"
 import WorkoutTimer from "../components/workout-timer"
 import EditSliderModal from "../components/edit-slider-modal"
@@ -311,10 +311,11 @@ export default function Home() {
             </div>
 
             <Button
-              className="w-full py-6 text-lg bg-indigo-600 hover:bg-indigo-700"
+              className="w-full py-6 text-lg bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white"
               size="lg"
               onClick={startWorkout}
             >
+              <Play className="h-5 w-5 mr-2 fill-current" />
               Start Workout
             </Button>
           </div>
