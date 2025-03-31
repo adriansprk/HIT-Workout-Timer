@@ -108,8 +108,8 @@ export const preloadSounds = async (): Promise<void> => {
 
         for (const sound of sounds) {
             try {
-                // Make sure we use the correct path
-                const audio = new Audio(`/audio/${sound}.mp3`);
+                // Make sure we use the correct path and add version to bypass caching
+                const audio = new Audio(`/audio/${sound}.mp3?v=${Date.now()}`);
 
                 // Important for iOS: set preload to auto
                 audio.preload = 'auto';
@@ -230,7 +230,7 @@ export const playSound = async (sound: CountdownSound, isMuted: boolean): Promis
         const audio = audioCache[sound];
         if (!audio) {
             console.warn(`Audio: Sound "${sound}" not found in cache. Creating new instance.`);
-            audioToPlay = new Audio(`/audio/${sound}.mp3`);
+            audioToPlay = new Audio(`/audio/${sound}.mp3?v=${Date.now()}`);
 
             // Important for iOS: set preload to auto
             audioToPlay.preload = 'auto';
@@ -280,4 +280,45 @@ export const playSound = async (sound: CountdownSound, isMuted: boolean): Promis
         console.error(`Audio: Error in playSound for "${sound}":`, error);
         playingSounds.delete(sound);
     }
+};
+
+/**
+ * Function to directly check if audio files exist on the server
+ * and are accessible through the browser
+ */
+export const checkAudioFiles = async (): Promise<Record<CountdownSound, boolean>> => {
+    const sounds: CountdownSound[] = ['three', 'two', 'one', 'rest', 'go'];
+    const results: Record<CountdownSound, boolean> = {
+        three: false,
+        two: false,
+        one: false,
+        rest: false,
+        go: false
+    };
+
+    console.log('Audio: Starting file accessibility check');
+
+    const checkPromises = sounds.map(async (sound) => {
+        const url = `/audio/${sound}.mp3?v=${Date.now()}`;
+        try {
+            // Try to fetch the file to check if it exists
+            const response = await fetch(url, { method: 'HEAD' });
+            results[sound] = response.ok;
+
+            console.log(`Audio: ${sound}.mp3 - ${response.status} ${response.statusText} (${response.ok ? 'OK' : 'FAILED'})`);
+
+            // Log more detailed info
+            if (!response.ok) {
+                console.error(`Audio: Failed to fetch ${sound}.mp3 - Status: ${response.status} ${response.statusText}`);
+            }
+        } catch (error) {
+            console.error(`Audio: Error checking ${sound}.mp3:`, error);
+            results[sound] = false;
+        }
+    });
+
+    await Promise.all(checkPromises);
+    console.log('Audio: File accessibility check complete', results);
+
+    return results;
 }; 

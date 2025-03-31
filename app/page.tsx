@@ -7,6 +7,7 @@ import WorkoutTimer from "../components/workout-timer"
 import EditSliderModal from "../components/edit-slider-modal"
 import EditCounterModal from "../components/edit-counter-modal"
 import { loadWorkoutParams, updateWorkoutParams } from "../lib/settings"
+import Link from "next/link"
 
 export default function Home() {
   // Initialize state with default values
@@ -287,14 +288,27 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="flex items-center justify-center gap-2 mb-6">
-            <Clock className="h-6 w-6 text-gray-600" />
-            <span className="text-xl font-medium">Total Workout Time: {formatTime(totalTimeInSeconds)}</span>
+          <div className="space-y-4 mb-4">
+            <div className="bg-white p-4 rounded-lg shadow-sm">
+              <div className="flex items-center gap-3 mb-2">
+                <Clock className="h-5 w-5 text-gray-500" />
+                <h3 className="font-medium">Total Workout Time</h3>
+              </div>
+              <p className="text-2xl font-bold text-indigo-600">{formatTime(totalTimeInSeconds)}</p>
+            </div>
           </div>
 
-          <Button className="w-full py-6 text-lg bg-indigo-600 hover:bg-indigo-700" onClick={startWorkout}>
-            Start Workout
-          </Button>
+          <Link href="/workout-timer" className="w-full">
+            <Button className="w-full py-6 text-lg bg-indigo-600 hover:bg-indigo-700" size="lg">
+              Start Workout
+            </Button>
+          </Link>
+
+          <Link href="/audio-debug" className="w-full mt-2">
+            <Button variant="outline" className="w-full" size="lg">
+              Audio Debug Tool
+            </Button>
+          </Link>
         </div>
       )}
 
