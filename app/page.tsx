@@ -303,25 +303,21 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="flex items-center justify-center gap-2 mt-8 mb-4 text-gray-900 dark:text-white">
-            <Clock className="h-5 w-5 text-gray-700 dark:text-gray-300" />
-            <span className="text-lg font-medium text-gray-900 dark:text-white">Total Workout Time:</span>
-            <span className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{formatTime(totalTimeInSeconds)}</span>
-          </div>
+          <div className="space-y-2">
+            <div className="text-center flex items-center justify-center py-2">
+              <Clock className="h-4 w-4 text-gray-500 mr-1.5" />
+              <span className="text-sm font-medium text-gray-600 mr-1.5">Total Workout Time:</span>
+              <span className="text-lg font-bold text-indigo-600">{formatTime(totalTimeInSeconds)}</span>
+            </div>
 
-          <div className="mt-6 mb-8 flex flex-col items-center space-y-4">
             <Button
-              className="w-full py-6 text-xl font-medium bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-700 rounded-xl text-white focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 dark:focus:ring-offset-gray-900 transition-colors"
+              className="w-full py-6 text-lg bg-indigo-600 hover:bg-indigo-700"
+              size="lg"
               onClick={startWorkout}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 mr-2">
-                <path fillRule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z" clipRule="evenodd" />
-              </svg>
               Start Workout
             </Button>
           </div>
-
-          <div className="h-8 md:hidden"></div>
         </div>
       )}
 

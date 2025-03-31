@@ -600,15 +600,6 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
               </div>
             </div>
           </div>
-
-          {/* Instruction text */}
-          {timerState === "roundRest" && (
-            <div className="text-center mt-4">
-              <p className="text-base font-medium text-gray-700 dark:text-gray-300">
-                Get ready for Round {currentRound + 1}
-              </p>
-            </div>
-          )}
         </div>
       </div>
 
@@ -716,6 +707,46 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
             </svg>
           </button>
         </div>
+
+        <Progress value={progressPercentage} />
+
+        <div className="my-6 text-center">
+          <span className="text-xl font-semibold">
+            {timerState === "exercise"
+              ? "Exercise"
+              : timerState === "rest"
+                ? "Rest"
+                : "Recovery Time"}
+          </span>
+          {timerState === "roundRest" && (
+            <p className="text-sm text-gray-600 mt-1">
+              Get ready for Round {currentRound + 1}
+            </p>
+          )}
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="bg-gray-100 rounded-lg p-4 text-center">
+            <div className="text-sm text-gray-600 mb-1">Round</div>
+            <div className="text-xl font-semibold">
+              {currentRound} / {validRounds}
+            </div>
+          </div>
+          <div className="bg-gray-100 rounded-lg p-4 text-center">
+            <div className="text-sm text-gray-600 mb-1">Exercise</div>
+            <div className="text-xl font-semibold">
+              {Math.min(currentExercise, validExercises)} / {validExercises}
+            </div>
+          </div>
+        </div>
+
+        <Button
+          variant="destructive"
+          className="w-full"
+          onClick={onEnd}
+        >
+          End Workout
+        </Button>
       </div>
     </div>
   )
