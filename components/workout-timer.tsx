@@ -539,7 +539,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
   return (
     <div
       ref={timerContainerRef}
-      className={`mx-auto ${isFullscreen ? 'h-screen w-screen' : 'max-w-md h-[100dvh]'} flex flex-col justify-between bg-white dark:bg-background relative overflow-hidden`}
+      className={`mx-auto workout-timer-active ${isFullscreen ? 'h-screen w-screen' : 'max-w-md h-[100dvh]'} flex flex-col justify-between bg-white dark:bg-background relative overflow-hidden`}
       style={{
         height: '100dvh',
         position: 'fixed',

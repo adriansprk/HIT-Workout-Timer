@@ -93,6 +93,13 @@ body {
 
   body {
     @apply bg-background text-foreground;
+    /* Allow scrolling by default */
+    overflow-y: auto;
+    min-height: 100vh;
+  }
+
+  /* Only apply fixed positioning when workout-timer exists */
+  body:has(.workout-timer-active) {
     overflow: hidden;
     height: 100dvh;
     width: 100vw;
@@ -101,11 +108,14 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
+    touch-action: manipulation;
+    -webkit-overflow-scrolling: none;
+    overscroll-behavior: none;
   }
 
-  /* Mobile-specific adjustments */
+  /* Mobile-specific adjustments only for workout timer */
   @media (max-width: 767px) {
-    html, body {
+    body:has(.workout-timer-active) {
       height: 100%;
       overflow: hidden;
       position: fixed;
