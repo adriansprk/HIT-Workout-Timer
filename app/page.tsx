@@ -291,23 +291,21 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="space-y-4 mb-4">
-            <div className="bg-white p-4 rounded-lg shadow-sm">
-              <div className="flex items-center gap-3 mb-2">
-                <Clock className="h-5 w-5 text-gray-500" />
-                <h3 className="font-medium">Total Workout Time</h3>
-              </div>
-              <p className="text-2xl font-bold text-indigo-600">{formatTime(totalTimeInSeconds)}</p>
+          <div className="space-y-2">
+            <div className="text-center flex items-center justify-center py-2">
+              <Clock className="h-4 w-4 text-gray-500 mr-1.5" />
+              <span className="text-sm font-medium text-gray-600 mr-1.5">Total Workout Time:</span>
+              <span className="text-lg font-bold text-indigo-600">{formatTime(totalTimeInSeconds)}</span>
             </div>
-          </div>
 
-          <Button
-            className="w-full py-6 text-lg bg-indigo-600 hover:bg-indigo-700"
-            size="lg"
-            onClick={startWorkout}
-          >
-            Start Workout
-          </Button>
+            <Button
+              className="w-full py-6 text-lg bg-indigo-600 hover:bg-indigo-700"
+              size="lg"
+              onClick={startWorkout}
+            >
+              Start Workout
+            </Button>
+          </div>
         </div>
       )}
 

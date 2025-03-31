@@ -2,6 +2,7 @@ export interface UserSettings {
     muted: boolean;
     workoutParams: WorkoutParams;
     audioUnlocked: boolean;
+    workoutStreak: WorkoutStreak;
 }
 
 export interface WorkoutParams {
@@ -10,6 +11,11 @@ export interface WorkoutParams {
     roundRestTime: number;
     exercises: number;
     rounds: number;
+}
+
+export interface WorkoutStreak {
+    count: number;
+    lastWorkoutDate: string | null;
 }
 
 const SETTINGS_KEY = 'hiit-timer-settings';
@@ -24,6 +30,10 @@ const DEFAULT_SETTINGS: UserSettings = {
         roundRestTime: 30,
         exercises: 4,
         rounds: 3
+    },
+    workoutStreak: {
+        count: 0,
+        lastWorkoutDate: null
     }
 };
 
@@ -120,4 +130,66 @@ export const saveAudioUnlockStatus = (isUnlocked: boolean): void => {
  */
 export const getAudioUnlockStatus = (): boolean => {
     return loadSettings().audioUnlocked;
+};
+
+/**
+ * Get the current workout streak
+ */
+export const getWorkoutStreak = (): WorkoutStreak => {
+    const settings = loadSettings();
+    return settings.workoutStreak;
+};
+
+/**
+ * Update the workout streak after completing a workout
+ */
+export const updateWorkoutStreak = (): WorkoutStreak => {
+    const settings = loadSettings();
+    const { workoutStreak } = settings;
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+
+    // If there's no previous workout, start the streak
+    if (!workoutStreak.lastWorkoutDate) {
+        const newStreak = {
+            count: 1,
+            lastWorkoutDate: today
+        };
+
+        saveSettings({
+            ...settings,
+            workoutStreak: newStreak
+        });
+
+        return newStreak;
+    }
+
+    const lastWorkoutDate = new Date(workoutStreak.lastWorkoutDate);
+    const lastWorkoutDay = new Date(lastWorkoutDate).toISOString().split('T')[0];
+
+    // If the last workout was today, don't increment streak
+    if (lastWorkoutDay === today) {
+        return workoutStreak;
+    }
+
+    // Calculate days between workouts
+    const oneDayInMs = 24 * 60 * 60 * 1000;
+    const yesterdayDate = new Date(Date.now() - oneDayInMs).toISOString().split('T')[0];
+
+    // If the last workout was yesterday, increment streak
+    // If it was earlier, reset streak to 1
+    const newCount = lastWorkoutDay === yesterdayDate
+        ? workoutStreak.count + 1
+        : 1;
+
+    const newStreak = {
+        count: newCount,
+        lastWorkoutDate: today
+    };
+
+    saveSettings({
+        ...settings,
+        workoutStreak: newStreak
+    });
+
+    return newStreak;
 }; 
