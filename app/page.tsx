@@ -6,8 +6,10 @@ import { Button } from "../components/ui/button"
 import WorkoutTimer from "../components/workout-timer"
 import EditSliderModal from "../components/edit-slider-modal"
 import EditCounterModal from "../components/edit-counter-modal"
+import SettingsModal from "../components/settings-modal"
 import { loadWorkoutParams, updateWorkoutParams } from "../lib/settings"
 import { forceUnlockAudio } from "../lib/audio"
+import { useTheme } from "../contexts/ThemeContext"
 import Link from "next/link"
 
 export default function Home() {
@@ -19,6 +21,8 @@ export default function Home() {
   const [rounds, setRounds] = useState(3)
   const [isWorkoutActive, setIsWorkoutActive] = useState(false)
   const [currentModal, setCurrentModal] = useState<string | null>(null)
+  const [showSettings, setShowSettings] = useState(false)
+  const { isDarkMode, toggleDarkMode } = useTheme()
 
   // Load saved workout params from localStorage on component mount
   useEffect(() => {
@@ -89,8 +93,16 @@ export default function Home() {
     setCurrentModal(null)
   }
 
+  const openSettings = () => {
+    setShowSettings(true)
+  }
+
+  const closeSettings = () => {
+    setShowSettings(false)
+  }
+
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-white dark:bg-gray-900">
       {isWorkoutActive ? (
         <WorkoutTimer
           exerciseTime={exerciseTime}
@@ -103,30 +115,30 @@ export default function Home() {
       ) : (
         <div className="max-w-md mx-auto p-4">
           <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold">HIIT Workout</h1>
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <Settings className="h-6 w-6" />
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">HIIT Workout</h1>
+            <Button variant="ghost" size="icon" className="rounded-full" onClick={openSettings}>
+              <Settings className="h-6 w-6 text-gray-700 dark:text-gray-300" />
               <span className="sr-only">Settings</span>
             </Button>
           </div>
 
-          <div className="bg-gray-50 rounded-xl p-4 mb-8">
-            <h2 className="text-xl font-semibold mb-4">Workout Settings</h2>
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 mb-8">
+            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Workout Settings</h2>
 
             <div className="space-y-4">
-              <div className="flex items-center justify-between bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
+              <div className="flex items-center justify-between bg-white dark:bg-gray-700 p-4 rounded-lg border border-gray-100 dark:border-gray-600 shadow-sm">
                 <div className="flex items-center gap-3">
                   <div className="bg-green-100 p-2 rounded-lg">
                     <Timer className="h-5 w-5 text-green-600" />
                   </div>
-                  <span className="font-medium">Exercise Time</span>
+                  <span className="font-medium text-gray-900 dark:text-white">Exercise Time</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="font-medium">{exerciseTime}s</span>
+                  <span className="font-medium text-gray-900 dark:text-white">{exerciseTime}s</span>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-indigo-600"
+                    className="h-8 w-8 text-indigo-600 dark:text-indigo-400"
                     onClick={() => openModal("exerciseTime")}
                   >
                     <svg
@@ -149,19 +161,19 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
+              <div className="flex items-center justify-between bg-white dark:bg-gray-700 p-4 rounded-lg border border-gray-100 dark:border-gray-600 shadow-sm">
                 <div className="flex items-center gap-3">
                   <div className="bg-blue-100 p-2 rounded-lg">
                     <Timer className="h-5 w-5 text-blue-600" />
                   </div>
-                  <span className="font-medium">Rest Time</span>
+                  <span className="font-medium text-gray-900 dark:text-white">Rest Time</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="font-medium">{restTime}s</span>
+                  <span className="font-medium text-gray-900 dark:text-white">{restTime}s</span>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-indigo-600"
+                    className="h-8 w-8 text-indigo-600 dark:text-indigo-400"
                     onClick={() => openModal("restTime")}
                   >
                     <svg
@@ -184,19 +196,19 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
+              <div className="flex items-center justify-between bg-white dark:bg-gray-700 p-4 rounded-lg border border-gray-100 dark:border-gray-600 shadow-sm">
                 <div className="flex items-center gap-3">
                   <div className="bg-purple-100 p-2 rounded-lg">
                     <Dumbbell className="h-5 w-5 text-purple-600" />
                   </div>
-                  <span className="font-medium">Exercises</span>
+                  <span className="font-medium text-gray-900 dark:text-white">Exercises</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="font-medium">{exercises}</span>
+                  <span className="font-medium text-gray-900 dark:text-white">{exercises}</span>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-indigo-600"
+                    className="h-8 w-8 text-indigo-600 dark:text-indigo-400"
                     onClick={() => openModal("exercises")}
                   >
                     <svg
@@ -219,19 +231,19 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
+              <div className="flex items-center justify-between bg-white dark:bg-gray-700 p-4 rounded-lg border border-gray-100 dark:border-gray-600 shadow-sm">
                 <div className="flex items-center gap-3">
                   <div className="bg-orange-100 p-2 rounded-lg">
                     <RotateCcw className="h-5 w-5 text-orange-600" />
                   </div>
-                  <span className="font-medium">Rounds</span>
+                  <span className="font-medium text-gray-900 dark:text-white">Rounds</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="font-medium">{rounds}</span>
+                  <span className="font-medium text-gray-900 dark:text-white">{rounds}</span>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-indigo-600"
+                    className="h-8 w-8 text-indigo-600 dark:text-indigo-400"
                     onClick={() => openModal("rounds")}
                   >
                     <svg
@@ -254,19 +266,19 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
+              <div className="flex items-center justify-between bg-white dark:bg-gray-700 p-4 rounded-lg border border-gray-100 dark:border-gray-600 shadow-sm">
                 <div className="flex items-center gap-3">
                   <div className="bg-teal-100 p-2 rounded-lg">
                     <RefreshCw className="h-5 w-5 text-teal-600" />
                   </div>
-                  <span className="font-medium">Round Rest Time</span>
+                  <span className="font-medium text-gray-900 dark:text-white">Round Rest Time</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="font-medium">{roundRestTime}s</span>
+                  <span className="font-medium text-gray-900 dark:text-white">{roundRestTime}s</span>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-indigo-600"
+                    className="h-8 w-8 text-indigo-600 dark:text-indigo-400"
                     onClick={() => openModal("roundRestTime")}
                   >
                     <svg
@@ -291,21 +303,24 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <div className="text-center flex items-center justify-center py-2">
-              <Clock className="h-4 w-4 text-gray-500 mr-1.5" />
-              <span className="text-sm font-medium text-gray-600 mr-1.5">Total Workout Time:</span>
-              <span className="text-lg font-bold text-indigo-600">{formatTime(totalTimeInSeconds)}</span>
+          <div className="flex flex-col items-center text-center gap-2 mb-8 text-gray-900 dark:text-white">
+            <div className="flex items-center gap-2 text-gray-900 dark:text-white">
+              <Clock className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+              <span className="text-lg font-medium text-gray-900 dark:text-white">Total Workout Time:</span>
             </div>
-
-            <Button
-              className="w-full py-6 text-lg bg-indigo-600 hover:bg-indigo-700"
-              size="lg"
-              onClick={startWorkout}
-            >
-              Start Workout
-            </Button>
+            <span className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">{formatTime(totalTimeInSeconds)}</span>
           </div>
+
+          <Button
+            className="w-full py-6 text-lg bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-700 dark:hover:bg-indigo-800 text-white flex items-center justify-center gap-2"
+            size="lg"
+            onClick={startWorkout}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+              <path fillRule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z" clipRule="evenodd" />
+            </svg>
+            Start Workout
+          </Button>
         </div>
       )}
 
@@ -374,6 +389,10 @@ export default function Home() {
           min={1}
           max={10}
         />
+      )}
+
+      {showSettings && (
+        <SettingsModal onClose={closeSettings} />
       )}
     </main>
   )
