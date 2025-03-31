@@ -2,33 +2,28 @@ import { saveAudioUnlockStatus, getAudioUnlockStatus as getSavedAudioUnlockStatu
 
 export type CountdownSound = 'three' | 'two' | 'one' | 'rest' | 'go';
 
-interface AudioCache {
-    [key: string]: HTMLAudioElement;
-}
-
-// Cache for preloaded audio elements
-const audioCache: AudioCache = {};
-
-// Create a persistent Audio element for iOS
-let masterAudioElement: HTMLAudioElement | null = null;
-
 // Flag to track if audio has been unlocked for mobile
 let isAudioUnlocked = false;
 
 // Keep track of currently playing sounds to avoid duplicates
 const playingSounds = new Set<string>();
 
+// Create a single master audio context for all sounds
+let audioContext: AudioContext | null = null;
+
+// Audio buffer cache
+const audioBuffers: { [key: string]: AudioBuffer } = {};
+
 /**
  * Set the audio unlock status
  */
 export const setAudioUnlocked = (value: boolean): void => {
     isAudioUnlocked = value;
-
     // Also save to localStorage for persistence
     saveAudioUnlockStatus(value);
-
     if (value) {
         console.log('Audio: Unlock status set to true');
+        initAudioContext();
     }
 };
 
@@ -40,42 +35,84 @@ export const getAudioUnlockStatus = (): boolean => {
 };
 
 /**
- * Completely unlock audio playback on iOS devices
+ * Initialize the Web Audio API context
+ */
+const initAudioContext = (): void => {
+    try {
+        if (!audioContext) {
+            // Create new audio context
+            const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+            if (AudioContextClass) {
+                audioContext = new AudioContextClass();
+                console.log('Audio: AudioContext initialized successfully');
+
+                // Resume context if it's suspended (newer browsers require this)
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume().then(() => {
+                        console.log('Audio: AudioContext resumed successfully');
+                    }).catch(e => {
+                        console.error('Audio: Failed to resume AudioContext:', e);
+                    });
+                }
+            } else {
+                console.error('Audio: Web Audio API not supported in this browser');
+            }
+        } else if (audioContext.state === 'suspended') {
+            audioContext.resume().catch(e => {
+                console.error('Audio: Failed to resume existing AudioContext:', e);
+            });
+        }
+    } catch (error) {
+        console.error('Audio: Error initializing AudioContext:', error);
+    }
+};
+
+/**
+ * Completely unlock audio playback on mobile devices
  * This will play a silent sound to unlock the Audio API
  */
 export const forceUnlockAudio = async (): Promise<boolean> => {
     try {
         console.log('Audio: Attempting to force unlock audio playback');
 
-        // Create a master audio element if we don't have one yet
-        if (!masterAudioElement) {
-            masterAudioElement = new Audio();
+        // Initialize audio context first
+        initAudioContext();
+
+        if (!audioContext) {
+            console.error('Audio: Cannot unlock, no AudioContext available');
+            return false;
         }
 
-        // iOS hack: play a silent base64-encoded MP3
-        masterAudioElement.src = "data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV";
-        masterAudioElement.volume = 0; // Set volume to 0 to make it silent
-        masterAudioElement.autoplay = true;
-        masterAudioElement.load();
+        // Create and play a silent buffer
+        const silentBuffer = audioContext.createBuffer(1, 1, 22050);
+        const source = audioContext.createBufferSource();
+        source.buffer = silentBuffer;
+        source.connect(audioContext.destination);
 
-        // iOS requires a play attempt from a user gesture
-        // This would be called from a button click
-        await masterAudioElement.play()
-            .then(() => {
-                console.log('Audio: Successfully unlocked audio with silent sound');
-                isAudioUnlocked = true;
-                saveAudioUnlockStatus(true);
+        // Play the silent sound
+        if (source.start) {
+            source.start(0);
+        } else {
+            (source as any).noteOn(0);
+        }
 
-                // Don't try to play all sounds at once anymore
-                // Just unlock the audio context
-                return true;
-            })
-            .catch(e => {
-                console.error('Audio: Failed to unlock audio:', e);
-                return false;
-            });
+        console.log('Audio: Successfully played silent buffer to unlock audio');
 
-        return isAudioUnlocked;
+        // Resume the audio context if it's suspended
+        if (audioContext.state === 'suspended') {
+            try {
+                await audioContext.resume();
+                console.log('Audio: AudioContext resumed successfully');
+            } catch (e) {
+                console.error('Audio: Failed to resume AudioContext:', e);
+            }
+        }
+
+        // Set and save the unlocked status
+        isAudioUnlocked = true;
+        saveAudioUnlockStatus(true);
+
+        return true;
     } catch (error) {
         console.error('Audio: Error in forceUnlockAudio:', error);
         return false;
@@ -93,6 +130,7 @@ export const initAudio = (): void => {
 
         if (storedUnlockStatus) {
             console.log('Audio: Restored unlocked status from localStorage');
+            initAudioContext();
         }
     } catch (error) {
         console.error('Audio: Error loading audio unlock status:', error);
@@ -100,41 +138,60 @@ export const initAudio = (): void => {
 };
 
 /**
- * Preloads all countdown sound files
+ * Preload an individual sound file
+ */
+const preloadSound = async (sound: CountdownSound): Promise<AudioBuffer | null> => {
+    if (!audioContext) {
+        console.error(`Audio: Cannot preload ${sound}, no AudioContext available`);
+        return null;
+    }
+
+    try {
+        const url = `/audio/${sound}.mp3?v=${Date.now()}`;
+        console.log(`Audio: Fetching ${url}`);
+
+        const response = await fetch(url);
+        if (!response.ok) {
+            console.error(`Audio: Failed to fetch ${sound}.mp3 - Status: ${response.status}`);
+            return null;
+        }
+
+        const arrayBuffer = await response.arrayBuffer();
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+        // Store in cache
+        audioBuffers[sound] = audioBuffer;
+        console.log(`Audio: Successfully loaded ${sound}.mp3`);
+
+        return audioBuffer;
+    } catch (error) {
+        console.error(`Audio: Error preloading ${sound}.mp3:`, error);
+        return null;
+    }
+};
+
+/**
+ * Preload all sound files
  */
 export const preloadSounds = async (): Promise<void> => {
+    // Initialize audio context if needed
+    initAudioContext();
+
+    if (!audioContext) {
+        console.error('Audio: Cannot preload sounds, no AudioContext available');
+        return;
+    }
+
+    const sounds: CountdownSound[] = ['three', 'two', 'one', 'rest', 'go'];
+
     try {
-        const sounds: CountdownSound[] = ['three', 'two', 'one', 'rest', 'go'];
-
-        for (const sound of sounds) {
-            try {
-                // Make sure we use the correct path and add version to bypass caching
-                const audio = new Audio(`/audio/${sound}.mp3?v=${Date.now()}`);
-
-                // Important for iOS: set preload to auto
-                audio.preload = 'auto';
-
-                // Set up error handler
-                audio.onerror = (e) => {
-                    console.error(`Error loading ${sound}.mp3:`, e);
-                };
-
-                // Load the audio
-                audio.load();
-
-                // Save to cache
-                audioCache[sound] = audio;
-
-                // Log successful loads for debugging
-                console.log(`Audio: Successfully loaded ${sound}.mp3`);
-            } catch (err) {
-                console.error(`Failed to preload ${sound}.mp3:`, err);
-            }
-        }
+        // Load all sounds in parallel
+        const loadPromises = sounds.map(sound => preloadSound(sound));
+        await Promise.all(loadPromises);
 
         console.log('Audio: All audio files preloaded successfully');
     } catch (error) {
-        console.warn('Failed to preload audio files:', error);
+        console.error('Audio: Error during preloadSounds:', error);
     }
 };
 
@@ -148,6 +205,7 @@ export const unlockAudioForMobile = async (): Promise<boolean> => {
         if (storedUnlockStatus) {
             isAudioUnlocked = true;
             console.log('Audio: Using stored unlock status from localStorage');
+            initAudioContext();
             return true;
         }
     } catch (error) {
@@ -163,38 +221,18 @@ export const unlockAudioForMobile = async (): Promise<boolean> => {
         // Not a mobile device, no need to unlock
         isAudioUnlocked = true;
         saveAudioUnlockStatus(true);
+        initAudioContext();
         return true;
     }
 
-    try {
-        // Create an empty audio element
-        const audio = new Audio();
-
-        // Try to play it (this will fail on mobile without user interaction)
-        const result = await audio.play().then(() => {
-            // If successful, audio is already unlocked
-            audio.pause();
-            isAudioUnlocked = true;
-            saveAudioUnlockStatus(true);
-            console.log('Audio: Playback already unlocked');
-            return true;
-        }).catch(err => {
-            // If it fails, audio is locked
-            console.log('Audio: Playback locked, requires user interaction', err);
-            isAudioUnlocked = false;
-            saveAudioUnlockStatus(false);
-            return false;
-        });
-
-        return result;
-    } catch (error) {
-        console.error('Audio: Error checking audio unlock status:', error);
-        return false;
-    }
+    // For mobile, we'll just initialize the audio context
+    // The actual unlock happens with user interaction
+    initAudioContext();
+    return false;
 };
 
 /**
- * Plays the specified countdown sound if not muted
+ * Play a sound using Web Audio API
  */
 export const playSound = async (sound: CountdownSound, isMuted: boolean): Promise<void> => {
     if (isMuted) {
@@ -202,87 +240,93 @@ export const playSound = async (sound: CountdownSound, isMuted: boolean): Promis
         return;
     }
 
-    // Simple check for mobile devices
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(
-        typeof navigator !== 'undefined' ? navigator.userAgent : ''
-    );
-
-    const isIOS = /iPhone|iPad|iPod/i.test(
-        typeof navigator !== 'undefined' ? navigator.userAgent : ''
-    );
-
-    // Last resort attempt to unlock audio on mobile
-    if (isMobile && !isAudioUnlocked) {
-        try {
-            console.log('Audio: Attempting final unlock before playback');
-            await forceUnlockAudio();
-        } catch (e) {
-            // Continue anyway
-        }
-    }
-
-    // Don't allow multiple simultaneous playbacks of the same sound
+    // Don't allow multiple plays of the same sound
     if (playingSounds.has(sound)) {
         console.log(`Audio: Already playing ${sound}, not playing again`);
         return;
     }
 
-    // Mark as playing
-    playingSounds.add(sound);
+    // Check for audio context
+    if (!audioContext) {
+        console.log('Audio: No AudioContext, initializing...');
+        initAudioContext();
+
+        if (!audioContext) {
+            console.error('Audio: Failed to create AudioContext, cannot play sound');
+            return;
+        }
+    }
+
+    // Try to unlock audio on mobile if needed
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(
+        typeof navigator !== 'undefined' ? navigator.userAgent : ''
+    );
+
+    if (isMobile && !isAudioUnlocked) {
+        console.log(`Audio: Attempting to unlock audio before playing ${sound}`);
+        await forceUnlockAudio();
+    }
 
     try {
-        // We'll create a completely new audio element each time for mobile
-        // This is more reliable than reusing cached audio
-        const audioElement = new Audio(`/audio/${sound}.mp3?v=${Date.now()}`);
+        // Mark as playing
+        playingSounds.add(sound);
 
-        // Essential settings
-        audioElement.volume = 1.0;
-        audioElement.preload = 'auto';
-
-        // iOS specific settings
-        if (isIOS) {
-            audioElement.setAttribute('playsinline', '');
-            audioElement.setAttribute('webkit-playsinline', '');
+        // Get audio buffer from cache or load it
+        let buffer = audioBuffers[sound];
+        if (!buffer) {
+            console.log(`Audio: ${sound} not in cache, loading now...`);
+            buffer = await preloadSound(sound);
+            if (!buffer) {
+                console.error(`Audio: Failed to load ${sound}`);
+                playingSounds.delete(sound);
+                return;
+            }
         }
 
-        // Cleanup function
-        const cleanupPlayback = () => {
-            console.log(`Audio: Cleaning up ${sound} playback`);
+        // Create audio source
+        const source = audioContext.createBufferSource();
+
+        // We know buffer is not null at this point due to the previous check
+        if (!buffer) {
+            console.error(`Audio: Buffer for ${sound} is null even after loading check`);
+            playingSounds.delete(sound);
+            return;
+        }
+
+        // Use type assertion since we've verified buffer is not null
+        source.buffer = buffer as AudioBuffer;
+
+        // Create gain node for volume control
+        const gainNode = audioContext.createGain();
+        gainNode.gain.value = 1.0; // Full volume
+
+        // Connect nodes: source -> gain -> destination
+        source.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        // Set up cleanup
+        source.onended = () => {
+            console.log(`Audio: Finished playing ${sound}`);
             playingSounds.delete(sound);
         };
 
-        // Set cleanup on ended
-        audioElement.addEventListener('ended', cleanupPlayback, { once: true });
+        // Failsafe cleanup after max duration
+        setTimeout(() => {
+            playingSounds.delete(sound);
+        }, 3000);
 
-        // Fail-safe cleanup
-        setTimeout(cleanupPlayback, 3000);
+        // Play the sound
+        console.log(`Audio: Starting playback of ${sound}`);
+        source.start(0);
 
-        // Error handler
-        audioElement.addEventListener('error', (e) => {
-            console.error(`Audio: Error playing ${sound}:`, e);
-            cleanupPlayback();
-        });
-
-        // Load the audio
-        audioElement.load();
-
-        // Play - without waiting for the promise to complete
-        // This helps on some mobile devices
-        audioElement.play().catch(err => {
-            console.warn(`Audio: Error playing ${sound}:`, err);
-            cleanupPlayback();
-        });
-
-        console.log(`Audio: Started playing ${sound}`);
     } catch (error) {
-        console.error(`Audio: General error playing ${sound}:`, error);
+        console.error(`Audio: Error playing ${sound}:`, error);
         playingSounds.delete(sound);
     }
 };
 
 /**
- * Function to directly check if audio files exist on the server
- * and are accessible through the browser
+ * Check if audio files exist and are accessible
  */
 export const checkAudioFiles = async (): Promise<Record<CountdownSound, boolean>> => {
     const sounds: CountdownSound[] = ['three', 'two', 'one', 'rest', 'go'];
@@ -299,13 +343,10 @@ export const checkAudioFiles = async (): Promise<Record<CountdownSound, boolean>
     const checkPromises = sounds.map(async (sound) => {
         const url = `/audio/${sound}.mp3?v=${Date.now()}`;
         try {
-            // Try to fetch the file to check if it exists
             const response = await fetch(url, { method: 'HEAD' });
             results[sound] = response.ok;
-
             console.log(`Audio: ${sound}.mp3 - ${response.status} ${response.statusText} (${response.ok ? 'OK' : 'FAILED'})`);
 
-            // Log more detailed info
             if (!response.ok) {
                 console.error(`Audio: Failed to fetch ${sound}.mp3 - Status: ${response.status} ${response.statusText}`);
             }
