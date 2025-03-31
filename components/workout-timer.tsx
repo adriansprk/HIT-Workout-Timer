@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { formatTime } from '../lib/utils';
 import { Button } from "../components/ui/button"
 import { Progress } from "../components/ui/progress"
 import { X } from "lucide-react"
@@ -10,58 +11,56 @@ import { MuteButton } from "./MuteButton"
 // Custom progress component with explicit indigo indicator color
 const CustomProgress = ({ value }: { value: number }) => {
   return (
-    <div className="relative h-2 w-full overflow-hidden rounded-full bg-gray-200">
+    <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
       <div
-        className="h-full rounded-full bg-indigo-500 transition-all"
-        style={{ width: `${value}%` }}
-      />
+        className="h-full bg-indigo-600"
+        style={{ width: `${value}%`, transition: "width 0.5s ease" }}
+      ></div>
     </div>
-  );
-};
+  )
+}
 
 interface WorkoutTimerProps {
-  exerciseTime: number
-  restTime: number
-  roundRestTime: number // New prop for round rest time
-  exercises: number
-  rounds: number
-  onEnd: () => void
+  exerciseTime: number;
+  restTime: number;
+  roundRestTime: number;
+  exercises: number;
+  rounds: number;
+  onEnd: () => void;
 }
 
 type TimerState = "exercise" | "rest" | "roundRest" | "complete" // Changed 'cooldown' to 'roundRest'
 
-export default function WorkoutTimer({
+const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
   exerciseTime,
   restTime,
-  roundRestTime, // Add the new prop
+  roundRestTime,
   exercises,
   rounds,
   onEnd,
-}: WorkoutTimerProps) {
+}) => {
   const [currentRound, setCurrentRound] = useState(1)
   const [currentExercise, setCurrentExercise] = useState(1)
   const [timerState, setTimerState] = useState<TimerState>("exercise")
   const [timeRemaining, setTimeRemaining] = useState(exerciseTime)
   const [isPaused, setIsPaused] = useState(false)
-  const { playCountdownSound } = useAudio()
+  const { playCountdownSound, isMuted } = useAudio()
 
   // Track the previous timer state to detect transitions
-  const [prevTimerState, setPrevTimerState] = useState<TimerState>(timerState)
+  const [prevTimerState, setPrevTimerState] = useState<TimerState | null>(null)
+  // Keep track of already played sounds to avoid duplicates
+  const playedSoundsRef = useRef(new Set<string>());
 
   const getTimerColor = () => {
-    return "bg-indigo-500"
-  }
-
-  const getTimerLabel = () => {
     switch (timerState) {
       case "exercise":
-        return "Exercise"
+        return "text-red-600"
       case "rest":
-        return "Rest"
+        return "text-green-600"
       case "roundRest":
-        return "Round Rest" // Changed label from 'Cooldown' to 'Round Rest'
+        return "text-blue-600"
       default:
-        return "Complete"
+        return "text-gray-600"
     }
   }
 
@@ -72,156 +71,219 @@ export default function WorkoutTimer({
       case "rest":
         return restTime
       case "roundRest":
-        return roundRestTime // Use the new roundRestTime instead of fixed 60
+        return roundRestTime
       default:
         return 0
     }
   }
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}:${secs.toString().padStart(2, "0")}`
-  }
-
   const progressPercentage = (timeRemaining / getMaxTime()) * 100
 
   const moveToNextPhase = useCallback(() => {
+    setPrevTimerState(timerState);
+
     if (timerState === "exercise") {
       // If we're at the last exercise of the round
       if (currentExercise === exercises) {
-        // If we're at the last round, end the workout
+        // If we're at the last round, complete the workout
         if (currentRound === rounds) {
           setTimerState("complete")
           return
         }
-        // Otherwise, move to round rest between rounds
+        // Otherwise move to round rest
         setTimerState("roundRest")
-        setTimeRemaining(roundRestTime) // Use roundRestTime instead of fixed 60
+        setTimeRemaining(roundRestTime)
         setCurrentRound((prev) => prev + 1)
         setCurrentExercise(1)
+        playCountdownSound('rest');
       } else {
         // Move to rest period
         setTimerState("rest")
         setTimeRemaining(restTime)
+        playCountdownSound('rest');
       }
     } else if (timerState === "rest") {
       // Move to next exercise
       setTimerState("exercise")
       setTimeRemaining(exerciseTime)
       setCurrentExercise((prev) => prev + 1)
+      playCountdownSound('go');
     } else if (timerState === "roundRest") {
       // Move to first exercise of next round
       setTimerState("exercise")
       setTimeRemaining(exerciseTime)
+      playCountdownSound('go');
     }
-  }, [timerState, currentExercise, currentRound, exercises, rounds, restTime, exerciseTime, roundRestTime])
+  }, [timerState, currentExercise, currentRound, exercises, rounds, restTime, exerciseTime, roundRestTime, playCountdownSound])
 
   useEffect(() => {
-    if (timerState === "complete") return
-    if (isPaused) return
+    if (timerState === "complete" || isPaused) return
 
-    const timer = setInterval(() => {
+    const intervalId = setInterval(() => {
       setTimeRemaining((prev) => {
         if (prev <= 1) {
-          clearInterval(timer)
+          clearInterval(intervalId)
           moveToNextPhase()
           return 0
         }
+
+        // Play countdown sounds (3,2,1) for both exercise and rest periods
+        if (prev <= 3 && prev > 0) {
+          const countdownSound = prev === 3 ? 'three' : prev === 2 ? 'two' : 'one';
+          const soundKey = `${timerState}-${countdownSound}-${currentRound}-${currentExercise}`;
+
+          // Only play the sound if we haven't played it for this specific countdown instance
+          if (!playedSoundsRef.current.has(soundKey)) {
+            playedSoundsRef.current.add(soundKey);
+            playCountdownSound(countdownSound);
+          }
+        }
+
         return prev - 1
       })
     }, 1000)
 
-    return () => clearInterval(timer)
-  }, [timerState, isPaused, moveToNextPhase])
+    return () => clearInterval(intervalId)
+  }, [timerState, isPaused, moveToNextPhase, playCountdownSound, currentRound, currentExercise])
 
-  // Track timer state changes
+  // Clear played sounds when starting a new interval
+  useEffect(() => {
+    playedSoundsRef.current.clear();
+  }, [timerState, currentExercise, currentRound]);
+
+  // Play sounds on state transitions
   useEffect(() => {
     if (prevTimerState !== timerState) {
-      setPrevTimerState(timerState);
-    }
-  }, [timerState, prevTimerState]);
-
-  // Audio countdown effect for both exercise and rest periods
-  useEffect(() => {
-    if (isPaused) return;
-
-    // Handle the 3,2,1 countdown for any timer state
-    if (timeRemaining <= 3 && timeRemaining > 0) {
-      if (timeRemaining === 3) playCountdownSound('three');
-      else if (timeRemaining === 2) playCountdownSound('two');
-      else if (timeRemaining === 1) playCountdownSound('one');
-    }
-  }, [timeRemaining, isPaused, playCountdownSound]);
-
-  // Play transition sounds between states
-  useEffect(() => {
-    if (isPaused) return;
-
-    // Play sounds on state transitions
-    if (prevTimerState !== timerState) {
-      console.log(`Transition: ${prevTimerState} -> ${timerState}`);
-
-      // Play 'rest' when transitioning to rest periods
-      if (timerState === "rest" || timerState === "roundRest") {
-        playCountdownSound('rest');
-      }
-
-      // Play 'go' when transitioning to exercise (but not at very beginning)
-      if (timerState === "exercise" && (prevTimerState === "rest" || prevTimerState === "roundRest")) {
-        playCountdownSound('go');
-      }
+      console.log(`Timer state changed from ${prevTimerState} to ${timerState}`);
     }
   }, [timerState, prevTimerState, isPaused, playCountdownSound]);
+
+  // When the workout is complete
+  useEffect(() => {
+    if (timerState === "complete") {
+      onEnd();
+    }
+  }, [timerState, onEnd]);
 
   const togglePause = () => {
     setIsPaused((prev) => !prev)
   }
 
+  if (timerState === "complete") {
+    return (
+      <div className="mx-auto p-6 max-w-md">
+        <div className="rounded-xl bg-white p-6 shadow-sm">
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-2xl font-bold">Workout Complete!</h1>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full h-8 w-8"
+              onClick={onEnd}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="text-center">
+            <p className="mb-4">
+              You've completed {rounds} rounds of {exercises} exercises. Great work!
+            </p>
+            <Button onClick={onEnd} className="w-full">
+              Return to Setup
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50">
-      <div className="w-full max-w-md">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-bold">HIIT Workout</h1>
-          <Button variant="ghost" size="icon" onClick={onEnd}>
-            <X className="h-6 w-6" />
-            <span className="sr-only">Exit workout</span>
-          </Button>
-        </div>
-
-        <div className="bg-white rounded-xl p-6 shadow-sm mb-6">
-          <div className="flex justify-between items-center mb-2">
-            <div className="flex items-center gap-2">
-              <div className={`w-3 h-3 rounded-full ${getTimerColor()}`}></div>
-              <span className="font-medium">{getTimerLabel()}</span>
-            </div>
-            <span className="text-sm text-gray-500">
-              Round {currentRound}/{rounds} • Exercise {currentExercise}/{exercises}
-            </span>
+    <div className="mx-auto p-6 max-w-md">
+      <div className="rounded-xl bg-white p-6 shadow-sm">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-2xl font-bold">Workout</h1>
+          <div className="flex items-center gap-2">
+            <MuteButton />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full h-8 w-8"
+              onClick={togglePause}
+            >
+              {isPaused ? (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-4 w-4"
+                >
+                  <polygon points="5 3 19 12 5 21 5 3" />
+                </svg>
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-4 w-4"
+                >
+                  <rect x="6" y="4" width="4" height="16" />
+                  <rect x="14" y="4" width="4" height="16" />
+                </svg>
+              )}
+            </Button>
           </div>
+        </div>
 
-          <div className="text-center my-12 relative">
-            <div className="flex items-center justify-center">
-              <span className="text-7xl font-bold tabular-nums">{formatTime(timeRemaining)}</span>
-              <div className="ml-3">
-                <MuteButton />
-              </div>
+        <div className={`text-5xl font-bold text-center mb-4 ${getTimerColor()}`}>
+          {formatTime(timeRemaining)}
+        </div>
+
+        <CustomProgress value={progressPercentage} />
+
+        <div className="my-6 text-center">
+          <span className="text-xl font-semibold">
+            {timerState === "exercise"
+              ? "Exercise"
+              : timerState === "rest"
+                ? "Rest"
+                : "Round Rest"}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="bg-gray-100 rounded-lg p-4 text-center">
+            <div className="text-sm text-gray-600 mb-1">Round</div>
+            <div className="text-xl font-semibold">
+              {currentRound} / {rounds}
             </div>
           </div>
-
-          <CustomProgress value={progressPercentage} />
+          <div className="bg-gray-100 rounded-lg p-4 text-center">
+            <div className="text-sm text-gray-600 mb-1">Exercise</div>
+            <div className="text-xl font-semibold">
+              {currentExercise} / {exercises}
+            </div>
+          </div>
         </div>
 
-        <div className="flex gap-4 items-center">
-          <Button variant="outline" className="flex-1 py-6" onClick={togglePause}>
-            {isPaused ? "Resume" : "Pause"}
-          </Button>
-          <Button className="flex-1 py-6 bg-indigo-600 hover:bg-indigo-700" onClick={onEnd}>
-            End Workout
-          </Button>
-        </div>
+        <Button
+          variant="destructive"
+          className="w-full"
+          onClick={onEnd}
+        >
+          End Workout
+        </Button>
       </div>
     </div>
   )
 }
+
+export default WorkoutTimer
 

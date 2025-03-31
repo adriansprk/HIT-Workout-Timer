@@ -15,6 +15,9 @@ let masterAudioElement: HTMLAudioElement | null = null;
 // Flag to track if audio has been unlocked for mobile
 let isAudioUnlocked = false;
 
+// Keep track of currently playing sounds to avoid duplicates
+const playingSounds = new Set<string>();
+
 /**
  * Set the audio unlock status
  */
@@ -51,6 +54,7 @@ export const forceUnlockAudio = async (): Promise<boolean> => {
 
         // iOS hack: play a silent base64-encoded MP3
         masterAudioElement.src = "data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV";
+        masterAudioElement.volume = 0; // Set volume to 0 to make it silent
         masterAudioElement.autoplay = true;
         masterAudioElement.load();
 
@@ -62,25 +66,8 @@ export const forceUnlockAudio = async (): Promise<boolean> => {
                 isAudioUnlocked = true;
                 saveAudioUnlockStatus(true);
 
-                // Now try to unlock all the cached sounds by quickly playing them
-                // This is a key step for iOS Safari
-                Object.values(audioCache).forEach(audio => {
-                    try {
-                        console.log(`Audio: Unlocking cached sound: ${audio.src}`);
-                        const promise = audio.play();
-                        if (promise !== undefined) {
-                            promise
-                                .then(() => {
-                                    audio.pause();
-                                    audio.currentTime = 0;
-                                })
-                                .catch(e => console.log('Audio unlock attempt ignored:', e));
-                        }
-                    } catch (e) {
-                        console.log('Error attempting to unlock audio:', e);
-                    }
-                });
-
+                // Don't try to play all sounds at once anymore
+                // Just unlock the audio context
                 return true;
             })
             .catch(e => {
@@ -123,6 +110,9 @@ export const preloadSounds = async (): Promise<void> => {
             try {
                 // Make sure we use the correct path
                 const audio = new Audio(`/audio/${sound}.mp3`);
+
+                // Important for iOS: set preload to auto
+                audio.preload = 'auto';
 
                 // Set up error handler
                 audio.onerror = (e) => {
@@ -224,46 +214,61 @@ export const playSound = async (sound: CountdownSound, isMuted: boolean): Promis
         }
     }
 
+    // On iOS, limit concurrent sound playback and prevent duplicate play calls
+    if (playingSounds.has(sound)) {
+        console.log(`Audio: Already playing ${sound}, not playing again`);
+        return;
+    }
+
     try {
+        // Add to playing set
+        playingSounds.add(sound);
+
+        // Get or create audio element
+        let audioToPlay: HTMLAudioElement;
+
         const audio = audioCache[sound];
-
         if (!audio) {
-            console.warn(`Audio: Sound "${sound}" not found in cache. Attempting to load directly.`);
-            const newAudio = new Audio(`/audio/${sound}.mp3`);
+            console.warn(`Audio: Sound "${sound}" not found in cache. Creating new instance.`);
+            audioToPlay = new Audio(`/audio/${sound}.mp3`);
 
-            newAudio.onerror = (e) => {
+            // Important for iOS: set preload to auto
+            audioToPlay.preload = 'auto';
+
+            audioToPlay.onerror = (e) => {
                 console.error(`Audio: Error loading ${sound}.mp3 on demand:`, e);
+                playingSounds.delete(sound);
             };
 
-            await new Promise((resolve) => {
-                newAudio.addEventListener('canplaythrough', resolve, { once: true });
-                newAudio.addEventListener('error', () => {
-                    console.error(`Audio: Failed to load sound: ${sound}`);
-                    resolve(null);
-                }, { once: true });
-                newAudio.load();
-            });
+            audioToPlay.load();
 
-            if (newAudio.readyState >= 3) {
-                console.log(`Audio: Playing ${sound}.mp3 on demand`);
-                // Reset playback position to ensure it plays from the start
-                newAudio.currentTime = 0;
-                await newAudio.play().catch(err => console.error(`Audio: Error playing sound ${sound}:`, err));
-            }
-            return;
+            // Save to cache for future use
+            audioCache[sound] = audioToPlay;
+        } else {
+            // Use fresh copy to avoid issues with concurrent playback
+            audioToPlay = audio.cloneNode() as HTMLAudioElement;
         }
 
-        // If sound is already cached, play it
-        console.log(`Audio: Playing ${sound}.mp3 from cache`);
-
-        // Create a fresh copy to avoid interference with ongoing playback
-        const freshAudio = audio.cloneNode() as HTMLAudioElement;
-
         // Reset playback position to ensure it plays from the start
-        freshAudio.currentTime = 0;
+        audioToPlay.currentTime = 0;
 
-        await freshAudio.play().catch(err => {
+        // Add event listener to know when it's done playing
+        audioToPlay.addEventListener('ended', () => {
+            console.log(`Audio: Finished playing ${sound}`);
+            playingSounds.delete(sound);
+        }, { once: true });
+
+        // Fail-safe to remove from playing after max duration
+        setTimeout(() => {
+            playingSounds.delete(sound);
+        }, 3000);
+
+        console.log(`Audio: Playing ${sound}.mp3`);
+
+        // Play the sound
+        await audioToPlay.play().catch(err => {
             console.error(`Audio: Error playing sound ${sound}:`, err);
+            playingSounds.delete(sound);
 
             // Handle browsers with autoplay restrictions
             if (err.name === 'NotAllowedError') {
@@ -273,5 +278,6 @@ export const playSound = async (sound: CountdownSound, isMuted: boolean): Promis
         });
     } catch (error) {
         console.error(`Audio: Error in playSound for "${sound}":`, error);
+        playingSounds.delete(sound);
     }
 }; 
