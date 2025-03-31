@@ -1,0 +1,71 @@
+---
+description: Ensure reliable path imports in Next.js and TypeScript applications
+globs: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]
+alwaysApply: false
+---
+# TypeScript Path Import Reliability
+
+This rule ensures that imports remain consistent and reliable across local development and production environments in Next.js applications.
+
+## Valid Example
+
+```typescript
+// Using relative path imports for greater reliability
+import { Product } from '../../types';
+import { Button } from '../ui/Button';
+import { formatDate } from '../../utils/date';
+```
+
+## Invalid Example
+
+```typescript
+// Path aliases can cause build failures in some production environments
+import { Product } from '@/types';
+import { Button } from '@/components/ui/Button';
+import { formatDate } from '@/utils/date';
+```
+
+Response: While path aliases like `@/types` are convenient, they can sometimes fail in production builds, particularly on platforms like Vercel. Consider using relative imports for greater reliability when deploying.
+
+## Guidelines
+
+### Path Aliasing Issues
+
+While Next.js officially supports path aliases through `tsconfig.json` or `jsconfig.json`, these aliases can sometimes cause build failures in production environments due to module resolution issues, particularly when:
+
+1. Deploying to platforms like Vercel
+2. Using static exports (`next export`)
+3. Working with monorepos
+4. Dealing with case sensitivity differences between development and production
+
+### Best Practices
+
+1. **Prefer relative imports for maximum reliability**:
+   - Use relative paths (`../../types`) instead of alias paths (`@/types`) for critical files
+   - This ensures consistent module resolution across all environments
+
+2. **Use consistent import styles**:
+   - Avoid mixing path alias imports and relative imports within the same file
+   - Ensure your team follows the same import style conventions
+
+3. **If using path aliases**:
+   - Ensure proper configuration in both `tsconfig.json` and `jsconfig.json`
+   - Test builds thoroughly in production-like environments
+   - Be aware of potential case sensitivity issues (e.g., importing `Button.tsx` vs `button.tsx`)
+
+4. **For libraries and packages**:
+   - Always use package imports (e.g., `react`, `next/image`) directly
+   - Never create aliases for external packages
+
+5. **When refactoring**:
+   - Be cautious when moving files across directories if using relative imports
+   - Update all import paths consistently
+
+### Implementation Notes
+
+If you encounter build failures related to path aliases:
+
+1. Check for case sensitivity issues in your imports
+2. Verify your `tsconfig.json` and `jsconfig.json` configurations
+3. Consider switching to relative imports as a reliable fallback
+4. Run a complete production build locally before deploying 

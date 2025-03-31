@@ -1,0 +1,105 @@
+---
+description: Enforce consistent and meaningful Git commit messages
+alwaysApply: true
+---
+
+# Git Commit Message Standards
+
+This rule enforces best practices for writing clear, consistent, and meaningful Git commit messages based on the Conventional Commits specification.
+
+## Valid Examples
+
+```
+feat: add user authentication functionality
+
+Implement OAuth2 flow with Google and GitHub providers.
+Closes #123
+```
+
+```
+fix(api): resolve user data retrieval timeout issue
+
+- Increase timeout from 3s to 10s
+- Add proper error handling for timeout scenarios
+- Add retry mechanism with exponential backoff
+
+Fixes #456
+```
+
+```
+docs: update README with environment setup instructions
+
+Add detailed step-by-step guide for setting up development
+environment on macOS, Windows, and Linux.
+```
+
+## Invalid Examples
+
+```
+fixed bug
+```
+Response: This commit message is too vague. Please follow the conventional commits format with a type, scope (optional), and descriptive subject. Add a more detailed body if needed.
+
+```
+WIP: stuff
+```
+Response: Work-in-progress commits should either be squashed before merging or include meaningful descriptions of the changes in progress.
+
+## Guidelines
+
+1. **Structure**: Follow the Conventional Commits format:
+   ```
+   <type>[optional scope]: <description>
+
+   [optional body]
+
+   [optional footer(s)]
+   ```
+
+2. **Types**: Use one of these conventional types:
+   - `feat`: A new feature (correlates with MINOR in Semantic Versioning)
+   - `fix`: A bug fix (correlates with PATCH in Semantic Versioning)
+   - `docs`: Documentation changes
+   - `style`: Code style changes (formatting, semicolons, etc; no code change)
+   - `refactor`: Code refactoring (no feature or bug fix)
+   - `perf`: Performance improvements
+   - `test`: Adding or fixing tests
+   - `build`: Build system or external dependency changes
+   - `ci`: CI configuration changes
+   - `chore`: Other changes that don't modify src or test files
+
+3. **Subject Line**:
+   - Use imperative, present tense: "add" not "added" or "adds"
+   - Don't capitalize the first letter
+   - No period at the end
+   - Keep it under 50 characters
+   - Be descriptive and concise
+   - MUST immediately follow the colon and space after type/scope prefix
+
+4. **Commit Body**:
+   - Separate from subject with a blank line
+   - Explain what and why vs. how
+   - Use bullet points for multiple points
+   - Wrap at 72 characters
+   - MAY consist of any number of newline separated paragraphs
+
+5. **Footers**:
+   - Reference issues and pull requests: "Fixes #123" or "Closes #456"
+   - Breaking changes MUST start with "BREAKING CHANGE:"
+   - Each footer MUST consist of a word token, followed by ": " or " #"
+   - Footer tokens MUST use "-" in place of whitespace
+   - Breaking changes can also be indicated by "!" before the ":" in type/scope
+
+6. **Branch References**:
+   - Include ticket/issue numbers when applicable
+
+7. **Breaking Changes**:
+   - MUST be indicated in either:
+     a) Type/scope prefix with "!" before the ":", or
+     b) Footer with "BREAKING CHANGE:" prefix
+   - When using "!" in prefix, "BREAKING CHANGE:" MAY be omitted from footer
+   - Description MUST be provided in either commit description or footer
+
+8. **Case Sensitivity**:
+   - Types and footers are case-insensitive EXCEPT "BREAKING CHANGE"
+   - "BREAKING-CHANGE" MUST be treated as equivalent to "BREAKING CHANGE" 

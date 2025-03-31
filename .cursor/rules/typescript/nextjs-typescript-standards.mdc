@@ -1,0 +1,256 @@
+---
+description: Enforce TypeScript best practices and coding standards for Next.js v15 applications
+globs: ["**/*.ts", "**/*.tsx"]
+alwaysApply: true
+---
+
+# Next.js v15 TypeScript Coding Standards
+
+This rule enforces best practices and coding standards for TypeScript in Next.js v15 applications using the App Router.
+
+## Valid Example
+
+```typescript
+// src/components/ProductCard.tsx
+import { type FC } from 'react';
+import Image from 'next/image';
+
+interface ProductCardProps {
+  id: string;
+  name: string;
+  price: number;
+  imageUrl: string;
+  onAddToCart: (id: string) => void;
+}
+
+export const ProductCard: FC<ProductCardProps> = ({
+  id,
+  name,
+  price,
+  imageUrl,
+  onAddToCart,
+}) => {
+  return (
+    <div className="rounded-lg border p-4 shadow-sm">
+      <div className="relative h-48 w-full">
+        <Image
+          src={imageUrl}
+          alt={name}
+          fill
+          sizes="(max-width: 768px) 100vw, 33vw"
+          className="object-cover rounded-md"
+          priority={false}
+        />
+      </div>
+      <h3 className="mt-2 text-lg font-medium">{name}</h3>
+      <p className="text-gray-600">${price.toFixed(2)}</p>
+      <button
+        onClick={() => onAddToCart(id)}
+        className="mt-2 rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+        aria-label={`Add ${name} to cart`}
+      >
+        Add to Cart
+      </button>
+    </div>
+  );
+};
+```
+
+## Invalid Example
+
+```typescript
+// src/components/product-card.js
+import React from 'react'
+
+function ProductCard(props) {
+  return (
+    <div style={{border: '1px solid #ccc', padding: '16px', borderRadius: '4px'}}>
+      <img src={props.image} alt={props.title} style={{width: '100%'}} />
+      <h3>{props.title}</h3>
+      <p>${props.price}</p>
+      <button onClick={() => props.addToCart(props.id)}>Add to Cart</button>
+    </div>
+  )
+}
+
+export default ProductCard
+```
+
+Response: This component has several issues:
+1. It uses JavaScript (.js) instead of TypeScript (.tsx)
+2. Props are not typed with an interface
+3. Uses default export instead of named export
+4. Uses inline styles instead of Tailwind classes
+5. Uses regular img instead of Next.js Image component
+6. Missing accessibility attributes
+7. Not using proper naming conventions for files and components
+
+## Guidelines
+
+### 1. File Structure and Naming
+
+- Use `.ts` for plain TypeScript files and `.tsx` for React components
+- Use PascalCase for component filenames: `ProductCard.tsx` not `product-card.tsx`
+- Place components in a logical directory structure:
+  ```
+  src/
+  ├── app/
+  │   ├── layout.tsx
+  │   ├── page.tsx
+  │   └── dashboard/
+  │       └── page.tsx
+  ├── components/
+  │   ├── ui/
+  │   │   ├── Button.tsx
+  │   │   └── Card.tsx
+  │   └── dashboard/
+  │       └── RevenueChart.tsx
+  ├── lib/
+  │   ├── utils.ts
+  │   └── api.ts
+  └── types/
+      └── index.ts
+  ```
+
+### 2. TypeScript Usage
+
+- Always define explicit types for props using interfaces
+- Use TypeScript's strictest settings in `tsconfig.json`
+- Avoid using `any` type - use proper type definitions
+- Use type inference where it provides sufficient type safety
+- Use TypeScript's utility types when appropriate (`Partial<T>`, `Omit<T, K>`, etc.)
+- Prefer interfaces over types for object shapes
+- Use `type` for unions, intersections, and simple type aliases
+- Export all types and interfaces that will be used across multiple files
+
+### 3. Component Structure
+
+- Use named exports for components: `export const Button: FC<ButtonProps> = ...`
+- Define prop interfaces with explicit naming: `interface ButtonProps {...}`
+- Use destructured props in component parameters
+- Use FC type for functional components: `FC<ButtonProps>`
+- Organize component code in this order:
+  1. Import statements
+  2. Type/interface definitions
+  3. Constants/utility functions
+  4. Component definition
+  5. Export statement (if using separate export)
+
+### 4. Server vs. Client Components
+
+- Use Server Components by default (just regular component with no client directives)
+- Mark Client Components with `'use client'` directive at the top of the file
+- Properly handle data fetching in Server Components using async/await
+- Keep client-side state and event handlers in Client Components
+- Split UI into logical Server/Client component boundaries
+
+### 5. Data Fetching
+
+- Prefer Server Components for data fetching
+- Use proper typing for API responses:
+  ```typescript
+  interface User {
+    id: string;
+    name: string;
+    email: string;
+  }
+
+  async function getUser(id: string): Promise<User> {
+    const response = await fetch(`/api/users/${id}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch user');
+    }
+    return response.json();
+  }
+  ```
+- Take advantage of end-to-end type safety with proper return types from fetch functions
+- Use TypeScript to type the data returned from API routes
+
+### 6. Error Handling
+
+- Add proper error boundaries with typed error props
+- Use discriminated unions for error states:
+  ```typescript
+  type FetchState<T> = 
+    | { status: 'idle' }
+    | { status: 'loading' }
+    | { status: 'error'; error: Error }
+    | { status: 'success'; data: T };
+  ```
+- Add proper typing for error responses
+- Use try/catch blocks with specific error types
+
+### 7. Forms and Validation
+
+- Use TypeScript to define form field types and validation schemas
+- Type form values and submission handlers appropriately
+- Use Zod or similar libraries with TypeScript integration for form validation
+
+### 8. Routing and Navigation
+
+- Use typed route params in App Router:
+  ```typescript
+  // app/blog/[slug]/page.tsx
+  export default function BlogPost({ params }: { params: { slug: string } }) {
+    return <h1>Post: {params.slug}</h1>
+  }
+  ```
+- Define param interfaces for complex route patterns
+
+### 9. State Management
+
+- Type global state properly with appropriate interfaces
+- Use typed context providers:
+  ```typescript
+  interface ThemeContextType {
+    theme: 'light' | 'dark';
+    setTheme: (theme: 'light' | 'dark') => void;
+  }
+  
+  const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+  ```
+- Use React's built-in state management with proper typing before reaching for external libraries
+
+### 10. Styling
+
+- Use Tailwind CSS classes for styling
+- Type custom theme configurations
+- Create typed utility functions for dynamic class generation
+
+### 11. Optimization
+
+- Type Image component props properly, especially for dynamic images
+- Use proper typing for dynamic imports
+- Define TypeScript types for Next.js specific features like metadata
+
+### 12. ESLint Configuration
+
+Use this recommended ESLint configuration:
+
+```json
+{
+  "extends": [
+    "next/core-web-vitals", 
+    "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "rules": {
+    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/explicit-module-boundary-types": "warn",
+    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    "react/jsx-curly-brace-presence": ["error", { "props": "never", "children": "never" }],
+    "react/self-closing-comp": ["error", { "component": true, "html": true }]
+  }
+}
+```
+
+### 13. Path Imports
+
+- While Next.js supports path aliases through `tsconfig.json` (e.g., `@/components/*`), be aware that these can sometimes cause build issues in production environments
+- For maximum reliability, especially in CI/CD environments like Vercel:
+  - Consider using relative imports (`../../components/Button`) instead of path aliases (`@/components/Button`)
+  - Be consistent with your import style across the project
+  - Pay attention to case sensitivity in imports which can differ between development and production
+- If using path aliases, ensure they are properly configured in both `tsconfig.json` and `jsconfig.json` files
+- Test production builds locally before deploying to catch path resolution issues early 

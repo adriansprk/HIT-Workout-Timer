@@ -1,0 +1,152 @@
+---
+description: Enforce a structured, thoughtful approach to feature development with AI assistance
+alwaysApply: false
+---
+
+# Structured AI-Assisted Development Process
+
+This rule defines a methodical approach to planning and implementing features with AI assistance, emphasizing deep thinking, clear requirements, and incremental development.
+
+## Valid Example
+
+```
+I need to create a user authentication system with the following requirements:
+- Email/password login
+- Social login (Google, GitHub)
+- Password reset flow
+- Account verification via email
+- JWT token management
+- Role-based access control
+
+Could you help me create a PRD that I can pass to an AI developer? Please ask any clarifying questions before you begin.
+```
+
+Response: This request effectively sets up a structured development process by:
+1. Clearly outlining the requirements for the feature
+2. Requesting a PRD as an intermediate planning step
+3. Encouraging clarifying questions before work begins
+4. Setting the stage for systematic implementation
+
+## Invalid Example
+
+```
+Please build me an authentication system with login, social auth, and admin features. Let me know when it's done.
+```
+
+Response: This request lacks the structure needed for effective AI-assisted development:
+1. It doesn't encourage deep planning before implementation
+2. It skips the creation of clear requirements documentation
+3. It misses the opportunity for clarifying questions
+4. It doesn't establish a systematic process for implementation and review
+
+## Core Process
+
+### 1. Requirements Clarification and PRD Creation
+- Begin with a clear description of desired features
+- Request a PRD document that can guide AI implementation
+- Encourage the AI to ask clarifying questions
+- Provide examples or references when possible
+
+### 2. Task Breakdown and Checklist Creation
+- Request a structured, step-by-step markdown checklist
+- Ensure sufficient context for each task
+- Break down complex features into manageable parts
+- Create clearly defined acceptance criteria for each task
+
+### 3. Work Preparation and Validation
+- Have the AI review the checklist before implementation
+- Request that the AI explain their understanding of the work
+- Ask for clarifying questions to resolve ambiguity
+- Establish a shared understanding of the implementation approach
+
+### 4. Incremental Implementation
+- Implement based on the checklist in clear, discrete steps 
+- Mark tasks as complete when finished
+- Use a TODO.md file with checkboxes to track progress
+- Commit changes to source control regularly to track progress
+
+### 5. Comprehensive Review
+- Request a thorough review of completed work
+- Ask the AI to identify edge cases, security concerns, and scaling issues
+- Have the AI suggest improvements and missing features
+- Prioritize findings for current or future releases
+
+### 6. Final Code Review
+- Perform a final code review before submission
+- Verify adherence to best practices
+- Ensure code quality meets high standards
+- Check for security issues, performance problems, or other defects
+
+## Implementation Guidelines
+
+### Creating Effective PRDs
+- Include purpose and scope
+- Specify user stories or use cases
+- Detail functional requirements
+- List non-functional requirements (performance, security, etc.)
+- Include mockups or wireframes when applicable
+- Define success criteria
+
+### Building Useful Checklists
+- Use markdown format with checkboxes
+- Group related tasks together
+- Include sufficient context for each task
+- Define dependencies between tasks
+- Specify acceptance criteria
+
+### Tracking Progress
+- Create a TODO.md file with checkboxes
+- Commit the file to source control
+- Update tasks as they are completed
+- Document progress and issues encountered
+
+### Conducting Thorough Reviews
+- Review for security vulnerabilities
+- Check edge cases and error handling
+- Evaluate performance characteristics
+- Assess code quality and maintainability
+- Verify adherence to requirements
+
+## Key Commands and Prompts
+
+Use these specific prompts at each stage of development:
+
+1. **PRD Creation**:
+   ```
+   Given this description of a feature <requirements>, I need you to create a PRD that I can pass off to an AI agent developer. Make the instructions concise, understandable, and clarify anything you don't understand before you begin.
+   ```
+
+2. **Checklist Creation**:
+   ```
+   Given this PRD please assemble it into a step-by-step markdown file that I can use for the agent to iterate through and mark off each bit piece by piece. I will provide them with both the PRD and checklist so give enough context for it to make sense.
+   ```
+
+3. **Work Preparation**:
+   ```
+   Given this checklist please review it and explain exactly what you will be creating and ask any clarifying questions about the tasks so that we can remove any ambiguity before beginning.
+   ```
+
+4. **Implementation**:
+   ```
+   Using these <files> as examples build the <service/component/etc> that are required by the checklist. Mark them off the list when complete.
+   ```
+
+5. **Creating TODO.md**:
+   ```
+   Create a todolist.md file, use check boxes and list all the tasks you need to complete. Make each task a tick box, put bullet points below it. Then, once completed, you can work down the task list one by one ticking them off.
+   ```
+
+6. **Implementation with TODO.md**:
+   ```
+   Implement the tasks in TODO.md, be sure to tick them off as you complete them.
+   ```
+
+7. **Review**:
+   ```
+   Now go back through and review the <files> and suggest improvements, edge cases, security, scaling or missing features we have left out. We will review your findings and decide which ones are worth implementing in the current release.
+   ```
+
+8. **Final Review**:
+   ```
+   We are about to commit this branch. Please assess these <files> and do one final code review before we send it off to humans. Be precise to ensure we only submit best practices code that a human reviewer would find exceptional.
+   ``` 

@@ -1,0 +1,61 @@
+---
+description: Monitors chat for rule creation requests and generates appropriate rules
+alwaysApply: true
+---
+
+# Rule Generating Agent
+
+This agent monitors chat for rule creation requests and automatically generates appropriate rules based on user needs.
+
+## Rule Types
+
+1. Agent Selected (description field, no globs, alwaysApply: false)
+2. Always (no description, no globs, alwaysApply: true)
+3. Auto Select (no description, glob pattern required, alwaysApply: false)
+4. Auto Select+desc (description included, glob pattern required, alwaysApply: false)
+5. Manual (no description, no globs, alwaysApply: false)
+
+## Valid Example
+
+User: "Create a typescript file commenting standard that balances thoroughness with brevity"
+
+Agent: I'll create a rule for TypeScript commenting standards.
+
+*Creates .cursor/rules/typescript/commenting-standards.mdc:*
+```yaml
+---
+description: Enforce balanced TypeScript commenting standards
+globs: ["**/*.ts", "**/*.tsx"]
+alwaysApply: false
+---
+```
+
+## Invalid Example
+
+User: "Make all code better"
+
+Agent: That request is too vague. Could you specify what aspects of the code you'd like to improve? For example:
+- Code formatting standards
+- Error handling practices
+- Documentation requirements
+- Naming conventions
+
+## Rule Organization
+
+Rules are organized in subdirectories by category:
+- typescript/
+- react/
+- testing/
+- documentation/
+- security/
+- performance/
+- etc.
+
+## Rule Creation Guidelines
+
+1. Each rule should be focused and specific
+2. Include both valid and invalid examples
+3. Keep rules under 50 lines
+4. Use proper YAML frontmatter
+5. Place in appropriate category folder
+6. Include context when relevant 
