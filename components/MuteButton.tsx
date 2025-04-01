@@ -1,5 +1,6 @@
 "use client";
 
+import React from 'react';
 import { useAudio } from '../contexts/AudioContext';
 import { Volume2, VolumeX } from 'lucide-react';
 import { Button } from '../components/ui/button';
@@ -7,9 +8,10 @@ import { useState, useEffect } from 'react';
 
 interface MuteButtonProps {
     variant?: 'icon' | 'toggle';
+    className?: string;
 }
 
-export const MuteButton = ({ variant = 'icon' }: MuteButtonProps) => {
+export const MuteButton: React.FC<MuteButtonProps> = ({ variant = 'icon', className }) => {
     const { isMuted, toggleMute } = useAudio();
     const [isAnimating, setIsAnimating] = useState(false);
 
@@ -43,20 +45,16 @@ export const MuteButton = ({ variant = 'icon' }: MuteButtonProps) => {
     }
 
     return (
-        <Button
-            size="icon"
-            variant="ghost"
-            aria-label={isMuted ? "Unmute" : "Mute"}
+        <button
             onClick={handleToggleMute}
-            className="h-10 w-10 rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 dark:border dark:border-gray-600 p-0 flex items-center justify-center focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 dark:focus:ring-indigo-400 dark:focus:ring-offset-gray-900"
+            className={`h-12 w-12 rounded-full bg-gray-800/80 backdrop-blur-sm hover:bg-gray-700 border border-gray-700/50 flex items-center justify-center transition-colors ${className || ''}`}
+            aria-label={isMuted ? "Unmute workout sounds" : "Mute workout sounds"}
         >
-            <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${isMuted ? (isAnimating ? 'opacity-0' : 'opacity-100') : 'opacity-0'}`}>
-                <VolumeX className={`h-5 w-5 transition-transform duration-300 ${isAnimating ? 'rotate-90' : 'rotate-0'} text-gray-700 dark:text-white`} />
-            </div>
-
-            <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${isMuted ? 'opacity-0' : (isAnimating ? 'opacity-0' : 'opacity-100')}`}>
-                <Volume2 className={`h-5 w-5 transition-transform duration-300 ${isAnimating ? 'rotate-90' : 'rotate-0'} text-gray-700 dark:text-white`} />
-            </div>
-        </Button>
+            {isMuted ? (
+                <VolumeX className="h-5 w-5 text-white" />
+            ) : (
+                <Volume2 className="h-5 w-5 text-white" />
+            )}
+        </button>
     );
 }; 
