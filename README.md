@@ -1,6 +1,8 @@
-# HIIT Timer
+# HIIT Timer [![Next.js](https://img.shields.io/badge/Next.js-15.2.4-blue)](https://nextjs.org/) [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/) [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.17-blue)](https://tailwindcss.com/) [![License](https://img.shields.io/badge/license-MIT-green)](https://opensource.org/licenses/MIT) [![Live App](https://img.shields.io/badge/live-timer.adriancares.com-brightgreen)](https://timer.adriancares.com)
 
 A modern, customizable High-Intensity Interval Training timer web application built with Next.js and TypeScript.
+
+**[Try it now: timer.adriancares.com](https://timer.adriancares.com)**
 
 ## Features
 
@@ -11,10 +13,8 @@ A modern, customizable High-Intensity Interval Training timer web application bu
 - **Screen Wake Lock**: Prevents device screen from turning off during workouts
 - **Dark Mode Support**: Toggle between light and dark themes
 - **Progress Tracking**: Workout streak counter to maintain motivation
-- **Fullscreen Mode**: Distraction-free workout experience
 - **Mobile Friendly**: Responsive design that works on all devices
 - **Offline Support**: Works without an internet connection
-- **Celebration Effects**: Confetti animation when you complete a workout
 - **Settings Persistence**: Saves your workout preferences
 
 ## Getting Started
