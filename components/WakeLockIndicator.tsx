@@ -1,8 +1,8 @@
 'use client'
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useWakeLock } from '../hooks/useWakeLock';
-import { Monitor, MonitorOff } from 'lucide-react';
+import { Eye } from 'lucide-react';
 
 interface WakeLockIndicatorProps {
     /** Optional class name for styling */
@@ -11,21 +11,33 @@ interface WakeLockIndicatorProps {
 
 /**
  * A component that displays the current wake lock status
- * Shows an open eye when wake lock is active, closed eye when inactive
+ * Visual indicator only - not interactive
+ * Will always show on iOS devices when in the timer screen
  */
 export function WakeLockIndicator({ className = '' }: WakeLockIndicatorProps) {
-    const { isActive } = useWakeLock();
+    const { isActive, error } = useWakeLock();
+    const [isIOS, setIsIOS] = useState(false);
+
+    // Detect iOS device once on mount
+    useEffect(() => {
+        const detectIOS = () => {
+            const userAgent = window.navigator.userAgent.toLowerCase();
+            return /iphone|ipad|ipod/.test(userAgent);
+        };
+
+        setIsIOS(detectIOS());
+    }, []);
+
+    // Show the indicator if wake lock is active OR we're on iOS (since iOS wake lock is unreliable)
+    if (!isActive && !isIOS) return null;
 
     return (
-        <div className={`flex items-center gap-2 text-sm ${className}`}>
-            {isActive ? (
-                <Monitor className="h-4 w-4 text-green-500 dark:text-green-400" />
-            ) : (
-                <MonitorOff className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-            )}
-            <span className={isActive ? 'text-green-500 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'}>
-                {isActive ? 'Screen active' : 'Screen can sleep'}
-            </span>
+        <div
+            className={`h-12 px-4 rounded-full bg-gray-800/80 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center gap-2 transition-colors ${className}`}
+            aria-label="Screen wake lock is active"
+        >
+            <Eye className="h-5 w-5 text-white" />
+            <span className="text-sm font-medium text-white">Screen On</span>
         </div>
     );
 } 

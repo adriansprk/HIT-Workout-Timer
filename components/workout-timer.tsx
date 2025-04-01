@@ -236,6 +236,42 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
     }
   }, [timerState, currentExercise, currentRound, validExercises, validRounds, restTime, exerciseTime, roundRestTime])
 
+  const moveToPreviousPhase = useCallback(() => {
+    setPrevTimerState(timerState);
+
+    if (timerState === "exercise") {
+      // If we're at the first exercise of the first round, stay where we are
+      if (currentExercise === 1 && currentRound === 1) {
+        // Restart current exercise
+        setTimeRemaining(exerciseTime);
+        return;
+      }
+
+      // If we're at the first exercise of any round after the first
+      if (currentExercise === 1 && currentRound > 1) {
+        // Go back to the last exercise of the previous round
+        setTimerState("exercise");
+        setCurrentRound(prev => Math.max(prev - 1, 1));
+        setCurrentExercise(validExercises);
+        setTimeRemaining(exerciseTime);
+      } else {
+        // Go back to the previous exercise (after its rest period)
+        setTimerState("exercise");
+        setCurrentExercise(prev => Math.max(prev - 1, 1));
+        setTimeRemaining(exerciseTime);
+      }
+    } else if (timerState === "rest") {
+      // Go back to the exercise before this rest
+      setTimerState("exercise");
+      setTimeRemaining(exerciseTime);
+    } else if (timerState === "roundRest") {
+      // Go back to the last exercise of the current round
+      setTimerState("exercise");
+      setCurrentExercise(validExercises);
+      setTimeRemaining(exerciseTime);
+    }
+  }, [timerState, currentExercise, currentRound, validExercises, exerciseTime]);
+
   // Main timer effect with stable interval
   useEffect(() => {
     if (timerState === "complete") return;
@@ -566,36 +602,31 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
   return (
     <div
       ref={timerContainerRef}
-      className="mx-auto fixed inset-0 flex flex-col justify-between bg-slate-950 dark:bg-slate-950 overflow-hidden"
+      className="mx-auto fixed inset-0 flex flex-col justify-between bg-gradient-to-br from-indigo-800 via-indigo-900 to-slate-900 dark:bg-gradient-to-br dark:from-slate-800 dark:via-slate-900 dark:to-slate-950 overflow-hidden"
       style={{
-        height: '100dvh',
+        height: '100%',
         width: '100%',
       }}
     >
-      {/* Exit button - positioned at top corner */}
-      <div className="fixed top-4 left-4 z-20">
-        <Button
-          variant="ghost"
-          size="icon"
+      {/* Controls positioned at top */}
+      <div className="fixed top-4 w-full flex justify-between items-center px-4 z-20">
+        {/* Exit button */}
+        <button
           onClick={onEnd}
           aria-label="End workout"
-          className="h-10 w-10 rounded-full bg-gray-900 hover:bg-gray-800 p-0 flex items-center justify-center"
+          className="h-12 w-12 rounded-full bg-gray-800/80 backdrop-blur-sm hover:bg-gray-700 border border-gray-700/50 flex items-center justify-center transition-colors"
         >
           <X className="h-5 w-5 text-white" />
-        </Button>
-      </div>
+        </button>
 
-      {/* Wake Lock indicator - centered at top */}
-      <div className="fixed top-4 left-0 right-0 z-20 flex justify-center">
-        <WakeLockIndicator className="mx-auto" />
-      </div>
+        {/* Center the WakeLock indicator */}
+        <WakeLockIndicator />
 
-      {/* Mute button - positioned at top right corner, aligned with circle */}
-      <div className="fixed top-4 right-4 z-20">
+        {/* Right side control */}
         <MuteButton />
       </div>
 
-      {/* Main timer section - takes most of the screen */}
+      {/* Main timer content */}
       <div className="flex-1 flex flex-col justify-center items-center mt-16 mb-32">
         <div className="relative flex flex-col items-center">
           {/* Timer circle */}
@@ -631,15 +662,12 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
       </div>
 
       {/* Control buttons - positioned at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 pt-0 z-20 bg-slate-950">
+      <div className="fixed bottom-0 left-0 right-0 p-4 pt-0 z-20">
         <div className="flex justify-center items-center gap-3 px-4 mb-4">
           {/* Skip backward button */}
           <button
-            className="rounded-xl bg-gray-900 w-14 h-14 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 focus:ring-offset-slate-950 transition-colors hover:bg-gray-800"
-            onClick={() => {
-              // Skip to previous exercise logic would go here
-              alert("Skip to previous exercise not implemented");
-            }}
+            className="rounded-xl bg-gray-800/80 backdrop-blur-sm w-14 h-14 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 focus:ring-offset-slate-950 transition-colors hover:bg-gray-700 border border-gray-700/50"
+            onClick={moveToPreviousPhase}
             aria-label="Previous exercise"
           >
             <svg
@@ -661,7 +689,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
 
           {/* Pause/Play button */}
           <button
-            className="rounded-full bg-gray-800 border border-gray-700 px-8 py-3 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 focus:ring-offset-slate-950 transition-colors hover:bg-gray-700"
+            className="rounded-full bg-gray-800/80 backdrop-blur-sm border border-gray-700/50 px-8 py-3 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 focus:ring-offset-slate-950 transition-colors hover:bg-gray-700"
             onClick={togglePause}
             aria-label={isPaused ? "Play workout" : "Pause workout"}
           >
@@ -709,7 +737,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
 
           {/* Skip forward button */}
           <button
-            className="rounded-xl bg-gray-900 w-14 h-14 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 focus:ring-offset-slate-950 transition-colors hover:bg-gray-800"
+            className="rounded-xl bg-gray-800/80 backdrop-blur-sm w-14 h-14 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 focus:ring-offset-slate-950 transition-colors hover:bg-gray-700 border border-gray-700/50"
             onClick={moveToNextPhase}
             aria-label="Next exercise"
           >

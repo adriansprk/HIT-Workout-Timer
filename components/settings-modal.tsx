@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button"
-import { X } from "lucide-react"
+import { X, Moon, Sun, VolumeX, Volume2, Mic, MicOff } from "lucide-react"
 import { ThemeToggle } from "./ThemeToggle"
 import { useAudio } from "../contexts/AudioContext"
 import { MuteButton } from "./MuteButton"
@@ -12,7 +12,7 @@ interface SettingsModalProps {
 }
 
 export default function SettingsModal({ onClose }: SettingsModalProps) {
-    const { isMuted } = useAudio()
+    const { isMuted, toggleMute } = useAudio()
     const { isDarkMode, toggleDarkMode } = useTheme()
 
     return (
@@ -30,9 +30,18 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
                     <div className="space-y-4">
                         {/* Theme toggle */}
                         <div className="flex items-center justify-between">
-                            <div>
-                                <h3 className="text-lg font-medium text-gray-900 dark:text-white">Dark Mode</h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Switch between light and dark theme</p>
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
+                                    {isDarkMode ? (
+                                        <Moon className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                                    ) : (
+                                        <Sun className="h-5 w-5 text-amber-500" />
+                                    )}
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">Dark Mode</h3>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">Switch between light and dark theme</p>
+                                </div>
                             </div>
                             <label className="relative inline-flex items-center cursor-pointer">
                                 <input
@@ -45,11 +54,22 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
                             </label>
                         </div>
 
-                        {/* Sound toggle */}
+                        {/* Audio Announcements toggle */}
                         <div className="flex items-center justify-between pt-4 border-t dark:border-gray-700">
-                            <div>
-                                <h3 className="text-lg font-medium text-gray-900 dark:text-white">Sound</h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">{isMuted ? "Unmute" : "Mute"} workout sounds</p>
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                                    {isMuted ? (
+                                        <VolumeX className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                                    ) : (
+                                        <Volume2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                                    )}
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">Audio Announcements</h3>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                                        {isMuted ? "Off: No workout announcements" : "On: Workout progress announcements"}
+                                    </p>
+                                </div>
                             </div>
                             <MuteButton variant="toggle" />
                         </div>
