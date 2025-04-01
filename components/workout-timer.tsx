@@ -584,9 +584,9 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
         </button>
 
         {/* Right side controls */}
-        <div className="flex flex-col gap-2">
-          <WakeLockIndicator className="shadow-md self-end" />
-          <MuteButton className="self-end" />
+        <div className="flex flex-col items-end gap-2">
+          <WakeLockIndicator />
+          <MuteButton />
         </div>
       </div>
 
@@ -626,11 +626,11 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
       </div>
 
       {/* Control buttons - positioned at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 pt-0 z-20 bg-slate-950">
+      <div className="fixed bottom-0 left-0 right-0 p-4 pt-0 z-20">
         <div className="flex justify-center items-center gap-3 px-4 mb-4">
           {/* Skip backward button */}
           <button
-            className="rounded-xl bg-gray-900 w-14 h-14 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 focus:ring-offset-slate-950 transition-colors hover:bg-gray-800"
+            className="rounded-xl bg-gray-800/80 backdrop-blur-sm w-14 h-14 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 focus:ring-offset-slate-950 transition-colors hover:bg-gray-700 border border-gray-700/50"
             onClick={() => {
               // Skip to previous exercise logic would go here
               alert("Skip to previous exercise not implemented");
@@ -656,7 +656,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
 
           {/* Pause/Play button */}
           <button
-            className="rounded-full bg-gray-800 border border-gray-700 px-8 py-3 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 focus:ring-offset-slate-950 transition-colors hover:bg-gray-700"
+            className="rounded-full bg-gray-800/80 backdrop-blur-sm border border-gray-700/50 px-8 py-3 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 focus:ring-offset-slate-950 transition-colors hover:bg-gray-700"
             onClick={togglePause}
             aria-label={isPaused ? "Play workout" : "Pause workout"}
           >
@@ -704,7 +704,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
 
           {/* Skip forward button */}
           <button
-            className="rounded-xl bg-gray-900 w-14 h-14 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 focus:ring-offset-slate-950 transition-colors hover:bg-gray-800"
+            className="rounded-xl bg-gray-800/80 backdrop-blur-sm w-14 h-14 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 focus:ring-offset-slate-950 transition-colors hover:bg-gray-700 border border-gray-700/50"
             onClick={moveToNextPhase}
             aria-label="Next exercise"
           >
