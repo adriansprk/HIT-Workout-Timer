@@ -577,7 +577,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
   return (
     <div
       ref={timerContainerRef}
-      className="mx-auto fixed inset-0 flex flex-col justify-between bg-gradient-to-br from-indigo-900 via-indigo-950 to-slate-950 dark:bg-slate-950 overflow-hidden"
+      className="mx-auto fixed inset-0 flex flex-col justify-between bg-gradient-to-br from-indigo-900 via-indigo-950 to-slate-950 dark:bg-gradient-to-br dark:from-slate-800 dark:via-slate-900 dark:to-slate-950 overflow-hidden"
       style={{
         height: '100dvh',
         width: '100%',

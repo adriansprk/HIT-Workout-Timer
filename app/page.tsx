@@ -102,7 +102,7 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50/80 to-purple-50/70 dark:bg-gray-900">
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50/80 to-purple-50/70 dark:bg-gradient-to-br dark:from-slate-800 dark:via-slate-900 dark:to-gray-950">
       {isWorkoutActive ? (
         <WorkoutTimer
           exerciseTime={exerciseTime}
@@ -122,9 +122,9 @@ export default function Home() {
             </Button>
           </div>
 
-          <div className="bg-white/60 backdrop-blur-sm dark:bg-gray-800/70 rounded-xl p-5 mb-8 border border-white/40 dark:border-gray-700">
+          <div className="bg-white/60 backdrop-blur-sm dark:bg-slate-800/90 dark:backdrop-blur-sm rounded-xl p-5 mb-8 border border-white/40 dark:border-slate-700/60">
             <div className="space-y-4">
-              <div className="flex items-center justify-between bg-white dark:bg-gray-700 p-4 rounded-lg border border-gray-100 dark:border-gray-600 shadow-md hover:shadow-lg transition-shadow">
+              <div className="flex items-center justify-between bg-white dark:bg-slate-700 p-4 rounded-lg border border-gray-100 dark:border-slate-600 shadow-md hover:shadow-lg transition-shadow">
                 <div className="flex items-center gap-3">
                   <div className="bg-green-100 p-2 rounded-lg">
                     <Timer className="h-5 w-5 text-green-600" />
@@ -159,7 +159,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between bg-white dark:bg-gray-700 p-4 rounded-lg border border-gray-100 dark:border-gray-600 shadow-md hover:shadow-lg transition-shadow">
+              <div className="flex items-center justify-between bg-white dark:bg-slate-700 p-4 rounded-lg border border-gray-100 dark:border-slate-600 shadow-md hover:shadow-lg transition-shadow">
                 <div className="flex items-center gap-3">
                   <div className="bg-blue-100 p-2 rounded-lg">
                     <Timer className="h-5 w-5 text-blue-600" />
@@ -194,7 +194,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between bg-white dark:bg-gray-700 p-4 rounded-lg border border-gray-100 dark:border-gray-600 shadow-md hover:shadow-lg transition-shadow">
+              <div className="flex items-center justify-between bg-white dark:bg-slate-700 p-4 rounded-lg border border-gray-100 dark:border-slate-600 shadow-md hover:shadow-lg transition-shadow">
                 <div className="flex items-center gap-3">
                   <div className="bg-purple-100 p-2 rounded-lg">
                     <Dumbbell className="h-5 w-5 text-purple-600" />
@@ -229,7 +229,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between bg-white dark:bg-gray-700 p-4 rounded-lg border border-gray-100 dark:border-gray-600 shadow-md hover:shadow-lg transition-shadow">
+              <div className="flex items-center justify-between bg-white dark:bg-slate-700 p-4 rounded-lg border border-gray-100 dark:border-slate-600 shadow-md hover:shadow-lg transition-shadow">
                 <div className="flex items-center gap-3">
                   <div className="bg-orange-100 p-2 rounded-lg">
                     <RotateCcw className="h-5 w-5 text-orange-600" />
@@ -264,7 +264,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between bg-white dark:bg-gray-700 p-4 rounded-lg border border-gray-100 dark:border-gray-600 shadow-md hover:shadow-lg transition-shadow">
+              <div className="flex items-center justify-between bg-white dark:bg-slate-700 p-4 rounded-lg border border-gray-100 dark:border-slate-600 shadow-md hover:shadow-lg transition-shadow">
                 <div className="flex items-center gap-3">
                   <div className="bg-teal-100 p-2 rounded-lg">
                     <RefreshCw className="h-5 w-5 text-teal-600" />
