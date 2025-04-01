@@ -49,13 +49,13 @@ const CircularProgress = ({ value, size = 300, strokeWidth = 14, timerState }: {
   const getColor = () => {
     switch (timerState) {
       case "exercise":
-        return "#EF4444"; // red-500 - brighter for dark mode
+        return "#22C55E"; // green-500 - was previously red-500
       case "rest":
-        return "#22C55E"; // green-500 - brighter for dark mode
+        return "#F59E0B"; // amber-500 - was previously green-500
       case "roundRest":
-        return "#3B82F6"; // blue-500 - brighter for dark mode
+        return "#3B82F6"; // blue-500 - unchanged
       default:
-        return "#818CF8"; // indigo-400 - brighter for dark mode
+        return "#818CF8"; // indigo-400 - unchanged
     }
   };
 
@@ -442,9 +442,9 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
 
           {/* Streak counter */}
           <div className="text-center mb-6">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-orange-100 rounded-full mb-2">
-              <Flame className="h-4 w-4 text-orange-500" />
-              <span className="font-medium">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-200 dark:bg-amber-900/40 rounded-full mb-2">
+              <Flame className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              <span className="font-medium text-amber-700 dark:text-amber-300">
                 {streakCount > 1 ? `${streakCount} day streak!` : 'First workout!'}
               </span>
             </div>
@@ -500,11 +500,6 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
             <span>New Workout</span>
             <ChevronRight className="h-5 w-5 ml-1" />
           </Button>
-
-          {/* Help text */}
-          <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-3">
-            Return to settings to start a new workout
-          </p>
         </div>
       </div>
     );
@@ -516,13 +511,13 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
       case "exercise":
         return {
           text: "EXERCISE",
-          bg: "bg-red-600",
+          bg: "bg-green-600",
           textColor: "text-white",
         }
       case "rest":
         return {
           text: "REST",
-          bg: "bg-green-600",
+          bg: "bg-amber-500",
           textColor: "text-white",
         }
       case "roundRest":
@@ -564,9 +559,13 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
         </Button>
       </div>
 
-      {/* Mute button and Wake Lock indicator - positioned at top right corner */}
-      <div className="fixed top-4 right-4 z-20 flex items-center gap-2">
-        <WakeLockIndicator />
+      {/* Wake Lock indicator - centered at top */}
+      <div className="fixed top-4 left-0 right-0 z-20 flex justify-center">
+        <WakeLockIndicator className="mx-auto" />
+      </div>
+
+      {/* Mute button - positioned at top right corner, aligned with circle */}
+      <div className="fixed top-4 right-4 z-20">
         <MuteButton />
       </div>
 

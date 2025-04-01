@@ -115,7 +115,7 @@ export default function Home() {
       ) : (
         <div className="max-w-md mx-auto p-4 pb-16">
           <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">HIIT Workout</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Your Workout Timer</h1>
             <Button variant="ghost" size="icon" className="rounded-full" onClick={openSettings}>
               <Settings className="h-6 w-6 text-gray-700 dark:text-gray-300" />
               <span className="sr-only">Settings</span>
@@ -123,8 +123,6 @@ export default function Home() {
           </div>
 
           <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 mb-8">
-            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Workout Settings</h2>
-
             <div className="space-y-4">
               <div className="flex items-center justify-between bg-white dark:bg-gray-700 p-4 rounded-lg border border-gray-100 dark:border-gray-600 shadow-sm">
                 <div className="flex items-center gap-3">
