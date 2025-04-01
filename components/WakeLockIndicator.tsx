@@ -33,11 +33,11 @@ export function WakeLockIndicator({ className = '' }: WakeLockIndicatorProps) {
 
     return (
         <div
-            className={`h-12 w-auto rounded-full px-4 bg-gray-800/80 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center gap-2 ${className}`}
+            className={`h-12 w-12 rounded-full bg-gray-800/80 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center transition-colors ${className}`}
             aria-label="Screen wake lock is active"
         >
             <Eye className="h-5 w-5 text-white" />
-            <span className="text-sm font-medium text-white">Screen On</span>
+            <span className="sr-only">Screen On</span>
         </div>
     );
 } 

@@ -583,8 +583,8 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
           <X className="h-5 w-5 text-white" />
         </button>
 
-        {/* Right side controls */}
-        <div className="flex flex-col items-end gap-2">
+        {/* Right side controls - horizontal layout */}
+        <div className="flex items-center gap-3">
           <WakeLockIndicator />
           <MuteButton />
         </div>
