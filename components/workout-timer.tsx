@@ -446,7 +446,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
     const totalExerciseTime = calculateActiveTime(exerciseTime, validExercises, validRounds);
 
     return (
-      <div className="mx-auto p-4 max-w-md fixed inset-0 z-50 overflow-y-auto bg-black/90" style={{ height: '100dvh' }}>
+      <div className="mx-auto p-4 max-w-md fixed inset-0 z-50 overflow-y-auto bg-gradient-to-br from-indigo-900/95 via-indigo-950/95 to-slate-950/95" style={{ height: '100dvh' }}>
         {/* Confetti effect */}
         <Confetti
           width={windowDimension.width}
@@ -458,19 +458,19 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
           colors={['#4F46E5', '#8B5CF6', '#EC4899', '#F59E0B', '#10B981']}
         />
 
-        <div className="rounded-xl bg-white dark:bg-gray-900 p-6 shadow-sm mt-4 mb-4">
+        <div className="rounded-xl bg-white/90 backdrop-blur-sm dark:bg-slate-800/90 p-6 shadow-lg mt-4 mb-4 border border-white/40 dark:border-slate-700/60">
           {/* Header with trophy icon */}
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-3">
-              <div className="bg-yellow-100 p-3 rounded-full">
-                <Trophy className="h-6 w-6 text-yellow-500" />
+              <div className="bg-yellow-100 dark:bg-yellow-900/40 p-3 rounded-full">
+                <Trophy className="h-6 w-6 text-yellow-500 dark:text-yellow-400" />
               </div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Workout Complete!</h1>
             </div>
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full h-8 w-8"
+              className="rounded-full h-8 w-8 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600"
               onClick={onEnd}
             >
               <X className="h-4 w-4 text-gray-700 dark:text-white" />
@@ -492,28 +492,28 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
 
           {/* Workout stats */}
           <div className="grid grid-cols-2 gap-3 mb-6">
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+            <div className="bg-white dark:bg-slate-700 rounded-lg p-3 shadow-sm border border-gray-100 dark:border-slate-600">
               <div className="flex items-center gap-2 mb-1">
                 <RotateCcw className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                 <span className="text-gray-600 dark:text-gray-300 text-sm">Rounds</span>
               </div>
               <p className="text-xl font-bold text-gray-900 dark:text-white">{validRounds}</p>
             </div>
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+            <div className="bg-white dark:bg-slate-700 rounded-lg p-3 shadow-sm border border-gray-100 dark:border-slate-600">
               <div className="flex items-center gap-2 mb-1">
                 <Dumbbell className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                 <span className="text-gray-600 dark:text-gray-300 text-sm">Exercises</span>
               </div>
               <p className="text-xl font-bold text-gray-900 dark:text-white">{validExercises * validRounds}</p>
             </div>
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+            <div className="bg-white dark:bg-slate-700 rounded-lg p-3 shadow-sm border border-gray-100 dark:border-slate-600">
               <div className="flex items-center gap-2 mb-1">
                 <Clock className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                 <span className="text-gray-600 dark:text-gray-300 text-sm">Total Time</span>
               </div>
               <p className="text-xl font-bold text-gray-900 dark:text-white">{formatTime(totalDuration)}</p>
             </div>
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+            <div className="bg-white dark:bg-slate-700 rounded-lg p-3 shadow-sm border border-gray-100 dark:border-slate-600">
               <div className="flex items-center gap-2 mb-1">
                 <Flame className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                 <span className="text-gray-600 dark:text-gray-300 text-sm">Active Time</span>
@@ -523,7 +523,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
           </div>
 
           {/* Motivational quote */}
-          <div className="bg-indigo-50 dark:bg-indigo-900/30 rounded-lg p-4 mb-6">
+          <div className="bg-indigo-50/80 dark:bg-indigo-900/30 rounded-lg p-4 mb-6 border border-indigo-100 dark:border-indigo-800/30">
             <p className="text-indigo-800 dark:text-indigo-300 italic text-center">
               "{motivationalQuote}"
             </p>
@@ -532,7 +532,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
           {/* CTA Button */}
           <Button
             onClick={onEnd}
-            className="w-full py-6 text-lg bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white"
+            className="w-full py-6 text-lg bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white"
           >
             <span>New Workout</span>
             <ChevronRight className="h-5 w-5 ml-1" />
