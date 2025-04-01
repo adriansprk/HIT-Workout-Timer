@@ -228,10 +228,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
       setTimerState("exercise")
       setTimeRemaining(exerciseTime)
       // Increment round counter after round rest is complete, ensuring it doesn't exceed max rounds
-      setCurrentRound((prev) => {
-        const nextRound = prev + 1;
-        return Math.min(nextRound, validRounds);
-      });
+      setCurrentRound((prev) => prev + 1);
       setCurrentExercise(1)
     }
   }, [timerState, currentExercise, currentRound, validExercises, validRounds, restTime, exerciseTime, roundRestTime])
