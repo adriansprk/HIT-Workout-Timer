@@ -147,26 +147,6 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
   // Wake lock hook to prevent screen from sleeping
   const { isActive, request, release } = useWakeLock();
 
-  // Auto-request wake lock when component mounts
-  useEffect(() => {
-    // Try to request wake lock when timer starts
-    const enableWakeLock = async () => {
-      try {
-        await request();
-        console.log('Wake lock automatically requested');
-      } catch (err) {
-        console.warn('Could not automatically request wake lock:', err);
-      }
-    };
-
-    enableWakeLock();
-
-    // Release wake lock when component unmounts
-    return () => {
-      release();
-    };
-  }, [request, release]);
-
   // Keep the ref updated with the latest state values
   useEffect(() => {
     timerRef.current = {
@@ -397,6 +377,15 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
+  // Enable wake lock when timer starts, and disable on completion or pause
+  useEffect(() => {
+    if (timerState !== "complete" && !isPaused) {
+      request();
+    } else {
+      release();
+    }
+  }, [timerState, isPaused, request, release]);
+
   const togglePause = () => {
     setIsPaused((prev) => !prev);
   }
@@ -446,7 +435,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
     const totalExerciseTime = calculateActiveTime(exerciseTime, validExercises, validRounds);
 
     return (
-      <div className="mx-auto fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-gradient-to-br from-indigo-800 via-indigo-900 to-slate-900" style={{ height: '100%', width: '100%' }}>
+      <div className="mx-auto p-4 max-w-md fixed inset-0 z-50 overflow-y-auto bg-black/90" style={{ height: '100dvh' }}>
         {/* Confetti effect */}
         <Confetti
           width={windowDimension.width}
@@ -458,15 +447,23 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
           colors={['#4F46E5', '#8B5CF6', '#EC4899', '#F59E0B', '#10B981']}
         />
 
-        <div className="rounded-xl bg-white/95 backdrop-blur-sm dark:bg-slate-800/95 p-7 shadow-lg mx-4 mt-8 md:mt-12 border border-white/40 dark:border-slate-700/60 max-w-md w-full">
+        <div className="rounded-xl bg-white dark:bg-gray-900 p-6 shadow-sm mt-4 mb-4">
           {/* Header with trophy icon */}
-          <div className="flex justify-center items-center mb-6">
+          <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-3">
-              <div className="bg-yellow-100 dark:bg-yellow-900/40 p-3 rounded-full">
-                <Trophy className="h-6 w-6 text-yellow-500 dark:text-yellow-400" />
+              <div className="bg-yellow-100 p-3 rounded-full">
+                <Trophy className="h-6 w-6 text-yellow-500" />
               </div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Workout Complete!</h1>
             </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full h-8 w-8"
+              onClick={onEnd}
+            >
+              <X className="h-4 w-4 text-gray-700 dark:text-white" />
+            </Button>
           </div>
 
           {/* Streak counter */}
@@ -484,28 +481,28 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
 
           {/* Workout stats */}
           <div className="grid grid-cols-2 gap-3 mb-6">
-            <div className="bg-white dark:bg-slate-700 rounded-lg p-3 shadow-md border border-gray-100 dark:border-slate-600">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
               <div className="flex items-center gap-2 mb-1">
                 <RotateCcw className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                 <span className="text-gray-600 dark:text-gray-300 text-sm">Rounds</span>
               </div>
               <p className="text-xl font-bold text-gray-900 dark:text-white">{validRounds}</p>
             </div>
-            <div className="bg-white dark:bg-slate-700 rounded-lg p-3 shadow-md border border-gray-100 dark:border-slate-600">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
               <div className="flex items-center gap-2 mb-1">
                 <Dumbbell className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                 <span className="text-gray-600 dark:text-gray-300 text-sm">Exercises</span>
               </div>
               <p className="text-xl font-bold text-gray-900 dark:text-white">{validExercises * validRounds}</p>
             </div>
-            <div className="bg-white dark:bg-slate-700 rounded-lg p-3 shadow-md border border-gray-100 dark:border-slate-600">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
               <div className="flex items-center gap-2 mb-1">
                 <Clock className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                 <span className="text-gray-600 dark:text-gray-300 text-sm">Total Time</span>
               </div>
               <p className="text-xl font-bold text-gray-900 dark:text-white">{formatTime(totalDuration)}</p>
             </div>
-            <div className="bg-white dark:bg-slate-700 rounded-lg p-3 shadow-md border border-gray-100 dark:border-slate-600">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
               <div className="flex items-center gap-2 mb-1">
                 <Flame className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                 <span className="text-gray-600 dark:text-gray-300 text-sm">Active Time</span>
@@ -515,7 +512,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
           </div>
 
           {/* Motivational quote */}
-          <div className="bg-indigo-50/80 dark:bg-indigo-900/30 rounded-lg p-4 mb-6 border border-indigo-100 dark:border-indigo-800/30">
+          <div className="bg-indigo-50 dark:bg-indigo-900/30 rounded-lg p-4 mb-6">
             <p className="text-indigo-800 dark:text-indigo-300 italic text-center">
               "{motivationalQuote}"
             </p>
@@ -524,7 +521,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
           {/* CTA Button */}
           <Button
             onClick={onEnd}
-            className="w-full py-6 text-lg bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white"
+            className="w-full py-6 text-lg bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white"
           >
             <span>New Workout</span>
             <ChevronRight className="h-5 w-5 ml-1" />
@@ -575,26 +572,25 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
         width: '100%',
       }}
     >
-      {/* Exit button - positioned at top corner */}
-      <div className="fixed top-4 left-4 z-20">
-        <Button
-          variant="ghost"
-          size="icon"
+      {/* Controls positioned at top */}
+      <div className="fixed top-4 w-full flex justify-between items-center px-4 z-20">
+        {/* Exit button */}
+        <button
           onClick={onEnd}
           aria-label="End workout"
-          className="h-12 w-12 rounded-full bg-gray-900/90 hover:bg-gray-800 p-0 flex items-center justify-center border border-gray-800"
+          className="h-12 w-12 rounded-full bg-gray-800/80 backdrop-blur-sm hover:bg-gray-700 border border-gray-700/50 flex items-center justify-center transition-colors"
         >
           <X className="h-5 w-5 text-white" />
-        </Button>
+        </button>
+
+        {/* Right side controls */}
+        <div className="flex flex-col gap-2">
+          <WakeLockIndicator className="shadow-md self-end" />
+          <MuteButton className="self-end" />
+        </div>
       </div>
 
-      {/* WakeLock indicator - positioned at top right */}
-      <div className="fixed top-4 right-4 z-20">
-        <WakeLockIndicator className="shadow-md" />
-        <MuteButton className="mt-2" />
-      </div>
-
-      {/* Main timer section - takes most of the screen */}
+      {/* Main timer content */}
       <div className="flex-1 flex flex-col justify-center items-center mt-16 mb-32">
         <div className="relative flex flex-col items-center">
           {/* Timer circle */}
@@ -630,11 +626,11 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
       </div>
 
       {/* Control buttons - positioned at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 pt-0 z-20">
-        <div className="flex justify-center items-center gap-3 px-4 mb-6">
+      <div className="fixed bottom-0 left-0 right-0 p-4 pt-0 z-20 bg-slate-950">
+        <div className="flex justify-center items-center gap-3 px-4 mb-4">
           {/* Skip backward button */}
           <button
-            className="rounded-xl bg-gray-800/80 backdrop-blur-sm w-14 h-14 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 focus:ring-offset-slate-950 transition-colors hover:bg-gray-700 border border-gray-700/50"
+            className="rounded-xl bg-gray-900 w-14 h-14 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 focus:ring-offset-slate-950 transition-colors hover:bg-gray-800"
             onClick={() => {
               // Skip to previous exercise logic would go here
               alert("Skip to previous exercise not implemented");
@@ -660,7 +656,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
 
           {/* Pause/Play button */}
           <button
-            className="rounded-full bg-gray-800/80 backdrop-blur-sm border border-gray-700/50 px-8 py-4 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 focus:ring-offset-slate-950 transition-colors hover:bg-gray-700 shadow-md"
+            className="rounded-full bg-gray-800 border border-gray-700 px-8 py-3 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 focus:ring-offset-slate-950 transition-colors hover:bg-gray-700"
             onClick={togglePause}
             aria-label={isPaused ? "Play workout" : "Pause workout"}
           >
@@ -708,7 +704,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
 
           {/* Skip forward button */}
           <button
-            className="rounded-xl bg-gray-800/80 backdrop-blur-sm w-14 h-14 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 focus:ring-offset-slate-950 transition-colors hover:bg-gray-700 border border-gray-700/50"
+            className="rounded-xl bg-gray-900 w-14 h-14 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 focus:ring-offset-slate-950 transition-colors hover:bg-gray-800"
             onClick={moveToNextPhase}
             aria-label="Next exercise"
           >
