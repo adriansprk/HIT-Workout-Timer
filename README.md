@@ -4,6 +4,25 @@ A modern, customizable High-Intensity Interval Training timer web application bu
 
 **[Try it now: timer.adriancares.com](https://timer.adriancares.com)**
 
+## Screenshots
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center">
+        <img src="docs/images/config-screen.png" alt="Workout Configuration Screen" width="300" />
+        <br />
+        <em>Workout Configuration</em>
+      </td>
+      <td align="center">
+        <img src="docs/images/timer-screen.png" alt="Active Workout Timer" width="300" />
+        <br />
+        <em>Active Workout Timer</em>
+      </td>
+    </tr>
+  </table>
+</div>
+
 ## Features
 
 - **Fully Customizable Workouts**: Configure exercise time, rest periods, number of exercises, and rounds
