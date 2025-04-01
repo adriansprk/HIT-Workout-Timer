@@ -446,7 +446,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
     const totalExerciseTime = calculateActiveTime(exerciseTime, validExercises, validRounds);
 
     return (
-      <div className="mx-auto fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-gradient-to-br from-indigo-800 via-indigo-900 to-slate-900" style={{ height: '100%', width: '100%' }}>
+      <div className="mx-auto fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-gradient-to-br from-indigo-800 via-indigo-900 to-slate-900" style={{ height: '100%', width: '100%' }}>
         {/* Confetti effect */}
         <Confetti
           width={windowDimension.width}
@@ -458,7 +458,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
           colors={['#4F46E5', '#8B5CF6', '#EC4899', '#F59E0B', '#10B981']}
         />
 
-        <div className="rounded-xl bg-white/95 backdrop-blur-sm dark:bg-slate-800/95 p-7 shadow-lg mx-4 border border-white/40 dark:border-slate-700/60 max-w-md w-full">
+        <div className="rounded-xl bg-white/95 backdrop-blur-sm dark:bg-slate-800/95 p-7 shadow-lg mx-4 mt-8 md:mt-12 border border-white/40 dark:border-slate-700/60 max-w-md w-full">
           {/* Header with trophy icon */}
           <div className="flex justify-center items-center mb-6">
             <div className="flex items-center gap-3">
