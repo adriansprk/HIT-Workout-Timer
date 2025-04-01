@@ -102,7 +102,7 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-white dark:bg-gray-900">
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50/80 to-purple-50/70 dark:bg-gray-900">
       {isWorkoutActive ? (
         <WorkoutTimer
           exerciseTime={exerciseTime}
@@ -122,7 +122,7 @@ export default function Home() {
             </Button>
           </div>
 
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 mb-8">
+          <div className="bg-white/80 backdrop-blur-sm dark:bg-gray-800 rounded-xl p-4 mb-8 shadow-sm">
             <div className="space-y-4">
               <div className="flex items-center justify-between bg-white dark:bg-gray-700 p-4 rounded-lg border border-gray-100 dark:border-gray-600 shadow-sm">
                 <div className="flex items-center gap-3">
