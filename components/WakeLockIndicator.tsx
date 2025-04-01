@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useWakeLock } from '../hooks/useWakeLock';
 import { Eye } from 'lucide-react';
 
@@ -12,12 +12,24 @@ interface WakeLockIndicatorProps {
 /**
  * A component that displays the current wake lock status
  * Visual indicator only - not interactive
+ * Will always show on iOS devices when in the timer screen
  */
 export function WakeLockIndicator({ className = '' }: WakeLockIndicatorProps) {
-    const { isActive } = useWakeLock();
+    const { isActive, error } = useWakeLock();
+    const [isIOS, setIsIOS] = useState(false);
 
-    // Only show when wake lock is active
-    if (!isActive) return null;
+    // Detect iOS device once on mount
+    useEffect(() => {
+        const detectIOS = () => {
+            const userAgent = window.navigator.userAgent.toLowerCase();
+            return /iphone|ipad|ipod/.test(userAgent);
+        };
+
+        setIsIOS(detectIOS());
+    }, []);
+
+    // Show the indicator if wake lock is active OR we're on iOS (since iOS wake lock is unreliable)
+    if (!isActive && !isIOS) return null;
 
     return (
         <div
