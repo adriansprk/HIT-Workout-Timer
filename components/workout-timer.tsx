@@ -588,14 +588,10 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
         </Button>
       </div>
 
-      {/* Wake Lock indicator - centered at top */}
-      <div className="fixed top-4 left-0 right-0 z-20 flex justify-center">
-        <WakeLockIndicator className="mx-auto" />
-      </div>
-
-      {/* Mute button - positioned at top right corner, aligned with circle */}
+      {/* WakeLock indicator - positioned at top right */}
       <div className="fixed top-4 right-4 z-20">
-        <MuteButton />
+        <WakeLockIndicator className="shadow-md" />
+        <MuteButton className="mt-2" />
       </div>
 
       {/* Main timer section - takes most of the screen */}
