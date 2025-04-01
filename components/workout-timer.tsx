@@ -236,6 +236,42 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
     }
   }, [timerState, currentExercise, currentRound, validExercises, validRounds, restTime, exerciseTime, roundRestTime])
 
+  const moveToPreviousPhase = useCallback(() => {
+    setPrevTimerState(timerState);
+
+    if (timerState === "exercise") {
+      // If we're at the first exercise of the first round, stay where we are
+      if (currentExercise === 1 && currentRound === 1) {
+        // Restart current exercise
+        setTimeRemaining(exerciseTime);
+        return;
+      }
+
+      // If we're at the first exercise of any round after the first
+      if (currentExercise === 1 && currentRound > 1) {
+        // Go back to the last exercise of the previous round
+        setTimerState("exercise");
+        setCurrentRound(prev => Math.max(prev - 1, 1));
+        setCurrentExercise(validExercises);
+        setTimeRemaining(exerciseTime);
+      } else {
+        // Go back to the previous exercise (after its rest period)
+        setTimerState("exercise");
+        setCurrentExercise(prev => Math.max(prev - 1, 1));
+        setTimeRemaining(exerciseTime);
+      }
+    } else if (timerState === "rest") {
+      // Go back to the exercise before this rest
+      setTimerState("exercise");
+      setTimeRemaining(exerciseTime);
+    } else if (timerState === "roundRest") {
+      // Go back to the last exercise of the current round
+      setTimerState("exercise");
+      setCurrentExercise(validExercises);
+      setTimeRemaining(exerciseTime);
+    }
+  }, [timerState, currentExercise, currentRound, validExercises, exerciseTime]);
+
   // Main timer effect with stable interval
   useEffect(() => {
     if (timerState === "complete") return;
@@ -631,10 +667,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
           {/* Skip backward button */}
           <button
             className="rounded-xl bg-gray-800/80 backdrop-blur-sm w-14 h-14 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 focus:ring-offset-slate-950 transition-colors hover:bg-gray-700 border border-gray-700/50"
-            onClick={() => {
-              // Skip to previous exercise logic would go here
-              alert("Skip to previous exercise not implemented");
-            }}
+            onClick={moveToPreviousPhase}
             aria-label="Previous exercise"
           >
             <svg
