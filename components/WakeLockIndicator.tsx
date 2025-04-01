@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useWakeLock } from '../hooks/useWakeLock';
-import { Monitor, MonitorOff } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface WakeLockIndicatorProps {
     /** Optional class name for styling */
@@ -11,21 +11,32 @@ interface WakeLockIndicatorProps {
 
 /**
  * A component that displays the current wake lock status
- * Shows an open eye when wake lock is active, closed eye when inactive
+ * Shows an eye icon when wake lock is active, and eye-off when inactive
  */
 export function WakeLockIndicator({ className = '' }: WakeLockIndicatorProps) {
-    const { isActive } = useWakeLock();
+    const { isActive, request, release } = useWakeLock();
 
     return (
-        <div className={`flex items-center gap-2 text-sm ${className}`}>
+        <button
+            onClick={isActive ? release : request}
+            className={`h-8 px-4 rounded-full flex items-center justify-center gap-2 ${isActive
+                    ? 'bg-purple-950 border border-purple-800/50'
+                    : 'bg-gray-800/80 border border-gray-700'
+                } ${className}`}
+            aria-label={isActive ? "Disable screen wake lock" : "Enable screen wake lock"}
+            title={isActive ? "Screen will stay awake" : "Screen may turn off"}
+        >
             {isActive ? (
-                <Monitor className="h-4 w-4 text-green-500 dark:text-green-400" />
+                <>
+                    <Eye className="h-4 w-4 text-purple-300" />
+                    <span className="text-sm font-medium text-purple-300">Screen On</span>
+                </>
             ) : (
-                <MonitorOff className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                <>
+                    <EyeOff className="h-4 w-4 text-gray-400" />
+                    <span className="text-sm font-medium text-gray-400">Screen Auto</span>
+                </>
             )}
-            <span className={isActive ? 'text-green-500 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'}>
-                {isActive ? 'Screen active' : 'Screen can sleep'}
-            </span>
-        </div>
+        </button>
     );
 } 
