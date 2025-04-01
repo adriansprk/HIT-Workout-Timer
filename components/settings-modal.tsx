@@ -54,20 +54,20 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
                             </label>
                         </div>
 
-                        {/* Voice Commands toggle */}
+                        {/* Audio Announcements toggle */}
                         <div className="flex items-center justify-between pt-4 border-t dark:border-gray-700">
                             <div className="flex items-center gap-3">
                                 <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                                     {isMuted ? (
-                                        <MicOff className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                                        <VolumeX className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                                     ) : (
-                                        <Mic className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                                        <Volume2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                                     )}
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">Voice Commands</h3>
+                                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">Audio Announcements</h3>
                                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                                        {isMuted ? "Off: No audio announcements" : "On: Audio workout announcements"}
+                                        {isMuted ? "Off: No workout announcements" : "On: Workout progress announcements"}
                                     </p>
                                 </div>
                             </div>
