@@ -32,8 +32,10 @@ A modern, customizable High-Intensity Interval Training timer web application bu
 - **Screen Wake Lock**: Prevents device screen from turning off during workouts
 - **Dark Mode Support**: Toggle between light and dark themes
 - **Progress Tracking**: Workout streak counter to maintain motivation
+- **Fullscreen Mode**: Distraction-free workout experience
 - **Mobile Friendly**: Responsive design that works on all devices
 - **Offline Support**: Works without an internet connection
+- **Celebration Effects**: Confetti animation when you complete a workout
 - **Settings Persistence**: Saves your workout preferences
 
 ## Getting Started
