@@ -147,6 +147,26 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
   // Wake lock hook to prevent screen from sleeping
   const { isActive, request, release } = useWakeLock();
 
+  // Auto-request wake lock when component mounts
+  useEffect(() => {
+    // Try to request wake lock when timer starts
+    const enableWakeLock = async () => {
+      try {
+        await request();
+        console.log('Wake lock automatically requested');
+      } catch (err) {
+        console.warn('Could not automatically request wake lock:', err);
+      }
+    };
+
+    enableWakeLock();
+
+    // Release wake lock when component unmounts
+    return () => {
+      release();
+    };
+  }, [request, release]);
+
   // Keep the ref updated with the latest state values
   useEffect(() => {
     timerRef.current = {
@@ -376,15 +396,6 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
-
-  // Enable wake lock when timer starts, and disable on completion or pause
-  useEffect(() => {
-    if (timerState !== "complete" && !isPaused) {
-      request();
-    } else {
-      release();
-    }
-  }, [timerState, isPaused, request, release]);
 
   const togglePause = () => {
     setIsPaused((prev) => !prev);
