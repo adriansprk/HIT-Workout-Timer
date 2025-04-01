@@ -1,6 +1,27 @@
-# HIIT Timer
+# HIIT Timer [![Next.js](https://img.shields.io/badge/Next.js-15.2.4-blue)](https://nextjs.org/) [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/) [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.17-blue)](https://tailwindcss.com/) [![License](https://img.shields.io/badge/license-MIT-green)](https://opensource.org/licenses/MIT) [![Live App](https://img.shields.io/badge/live-timer.adriancares.com-brightgreen)](https://timer.adriancares.com)
 
 A modern, customizable High-Intensity Interval Training timer web application built with Next.js and TypeScript.
+
+**[Try it now: timer.adriancares.com](https://timer.adriancares.com)**
+
+## Screenshots
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center">
+        <img src="docs/images/config-screen.png" alt="Workout Configuration Screen" width="300" />
+        <br />
+        <em>Workout Configuration</em>
+      </td>
+      <td align="center">
+        <img src="docs/images/timer-screen.png" alt="Active Workout Timer" width="300" />
+        <br />
+        <em>Active Workout Timer</em>
+      </td>
+    </tr>
+  </table>
+</div>
 
 ## Features
 
