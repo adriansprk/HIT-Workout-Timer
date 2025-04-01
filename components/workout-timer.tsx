@@ -254,6 +254,23 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
       // Display current time
       setTimeRemaining(currentTime);
 
+      // Calculate the halfway point of exercise (only during exercise state)
+      const isHalfwayPoint = timerRef.current.timerState === "exercise" &&
+        currentTime === Math.floor(exerciseTime / 2);
+
+      // Check if this is the last exercise of a round
+      const isLastExerciseOfRound = timerRef.current.timerState === "exercise" &&
+        timerRef.current.currentExercise >= validExercises;
+
+      // Check if this is the last exercise of the last round
+      const isLastExerciseOfWorkout = isLastExerciseOfRound &&
+        timerRef.current.currentRound >= validRounds;
+
+      // Play halfway announcement if at halfway point
+      if (isHalfwayPoint) {
+        playCountdownSound('halfway-there');
+      }
+
       // Play appropriate sound based on the time we just set to display
       if (currentTime === 3) {
         playCountdownSound('three');
@@ -267,7 +284,16 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
       else if (currentTime === 0) {
         // Play end of interval sound
         if (timerRef.current.timerState === "exercise") {
-          playCountdownSound('rest');
+          if (isLastExerciseOfWorkout) {
+            // Play workout complete sound for the last exercise of the workout
+            playCountdownSound('workout-complete');
+          } else if (isLastExerciseOfRound) {
+            // Play round complete sound for the last exercise of a round 
+            playCountdownSound('round-complete');
+          } else {
+            // Normal rest sound for regular exercise end
+            playCountdownSound('rest');
+          }
         }
         else if (timerRef.current.timerState === "rest" || timerRef.current.timerState === "roundRest") {
           playCountdownSound('go');
@@ -302,7 +328,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
         clearInterval(intervalId);
       }
     };
-  }, [timerState, timeRemaining, moveToNextPhase, playCountdownSound]);
+  }, [timerState, timeRemaining, moveToNextPhase, playCountdownSound, exerciseTime, validExercises, validRounds]);
 
   // When the workout is complete - initialize completion screen data
   useEffect(() => {

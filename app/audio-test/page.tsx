@@ -10,7 +10,7 @@ export default function AudioTestPage() {
     const { playCountdownSound, isMuted } = useAudio();
     const [activeSound, setActiveSound] = useState<string | null>(null);
 
-    const playSoundWithVisualFeedback = async (sound: 'three' | 'two' | 'one' | 'rest' | 'go') => {
+    const playSoundWithVisualFeedback = async (sound: 'three' | 'two' | 'one' | 'rest' | 'go' | 'halfway-there' | 'round-complete' | 'workout-complete') => {
         setActiveSound(sound);
         await playCountdownSound(sound);
         setTimeout(() => setActiveSound(null), 500);
@@ -67,6 +67,27 @@ export default function AudioTestPage() {
                         className={`p-6 ${activeSound === 'go' ? 'bg-indigo-700' : 'bg-indigo-600'} hover:bg-indigo-700`}
                     >
                         Play "Go"
+                    </Button>
+
+                    <Button
+                        onClick={() => playSoundWithVisualFeedback('halfway-there')}
+                        className={`p-6 ${activeSound === 'halfway-there' ? 'bg-indigo-700' : 'bg-indigo-600'} hover:bg-indigo-700`}
+                    >
+                        Play "Halfway There"
+                    </Button>
+
+                    <Button
+                        onClick={() => playSoundWithVisualFeedback('round-complete')}
+                        className={`p-6 ${activeSound === 'round-complete' ? 'bg-indigo-700' : 'bg-indigo-600'} hover:bg-indigo-700`}
+                    >
+                        Play "Round Complete"
+                    </Button>
+
+                    <Button
+                        onClick={() => playSoundWithVisualFeedback('workout-complete')}
+                        className={`p-6 ${activeSound === 'workout-complete' ? 'bg-indigo-700' : 'bg-indigo-600'} hover:bg-indigo-700`}
+                    >
+                        Play "Workout Complete"
                     </Button>
                 </div>
 

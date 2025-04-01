@@ -1,6 +1,6 @@
 import { saveAudioUnlockStatus, getAudioUnlockStatus as getSavedAudioUnlockStatus } from './settings';
 
-export type CountdownSound = 'three' | 'two' | 'one' | 'rest' | 'go';
+export type CountdownSound = 'three' | 'two' | 'one' | 'rest' | 'go' | 'halfway-there' | 'round-complete' | 'workout-complete';
 
 // Flag to track if audio has been unlocked for mobile
 let isAudioUnlocked = false;
@@ -182,7 +182,7 @@ export const preloadSounds = async (): Promise<void> => {
         return;
     }
 
-    const sounds: CountdownSound[] = ['three', 'two', 'one', 'rest', 'go'];
+    const sounds: CountdownSound[] = ['three', 'two', 'one', 'rest', 'go', 'halfway-there', 'round-complete', 'workout-complete'];
 
     try {
         // Load all sounds in parallel
@@ -323,13 +323,16 @@ export const playSound = async (sound: CountdownSound, isMuted: boolean): Promis
  * Check if audio files exist and are accessible
  */
 export const checkAudioFiles = async (): Promise<Record<CountdownSound, boolean>> => {
-    const sounds: CountdownSound[] = ['three', 'two', 'one', 'rest', 'go'];
+    const sounds: CountdownSound[] = ['three', 'two', 'one', 'rest', 'go', 'halfway-there', 'round-complete', 'workout-complete'];
     const results: Record<CountdownSound, boolean> = {
         three: false,
         two: false,
         one: false,
         rest: false,
-        go: false
+        go: false,
+        'halfway-there': false,
+        'round-complete': false,
+        'workout-complete': false
     };
 
     console.log('Audio: Starting file accessibility check');
