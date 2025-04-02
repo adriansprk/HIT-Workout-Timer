@@ -109,25 +109,28 @@ beforeEach(() => {
 
     // Fix for act warnings and React prop warnings - properly implement to avoid recursive calls
     jest.spyOn(console, 'error').mockImplementation(function (message, ...args) {
-        // List of warnings to ignore
-        const ignoredWarnings = [
+        // Skip all errors in test mode
+        if (typeof message === 'string') {
             // React act warnings
-            'Warning: ReactDOM.render',
-            'Warning: An update to',
+            if (message.includes('Warning: An update to') ||
+                message.includes('inside a test was not wrapped in act') ||
+                message.includes('wrap-tests-with-act')) {
+                return;
+            }
 
-            // React-confetti prop warnings
-            'Received `false` for a non-boolean attribute `recycle`',
-            'React does not recognize the `numberOfPieces` prop',
-            'React does not recognize the `tweenDuration` prop',
+            // React component warnings
+            if (message.includes('React does not recognize the') ||
+                message.includes('Received `false` for a non-boolean attribute') ||
+                message.includes('If you want to write it to the DOM') ||
+                message.includes('If you intentionally want it to appear in the DOM')) {
+                return;
+            }
 
-            // Any other warnings to ignore
-            'SyntaxError: Expected property name or'
-        ];
-
-        // Skip any warnings in our ignore list
-        if (typeof message === 'string' &&
-            ignoredWarnings.some(warning => message.includes(warning))) {
-            return;
+            // Other common warnings
+            if (message.includes('Warning: ReactDOM.render') ||
+                message.includes('SyntaxError: Expected property name or')) {
+                return;
+            }
         }
 
         // Use bind to maintain the correct context and avoid recursion
