@@ -69,12 +69,19 @@ describe('Settings Persistence', () => {
             </AudioProvider>
         );
 
-        // Get the dark mode checkbox by role
-        const darkModeInput = screen.getByRole('checkbox', { name: 'dark mode' });
+        // Find the Dark Mode section heading
+        const darkModeHeading = screen.getByText('Dark Mode');
+
+        // From the heading, navigate up to the parent container and find the checkbox
+        const container = darkModeHeading.closest('.flex.items-center.justify-between');
+        const darkModeInput = container?.querySelector('input[type="checkbox"]');
+
+        // Ensure we found the checkbox
+        expect(darkModeInput).not.toBeNull();
 
         // Toggle dark mode with act to handle async updates
         await act(async () => {
-            fireEvent.click(darkModeInput);
+            fireEvent.click(darkModeInput!);
             // Wait for state updates to complete
             await new Promise(resolve => setTimeout(resolve, 0));
         });
