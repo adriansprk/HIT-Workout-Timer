@@ -104,16 +104,20 @@ beforeEach(() => {
     localStorage.clear();
     sessionStorage.clear();
 
-    // Fix for act warnings
-    jest.spyOn(console, 'error').mockImplementation((message) => {
-        // Allow real errors but suppress act warnings
-        if (message && message.includes && message.includes('Warning: ReactDOM.render')) {
-            return;
+    // Store original console methods
+    const originalError = console.error;
+
+    // Fix for act warnings - properly implement to avoid recursive calls
+    jest.spyOn(console, 'error').mockImplementation(function (message, ...args) {
+        // Skip React warnings but pass through other errors
+        if (typeof message === 'string') {
+            if (message.includes('Warning: ReactDOM.render') ||
+                message.includes('Warning: An update to')) {
+                return;
+            }
         }
-        if (message && message.includes && message.includes('Warning: An update to')) {
-            return;
-        }
-        console.error(message);
+        // Use bind to maintain the correct context and avoid recursion
+        return originalError.bind(console)(message, ...args);
     });
 });
 
