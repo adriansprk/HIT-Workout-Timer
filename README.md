@@ -1,4 +1,4 @@
-# HIIT Timer [![Next.js](https://img.shields.io/badge/Next.js-15.2.4-blue)](https://nextjs.org/) [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/) [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.17-blue)](https://tailwindcss.com/) [![License](https://img.shields.io/badge/license-MIT-green)](https://opensource.org/licenses/MIT) [![Live App](https://img.shields.io/badge/live-timer.adriancares.com-brightgreen)](https://timer.adriancares.com)
+# HIIT Timer [![Next.js](https://img.shields.io/badge/Next.js-15.2.4-blue)](https://nextjs.org/) [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/) [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.17-blue)](https://tailwindcss.com/) [![License](https://img.shields.io/badge/license-MIT-green)](https://opensource.org/licenses/MIT) [![Live App](https://img.shields.io/badge/live-timer.adriancares.com-brightgreen)](https://timer.adriancares.com) ![Tests](https://github.com/adriansprk/HIT-Workout-Timer/actions/workflows/test.yml/badge.svg) ![Cypress](https://github.com/adriansprk/HIT-Workout-Timer/actions/workflows/cypress.yml/badge.svg)
 
 A modern, customizable High-Intensity Interval Training timer web application built with Next.js and TypeScript.
 
@@ -103,21 +103,66 @@ A modern, customizable High-Intensity Interval Training timer web application bu
 - **Theme Switching**: next-themes
 - **Audio**: Web Audio API
 - **Screen Wake Lock**: Web Wake Lock API with video fallback for iOS
+- **Testing**: Jest for unit and integration tests, Cypress for E2E tests
+- **CI/CD**: GitHub Actions for automated testing and deployment
 
 ## Project Structure
 
 ```
 HIIT-Timer/
-├── app/             # Next.js App Router pages
-├── components/      # React components
-├── contexts/        # React Context providers
-├── hooks/           # Custom React hooks
-├── lib/             # Utility functions
-├── public/          # Static assets
-│   └── audio/       # Voice announcements
-├── types/           # TypeScript type definitions
-└── styles/          # Global styles
+├── app/              # Next.js App Router pages
+├── components/       # React components
+├── contexts/         # React Context providers
+├── hooks/            # Custom React hooks
+├── lib/              # Utility functions
+├── styles/           # Global styles
+├── public/           # Static assets
+│   └── audio/        # Voice announcements
+├── __tests__/        # Jest test files
+│   ├── components/   # Component tests
+│   ├── contexts/     # Context tests
+│   ├── hooks/        # Hook tests
+│   ├── integration/  # Integration tests
+│   └── lib/          # Utility function tests
+├── cypress/          # Cypress test files
+│   ├── e2e/          # E2E test specifications
+│   └── support/      # Test support files
+├── .github/          # GitHub actions workflows
+│   └── workflows/    # CI/CD pipeline definitions
+├── docs/             # Documentation files
+└── types/            # TypeScript type definitions
 ```
+
+## Testing
+
+This project employs a comprehensive testing strategy:
+
+- **Unit Tests**: Testing individual components and utilities
+- **Integration Tests**: Testing interactions between components
+- **End-to-End Tests**: Cypress tests that simulate real user interactions
+
+Run tests with:
+
+```bash
+# Run Jest tests
+npm test
+
+# Run Cypress tests in interactive mode
+npm run cypress:open
+
+# Run Cypress tests in headless mode
+npm run cypress:run
+```
+
+For more detailed information about the testing architecture, see [docs/testing.md](docs/testing.md).
+
+## Documentation
+
+All documentation is centralized in the [docs folder](docs/) with an index for easy navigation.
+
+- [Architecture Document](docs/architecture.md) - Detailed overview of the app architecture and design decisions
+- [Audio System Documentation](docs/audio-system.md) - Documentation for the audio playback system
+- [Testing Reference](docs/test-reference.md) - Reference guide for testing implementations
 
 ## License
 
