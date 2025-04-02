@@ -6,11 +6,10 @@ import { ThemeProvider } from '../contexts/ThemeContext'
 import { Footer } from '../components/Footer'
 
 export const metadata: Metadata = {
-  title: 'Simple HIT Timer',
+  title: 'Simple HIIT Timer',
   description: 'A customizable HIIT workout timer for your interval training sessions',
-  generator: 'v0.dev',
   openGraph: {
-    title: 'Simple HIT Timer',
+    title: 'Simple HIIT Timer',
     description: 'A customizable HIIT workout timer for your interval training sessions',
     images: [
       {
@@ -21,12 +20,12 @@ export const metadata: Metadata = {
       }
     ],
     url: 'https://timer.adriancares.com',
-    siteName: 'Simple HIT Timer',
+    siteName: 'Simple HIIT Timer',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Simple HIT Timer',
+    title: 'Simple HIIT Timer',
     description: 'A customizable HIIT workout timer for your interval training sessions',
     images: ['/docs/images/config-screen.jpeg'],
   }
