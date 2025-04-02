@@ -1,8 +1,9 @@
-# HIIT Timer [![Next.js](https://img.shields.io/badge/Next.js-15.2.4-blue)](https://nextjs.org/) [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/) [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.17-blue)](https://tailwindcss.com/) [![License](https://img.shields.io/badge/license-MIT-green)](https://opensource.org/licenses/MIT) [![Live App](https://img.shields.io/badge/live-timer.adriancares.com-brightgreen)](https://timer.adriancares.com) ![Tests](https://github.com/adriansprk/HIT-Workout-Timer/actions/workflows/test.yml/badge.svg) ![Cypress](https://github.com/adriansprk/HIT-Workout-Timer/actions/workflows/cypress.yml/badge.svg)
+# HIIT Timer 
+[![Next.js](https://img.shields.io/badge/Next.js-15.2.4-blue)](https://nextjs.org/) [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/) [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.17-blue)](https://tailwindcss.com/) [![License](https://img.shields.io/badge/license-MIT-green)](https://opensource.org/licenses/MIT) [![Live App](https://img.shields.io/badge/live-timer.adriancares.com-brightgreen)](https://timer.adriancares.com) ![Tests](https://github.com/adriansprk/HIT-Workout-Timer/actions/workflows/test.yml/badge.svg) [![Cypress](https://img.shields.io/badge/Cypress-14.2.1-17202C?logo=cypress)](https://cypress.io)
 
 A modern, customizable High-Intensity Interval Training timer web application built with Next.js and TypeScript.
 
-**[Try it now: timer.adriancares.com](https://timer.adriancares.com)**
+**[Try it here: timer.adriancares.com](https://timer.adriancares.com)**
 
 ## Screenshots
 
@@ -10,12 +11,12 @@ A modern, customizable High-Intensity Interval Training timer web application bu
   <table>
     <tr>
       <td align="center">
-        <img src="docs/images/config-screen.png" alt="Workout Configuration Screen" width="300" />
+        <img src="docs/images/config-screen.jpeg" alt="Workout Configuration Screen" width="300" />
         <br />
         <em>Workout Configuration</em>
       </td>
       <td align="center">
-        <img src="docs/images/timer-screen.png" alt="Active Workout Timer" width="300" />
+        <img src="docs/images/timer-screen.jpeg" alt="Active Workout Timer" width="300" />
         <br />
         <em>Active Workout Timer</em>
       </td>
@@ -25,18 +26,16 @@ A modern, customizable High-Intensity Interval Training timer web application bu
 
 ## Features
 
-- **Fully Customizable Workouts**: Configure exercise time, rest periods, number of exercises, and rounds
-- **Audio Announcements**: Voice prompts for workout phases including "halfway there", "round complete", and "workout complete"
-- **Intuitive Timer Interface**: Visual circular progress indicator with clear time display
-- **Skip Controls**: Navigate forward and backward through workout phases
-- **Screen Wake Lock**: Prevents device screen from turning off during workouts
-- **Dark Mode Support**: Toggle between light and dark themes
-- **Progress Tracking**: Workout streak counter to maintain motivation
-- **Fullscreen Mode**: Distraction-free workout experience
-- **Mobile Friendly**: Responsive design that works on all devices
-- **Offline Support**: Works without an internet connection
-- **Celebration Effects**: Confetti animation when you complete a workout
-- **Settings Persistence**: Saves your workout preferences
+- ⚙️ **Fully Customizable Workouts**: Configure exercise time, rest periods, number of exercises, and rounds
+- 🔊 **Audio Announcements**: Voice prompts for workout phases including "halfway there", "round complete", and "workout complete"
+- ⏱️ **Timer Interface**: Visual circular progress indicator with clear time display
+- ⏭️ **Skip Controls**: Navigate forward and backward through workout phases
+- 📱 **Screen Wake Lock**: Prevents device screen from turning off during workouts
+- 🌓 **Dark Mode Support**: Toggle between light and dark themes
+- 📊 **Progress Tracking**: Workout streak counter to maintain motivation
+- 📲 **Mobile Friendly**: Responsive design that works on all devices
+- 🔌 **Offline Support**: Works without an internet connection
+- 💾 **Settings Persistence**: Saves your workout preferences
 
 ## Getting Started
 

@@ -6,9 +6,29 @@ import { ThemeProvider } from '../contexts/ThemeContext'
 import { Footer } from '../components/Footer'
 
 export const metadata: Metadata = {
-  title: 'Simple HIT Timer',
-  description: 'Created with v0',
-  generator: 'v0.dev',
+  title: 'Simple HIIT Timer',
+  description: 'A customizable HIIT workout timer for your interval training sessions',
+  openGraph: {
+    title: 'Simple HIIT Timer',
+    description: 'A customizable HIIT workout timer for your interval training sessions',
+    images: [
+      {
+        url: '/docs/images/config-screen.jpeg',
+        width: 1200,
+        height: 630,
+        alt: 'HIIT Timer Configuration Screen'
+      }
+    ],
+    url: 'https://timer.adriancares.com',
+    siteName: 'Simple HIIT Timer',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Simple HIIT Timer',
+    description: 'A customizable HIIT workout timer for your interval training sessions',
+    images: ['/docs/images/config-screen.jpeg'],
+  }
 }
 
 export default function RootLayout({
@@ -29,8 +49,8 @@ export default function RootLayout({
               {children}
             </div>
             <Footer
-              githubUrl="https://github.com/adriancares/hiit-timer"
-              linkedinUrl="https://linkedin.com/in/adriancares"
+              githubUrl="https://github.com/adriansprk/HIT-Workout-Timer"
+              linkedinUrl="https://www.linkedin.com/in/adriankrueger/"
             />
           </ThemeProvider>
         </AudioProvider>
