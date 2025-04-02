@@ -49,13 +49,13 @@ const CircularProgress = ({ value, size = 300, strokeWidth = 14, timerState }: {
   const getColor = () => {
     switch (timerState) {
       case "exercise":
-        return "#22C55E"; // green-500 - was previously red-500
+        return "var(--color-exercise)"; // Using CSS variables instead of hard-coded colors
       case "rest":
-        return "#F59E0B"; // amber-500 - was previously green-500
+        return "var(--color-rest)";
       case "roundRest":
-        return "#3B82F6"; // blue-500 - unchanged
+        return "var(--color-recovery)";
       default:
-        return "#818CF8"; // indigo-400 - unchanged
+        return "#818CF8"; // indigo-400
     }
   };
 
@@ -480,14 +480,14 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
           colors={['#4F46E5', '#8B5CF6', '#EC4899', '#F59E0B', '#10B981']}
         />
 
-        <div className="rounded-xl bg-white dark:bg-gray-900 p-6 shadow-sm mt-4 mb-4">
+        <div className="card mt-4 mb-4">
           {/* Header with trophy icon */}
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-3">
               <div className="bg-yellow-100 p-3 rounded-full">
                 <Trophy className="h-6 w-6 text-yellow-500" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Workout Complete!</h1>
+              <h1 className="text-title">Workout Complete!</h1>
             </div>
             <Button
               variant="ghost"
@@ -554,7 +554,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
           {/* CTA Button */}
           <Button
             onClick={onEnd}
-            className="w-full py-6 text-lg bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white"
+            className="w-full py-6 text-lg btn-primary"
           >
             <span>New Workout</span>
             <ChevronRight className="h-5 w-5 ml-1" />
@@ -564,42 +564,41 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
     );
   }
 
-  // Get state indicator styles
-  const getStateIndicator = () => {
+  // Get state indicator badge class
+  const getStateBadgeClass = () => {
     switch (timerState) {
       case "exercise":
-        return {
-          text: "EXERCISE",
-          bg: "bg-green-600",
-          textColor: "text-white",
-        }
+        return "badge-exercise";
       case "rest":
-        return {
-          text: "REST",
-          bg: "bg-amber-500",
-          textColor: "text-white",
-        }
+        return "badge-rest";
       case "roundRest":
-        return {
-          text: "RECOVERY",
-          bg: "bg-blue-600",
-          textColor: "text-white",
-        }
+        return "badge-recovery";
       default:
-        return {
-          text: "READY",
-          bg: "bg-gray-600",
-          textColor: "text-white",
-        }
+        return "badge bg-gray-600 text-white";
     }
   }
 
-  const stateIndicator = getStateIndicator();
+  // Get state indicator text
+  const getStateText = () => {
+    switch (timerState) {
+      case "exercise":
+        return "EXERCISE";
+      case "rest":
+        return "REST";
+      case "roundRest":
+        return "RECOVERY";
+      default:
+        return "READY";
+    }
+  }
+
+  const stateBadgeClass = getStateBadgeClass();
+  const stateText = getStateText();
 
   return (
     <div
       ref={timerContainerRef}
-      className="mx-auto fixed inset-0 flex flex-col justify-between bg-gradient-to-br from-indigo-800 via-indigo-900 to-slate-900 dark:bg-gradient-to-br dark:from-slate-800 dark:via-slate-900 dark:to-slate-950 overflow-hidden"
+      className="timer-container"
       style={{
         height: '100%',
         width: '100%',
@@ -611,7 +610,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
         <button
           onClick={onEnd}
           aria-label="End workout"
-          className="h-12 w-12 rounded-full bg-gray-800/80 backdrop-blur-sm hover:bg-gray-700 border border-gray-700/50 flex items-center justify-center transition-colors"
+          className="control-button h-12 w-12 rounded-full"
         >
           <X className="h-5 w-5 text-white" />
         </button>
@@ -645,13 +644,13 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
                 </div>
               </div>
 
-              <div className="text-8xl font-bold text-white">
+              <div className="text-8xl font-bold text-white" data-test="timer-display">
                 {formatTime(timeRemaining)}
               </div>
 
               {/* Status badge overlaid on timer */}
-              <div className={`px-4 py-1 rounded-full ${stateIndicator.bg} ${stateIndicator.textColor} font-semibold text-sm mt-4`}>
-                {stateIndicator.text}
+              <div className={`${stateBadgeClass} mt-4 font-semibold`}>
+                {stateText}
               </div>
             </div>
           </div>
@@ -663,7 +662,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
         <div className="flex justify-center items-center gap-3 px-4 mb-4">
           {/* Skip backward button */}
           <button
-            className="rounded-xl bg-gray-800/80 backdrop-blur-sm w-14 h-14 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 focus:ring-offset-slate-950 transition-colors hover:bg-gray-700 border border-gray-700/50"
+            className="control-button w-14 h-14"
             onClick={moveToPreviousPhase}
             aria-label="Previous exercise"
           >
@@ -686,7 +685,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
 
           {/* Pause/Play button */}
           <button
-            className="rounded-full bg-gray-800/80 backdrop-blur-sm border border-gray-700/50 px-8 py-3 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 focus:ring-offset-slate-950 transition-colors hover:bg-gray-700"
+            className="control-button rounded-full px-8 py-3"
             onClick={togglePause}
             aria-label={isPaused ? "Play workout" : "Pause workout"}
           >
@@ -734,7 +733,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
 
           {/* Skip forward button */}
           <button
-            className="rounded-xl bg-gray-800/80 backdrop-blur-sm w-14 h-14 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 focus:ring-offset-slate-950 transition-colors hover:bg-gray-700 border border-gray-700/50"
+            className="control-button w-14 h-14"
             onClick={moveToNextPhase}
             aria-label="Next exercise"
           >

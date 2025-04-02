@@ -1,78 +1,95 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: ["class"],
+  darkMode: 'class',
   content: [
-    "./pages/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
-    "./app/**/*.{ts,tsx}",
-    "./src/**/*.{ts,tsx}",
-    "*.{js,ts,jsx,tsx,mdx}",
+    './app/**/*.{js,ts,jsx,tsx}',
+    './pages/**/*.{js,ts,jsx,tsx}',
+    './components/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
-    container: {
-      center: true,
-      padding: "2rem",
-      screens: {
-        "2xl": "1400px",
-      },
-    },
     extend: {
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        // Define semantic color tokens
         primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          DEFAULT: 'var(--color-primary)',
+          hover: 'var(--color-primary-hover)',
+          dark: 'var(--color-primary-dark)',
+          darkHover: 'var(--color-primary-dark-hover)',
         },
-        secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+        exercise: {
+          DEFAULT: 'var(--color-exercise)',
+          light: 'var(--color-exercise-light)',
+          dark: 'var(--color-exercise-dark)',
         },
-        destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
+        rest: {
+          DEFAULT: 'var(--color-rest)',
+          light: 'var(--color-rest-light)',
+          dark: 'var(--color-rest-dark)',
         },
-        muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
+        recovery: {
+          DEFAULT: 'var(--color-recovery)',
+          light: 'var(--color-recovery-light)',
+          dark: 'var(--color-recovery-dark)',
         },
-        accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
+        ui: {
+          background: {
+            light: 'var(--color-background-light)',
+            dark: 'var(--color-background-dark)',
+          },
+          card: {
+            light: 'var(--color-card-light)',
+            dark: 'var(--color-card-dark)',
+          },
+          text: {
+            primary: {
+              light: 'var(--color-text-primary-light)',
+              dark: 'var(--color-text-primary-dark)',
+            },
+            secondary: {
+              light: 'var(--color-text-secondary-light)',
+              dark: 'var(--color-text-secondary-dark)',
+            },
+          },
         },
-        popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
+        // Add border colors
+        border: {
+          DEFAULT: 'var(--color-border-light)',
+          light: 'var(--color-border-light)',
+          dark: 'var(--color-border-dark)',
         },
-        card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
-        },
+        // Define colors using HSL values directly
+        // These are the system colors used by the base design system
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
+        card: 'hsl(var(--card))',
+        'card-foreground': 'hsl(var(--card-foreground))',
+        popover: 'hsl(var(--popover))',
+        'popover-foreground': 'hsl(var(--popover-foreground))',
+        muted: 'hsl(var(--muted))',
+        'muted-foreground': 'hsl(var(--muted-foreground))',
+        accent: 'hsl(var(--accent))',
+        'accent-foreground': 'hsl(var(--accent-foreground))',
+        destructive: 'hsl(var(--destructive))',
+        'destructive-foreground': 'hsl(var(--destructive-foreground))',
+        ring: 'hsl(var(--ring))',
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        'pill': '9999px',
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)',
       },
-      keyframes: {
-        "accordion-down": {
-          from: { height: 0 },
-          to: { height: "var(--radix-accordion-content-height)" },
-        },
-        "accordion-up": {
-          from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: 0 },
-        },
+      fontSize: {
+        'timer': '6rem', // For the primary timer display
+      },
+      spacing: {
+        'timer-container': '6rem',
       },
       animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
+        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [],
 }
 

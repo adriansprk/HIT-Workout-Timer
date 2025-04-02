@@ -5,6 +5,8 @@
  * Uses Wake Lock API when available, with video element fallback for iOS/Safari
  */
 
+import { log } from './utils';
+
 /**
  * Type definition for a WakeLock instance
  */
@@ -31,7 +33,9 @@ let videoElement: HTMLVideoElement | null = null;
  * Check if Wake Lock API is supported
  */
 const isWakeLockSupported = (): boolean => {
-    return 'wakeLock' in navigator;
+    return typeof navigator !== 'undefined' &&
+        'wakeLock' in navigator &&
+        typeof (navigator as any).wakeLock?.request === 'function';
 };
 
 /**
@@ -39,15 +43,19 @@ const isWakeLockSupported = (): boolean => {
  * @returns A wake lock instance and status
  */
 export async function requestWakeLock(): Promise<WakeLockInstance> {
-    // If we already have an active wake lock, return it
+    // If we already have an active wake lock, release it first
     if (activeWakeLock) {
-        return activeWakeLock;
+        try {
+            await activeWakeLock.release();
+        } catch (err) {
+            log('Error releasing previous wake lock: ' + (err as Error).message, 'error');
+        }
     }
 
     try {
         if (isWakeLockSupported()) {
             // Use the Wake Lock API
-            console.log('Using Wake Lock API');
+            log('Using Wake Lock API');
             const wakeLock = await (navigator as any).wakeLock.request('screen');
 
             activeWakeLock = {
@@ -56,7 +64,7 @@ export async function requestWakeLock(): Promise<WakeLockInstance> {
                         await wakeLock.release();
                         activeWakeLock = null;
                     } catch (err) {
-                        console.error('Error releasing wake lock:', err);
+                        log('Error releasing wake lock: ' + (err as Error).message, 'error');
                     }
                 },
                 type: 'api'
@@ -65,13 +73,13 @@ export async function requestWakeLock(): Promise<WakeLockInstance> {
             return activeWakeLock;
         } else {
             // Fall back to video element for iOS
-            console.log('Using video fallback for wake lock');
+            log('Using video fallback for wake lock');
             return useVideoFallback();
         }
     } catch (err) {
-        console.error('Error requesting wake lock:', err);
+        log('Error requesting wake lock: ' + (err as Error).message, 'error');
         // Fall back to video if Wake Lock API fails
-        console.log('Falling back to video due to error');
+        log('Falling back to video due to error');
         return useVideoFallback();
     }
 }
@@ -108,7 +116,7 @@ function useVideoFallback(): WakeLockInstance {
 
     if (playPromise !== undefined) {
         playPromise.catch(error => {
-            console.error('Video play failed:', error);
+            log('Video play failed: ' + (error as Error).message, 'error');
         });
     }
 
@@ -124,7 +132,7 @@ function useVideoFallback(): WakeLockInstance {
                     videoElement = null;
                     activeWakeLock = null;
                 } catch (err) {
-                    console.error('Error removing video element:', err);
+                    log('Error removing video element: ' + (err as Error).message, 'error');
                 }
             }
         },
@@ -140,7 +148,7 @@ function useVideoFallback(): WakeLockInstance {
 export function releaseWakeLock(): void {
     if (activeWakeLock) {
         activeWakeLock.release().catch(err => {
-            console.error('Error releasing wake lock:', err);
+            log('Error releasing wake lock: ' + (err as Error).message, 'error');
         });
         activeWakeLock = null;
     }
@@ -153,9 +161,9 @@ if (typeof document !== 'undefined') {
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible' && activeWakeLock === null) {
             // If the page becomes visible again and we had an active wake lock, try to reacquire it
-            console.log('Document became visible, attempting to reacquire wake lock');
+            log('Document became visible, attempting to reacquire wake lock');
             requestWakeLock().catch(err => {
-                console.error('Failed to reacquire wake lock on visibility change:', err);
+                log('Failed to reacquire wake lock on visibility change: ' + (err as Error).message, 'error');
             });
         }
     });
