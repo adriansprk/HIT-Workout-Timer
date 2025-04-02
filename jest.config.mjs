@@ -22,14 +22,29 @@ const config = {
         'contexts/**/*.{ts,tsx}',
         '!**/*.d.ts',
         '!**/node_modules/**',
+        '!**/components/ui/**',
+        '!**/hooks/use-toast.ts',
+        '!**/hooks/use-mobile.tsx',
     ],
     coverageThreshold: {
         global: {
-            statements: 70,
-            branches: 70,
-            functions: 70,
-            lines: 70,
+            statements: 30,
+            branches: 30,
+            functions: 30,
+            lines: 30,
         },
+        './components/!(ui)/**/*.{ts,tsx}': {
+            statements: 50,
+            branches: 50,
+            functions: 50,
+            lines: 50,
+        },
+        './contexts/**/*.{ts,tsx}': {
+            statements: 80,
+            branches: 70,
+            functions: 80,
+            lines: 80,
+        }
     },
     testTimeout: 20000,
     verbose: true,

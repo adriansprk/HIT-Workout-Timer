@@ -66,18 +66,35 @@ describe('ThemeToggle Components', () => {
     });
 
     test('ThemeLabel renders correctly based on theme', () => {
-        render(
+        const { rerender } = render(
             <ThemeProvider>
                 <ThemeLabel />
             </ThemeProvider>
         );
 
-        // Should show "Dark Mode" text
+        // Initially should show "Dark Mode" text
         expect(screen.getByText('Dark Mode')).toBeInTheDocument();
 
         // Initially should have Moon icon (dark mode)
-        const moonIcon = screen.getByTestId('theme-icon');
-        expect(moonIcon).toHaveClass('lucide-moon');
+        const icon = screen.getByTestId('theme-icon');
+        expect(icon).toBeInTheDocument();
+        expect(icon).toHaveClass('lucide-moon');
+
+        // Force light mode by setting localStorage
+        localStorage.setItem('theme', 'light');
+
+        // Re-render with light mode
+        rerender(
+            <ThemeProvider>
+                <ThemeLabel />
+            </ThemeProvider>
+        );
+
+        // Should still have Dark Mode text but with Sun icon (light mode)
+        expect(screen.getByText('Dark Mode')).toBeInTheDocument();
+        const sunIcon = screen.getByTestId('theme-icon');
+        expect(sunIcon).toBeInTheDocument();
+        expect(sunIcon).toHaveClass('lucide-sun');
     });
 
     test('SettingsThemeToggle renders correctly and toggles theme', () => {

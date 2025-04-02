@@ -1,7 +1,11 @@
 import {
     loadSettings,
     saveSettings,
+    loadWorkoutParams,
+    saveWorkoutParams,
     updateWorkoutParams,
+    saveAudioUnlockStatus,
+    getAudioUnlockStatus,
     getWorkoutStreak,
     updateWorkoutStreak,
     setDarkMode,
@@ -15,6 +19,30 @@ describe('Settings Module', () => {
     });
 
     test('should return default settings when nothing is saved', () => {
+        const settings = loadSettings();
+        expect(settings).toEqual({
+            muted: false,
+            audioUnlocked: false,
+            darkMode: true,
+            workoutParams: {
+                exerciseTime: 30,
+                restTime: 10,
+                roundRestTime: 30,
+                exercises: 4,
+                rounds: 3,
+            },
+            workoutStreak: {
+                count: 0,
+                lastWorkoutDate: null,
+            },
+        });
+    });
+
+    test('should handle error when localStorage is corrupted', () => {
+        // Set invalid JSON in localStorage
+        localStorage.setItem('hiit-timer-settings', '{invalid-json}');
+
+        // Should revert to default settings
         const settings = loadSettings();
         expect(settings).toEqual({
             muted: false,
@@ -57,6 +85,74 @@ describe('Settings Module', () => {
         expect(loadedSettings).toEqual(settings);
     });
 
+    test('should handle localStorage error when saving settings', () => {
+        // Mock localStorage.setItem to throw an error
+        const originalSetItem = localStorage.setItem;
+        localStorage.setItem = jest.fn().mockImplementation(() => {
+            throw new Error('Storage error');
+        });
+
+        // This should not throw, just log an error
+        expect(() => {
+            saveSettings({
+                muted: true,
+                audioUnlocked: true,
+                darkMode: false,
+                workoutParams: {
+                    exerciseTime: 45,
+                    restTime: 15,
+                    roundRestTime: 60,
+                    exercises: 5,
+                    rounds: 4,
+                },
+                workoutStreak: {
+                    count: 1,
+                    lastWorkoutDate: '2023-04-01',
+                },
+            });
+        }).not.toThrow();
+
+        // Restore original
+        localStorage.setItem = originalSetItem;
+    });
+
+    test('should load workout params', () => {
+        const settings = {
+            muted: false,
+            audioUnlocked: false,
+            darkMode: true,
+            workoutParams: {
+                exerciseTime: 60,
+                restTime: 20,
+                roundRestTime: 45,
+                exercises: 6,
+                rounds: 5,
+            },
+            workoutStreak: {
+                count: 0,
+                lastWorkoutDate: null,
+            },
+        };
+
+        saveSettings(settings);
+        const params = loadWorkoutParams();
+        expect(params).toEqual(settings.workoutParams);
+    });
+
+    test('should save workout params', () => {
+        const newParams = {
+            exerciseTime: 75,
+            restTime: 25,
+            roundRestTime: 90,
+            exercises: 8,
+            rounds: 3,
+        };
+
+        saveWorkoutParams(newParams);
+        const loadedSettings = loadSettings();
+        expect(loadedSettings.workoutParams).toEqual(newParams);
+    });
+
     test('should update partial workout params', () => {
         const initialParams = loadSettings().workoutParams;
 
@@ -70,6 +166,38 @@ describe('Settings Module', () => {
         expect(updatedParams.rounds).toBe(initialParams.rounds);
     });
 
+    test('should save and get audio unlock status', () => {
+        expect(getAudioUnlockStatus()).toBe(false); // Default
+
+        saveAudioUnlockStatus(true);
+        expect(getAudioUnlockStatus()).toBe(true);
+
+        saveAudioUnlockStatus(false);
+        expect(getAudioUnlockStatus()).toBe(false);
+    });
+
+    test('should get workout streak', () => {
+        const streak = getWorkoutStreak();
+        expect(streak).toEqual({
+            count: 0,
+            lastWorkoutDate: null,
+        });
+
+        // Save a custom streak
+        const settings = loadSettings();
+        settings.workoutStreak = {
+            count: 5,
+            lastWorkoutDate: '2023-05-01',
+        };
+        saveSettings(settings);
+
+        const updatedStreak = getWorkoutStreak();
+        expect(updatedStreak).toEqual({
+            count: 5,
+            lastWorkoutDate: '2023-05-01',
+        });
+    });
+
     test('should calculate workout streak correctly', () => {
         // Mock current date to 2023-04-01
         jest.useFakeTimers();
@@ -79,6 +207,11 @@ describe('Settings Module', () => {
         const initialStreak = updateWorkoutStreak();
         expect(initialStreak.count).toBe(1);
         expect(initialStreak.lastWorkoutDate).toBe('2023-04-01');
+
+        // Same day workout (shouldn't increase)
+        const sameDayStreak = updateWorkoutStreak();
+        expect(sameDayStreak.count).toBe(1);
+        expect(sameDayStreak.lastWorkoutDate).toBe('2023-04-01');
 
         // Next day workout
         jest.setSystemTime(new Date('2023-04-02'));
