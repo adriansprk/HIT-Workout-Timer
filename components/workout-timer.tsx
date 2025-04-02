@@ -644,7 +644,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
                 </div>
               </div>
 
-              <div className="text-8xl font-bold text-white">
+              <div className="text-8xl font-bold text-white" data-test="timer-display">
                 {formatTime(timeRemaining)}
               </div>
 
