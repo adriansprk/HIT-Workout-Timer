@@ -1,7 +1,9 @@
-import { render, screen, act } from '@testing-library/react';
+import { render, screen, act, waitFor } from '@testing-library/react';
 import WorkoutTimer from '@/components/workout-timer';
 import { AudioProvider } from '@/contexts/AudioContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
+
+// Mock react-confetti automatically via the __mocks__ directory
 
 jest.mock('@/lib/settings', () => ({
     loadSettings: jest.fn().mockReturnValue({
@@ -40,9 +42,12 @@ describe('WorkoutTimer Component', () => {
 
     afterEach(() => {
         jest.useRealTimers();
+        jest.clearAllMocks();
     });
 
     it('completes workout and shows completion screen', async () => {
+        const onEndMock = jest.fn();
+
         render(
             <ThemeProvider>
                 <AudioProvider>
@@ -52,25 +57,31 @@ describe('WorkoutTimer Component', () => {
                         roundRestTime={1}
                         exercises={1}
                         rounds={1}
-                        onEnd={jest.fn()}
+                        onEnd={onEndMock}
                     />
                 </AudioProvider>
             </ThemeProvider>
         );
 
-        // Advance through the workout
-        // Exercise (1 second)
+        // Skip countdown (3 seconds)
         act(() => {
+            jest.advanceTimersByTime(3000);
+        });
+
+        // First exercise (1 second)
+        await act(async () => {
             jest.advanceTimersByTime(1000);
         });
 
         // Wait for completion screen to render
+        // Add a buffer for any animations and state updates
         await act(async () => {
-            // Add a small delay for state updates and animations
-            jest.advanceTimersByTime(500);
+            jest.advanceTimersByTime(1000);
         });
 
         // Check if completion screen is shown
-        expect(screen.getByText(/Workout Complete!/i)).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByText(/Workout Complete!/i)).toBeInTheDocument();
+        });
     });
 });

@@ -86,9 +86,9 @@ describe('Settings Module', () => {
     });
 
     test('should handle localStorage error when saving settings', () => {
-        // Mock localStorage.setItem to throw an error
-        const originalSetItem = localStorage.setItem;
-        localStorage.setItem = jest.fn().mockImplementation(() => {
+        // Use spyOn instead of direct assignment
+        const mockSetItem = jest.spyOn(Storage.prototype, 'setItem');
+        mockSetItem.mockImplementation(() => {
             throw new Error('Storage error');
         });
 
@@ -113,7 +113,7 @@ describe('Settings Module', () => {
         }).not.toThrow();
 
         // Restore original
-        localStorage.setItem = originalSetItem;
+        mockSetItem.mockRestore();
     });
 
     test('should load workout params', () => {
