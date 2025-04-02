@@ -1,66 +1,82 @@
+import React from 'react';
 import { render, screen, act, waitFor } from '@testing-library/react';
+
+// Mock the react-confetti component
+jest.mock('react-confetti', () => {
+    return jest.fn(() => <div data-testid="mock-confetti" />);
+});
+
+// Mock audio module with all required functions
+jest.mock('@/lib/audio', () => ({
+    initAudio: jest.fn(),
+    unlockAudioForMobile: jest.fn().mockResolvedValue(true),
+    preloadSounds: jest.fn().mockResolvedValue(undefined),
+    playSound: jest.fn().mockResolvedValue(undefined),
+    playExerciseStart: jest.fn(),
+    playExerciseEnd: jest.fn(),
+    playCountdown: jest.fn(),
+    playWorkoutComplete: jest.fn(),
+    getAudioUnlockStatus: jest.fn().mockReturnValue(true),
+    setAudioUnlocked: jest.fn()
+}));
+
+// Mock settings module
+jest.mock('@/lib/settings', () => ({
+    loadSettings: jest.fn(() => {
+        return {
+            darkMode: false,
+            muted: false,
+            audioUnlocked: true,
+            notifications: false,
+            lastWorkout: null,
+            streakData: { currentStreak: 0, lastWorkout: null }
+        };
+    }),
+    saveSettings: jest.fn(),
+    updateWorkoutStreak: jest.fn().mockReturnValue({
+        currentStreak: 1,
+        lastWorkout: new Date().toISOString()
+    }),
+    getAudioUnlockStatus: jest.fn().mockReturnValue(true),
+    saveAudioUnlockStatus: jest.fn()
+}));
+
+// Import after mocks
 import WorkoutTimer from '@/components/workout-timer';
 import { AudioProvider } from '@/contexts/AudioContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 
-// Mock react-confetti automatically via the __mocks__ directory
-
-// Mock streak data for updateWorkoutStreak
-const mockStreak = { count: 3, lastWorkoutDate: new Date().toISOString() };
-
-// Mock settings with more precise values
-jest.mock('@/lib/settings', () => ({
-    loadSettings: jest.fn().mockReturnValue({
-        muted: false,
-        darkMode: false,
-        workoutParams: {
-            exerciseTime: 1,
-            restTime: 1,
-            roundRestTime: 1,
-            exercises: 1,
-            rounds: 1
-        },
-        workoutStreak: {
-            count: 2,
-            lastWorkoutDate: new Date().toISOString()
-        }
-    }),
-    saveSettings: jest.fn(),
-    updateWorkoutStreak: jest.fn().mockReturnValue(mockStreak)
-}));
-
-// Mock audio functions to prevent actual audio playback
-jest.mock('@/lib/audio', () => ({
-    initAudio: jest.fn(),
-    unlockAudioForMobile: jest.fn(),
-    preloadSounds: jest.fn(),
-    playSound: jest.fn()
-}));
-
+// We only need to test that the final screen appears correctly
 describe('WorkoutTimer Component', () => {
     beforeEach(() => {
-        jest.useFakeTimers({ doNotFake: ['nextTick', 'setImmediate'] });
+        jest.useFakeTimers();
     });
 
     afterEach(() => {
         jest.useRealTimers();
-        jest.clearAllMocks();
     });
 
-    it('completes workout and shows completion screen', async () => {
+    it('should show the completion screen after workout finishes', async () => {
+        // Workout parameters matching the component's interface
+        const exerciseTime = 5;
+        const restTime = 3;
+        const roundRestTime = 2;
+        const exercises = 1;
+        const rounds = 1;
+
+        // Mock onEnd function
         const onEndMock = jest.fn();
 
-        // Render with act to handle React state updates
         await act(async () => {
             render(
                 <ThemeProvider>
                     <AudioProvider>
                         <WorkoutTimer
-                            exerciseTime={1}
-                            restTime={1}
-                            roundRestTime={1}
-                            exercises={1}
-                            rounds={1}
+                            exerciseTime={exerciseTime}
+                            restTime={restTime}
+                            roundRestTime={roundRestTime}
+                            exercises={exercises}
+                            rounds={rounds}
                             onEnd={onEndMock}
                         />
                     </AudioProvider>
@@ -68,41 +84,29 @@ describe('WorkoutTimer Component', () => {
             );
         });
 
-        // Skip the initial countdown (which is usually 3 seconds)
+        // We'll skip the intitial countdown
         await act(async () => {
-            jest.advanceTimersByTime(4000); // Add extra time to ensure countdown completes
+            jest.advanceTimersByTime(5000);
         });
 
-        // Complete one exercise (1 second)
+        // Skip through exercise
         await act(async () => {
-            jest.advanceTimersByTime(2000); // Add extra time to ensure exercise completes
+            jest.advanceTimersByTime(5000);
         });
 
-        // Add buffer time for transitions and state updates
+        // Skip rest period 
         await act(async () => {
-            jest.advanceTimersByTime(5000); // Increase buffer time significantly
+            jest.advanceTimersByTime(3000);
         });
 
-        // Verify either by completion text or onEnd callback
-        try {
-            // Check if completion screen is shown directly
-            const completionText = screen.queryByText(/Workout Complete!/i);
-            if (completionText) {
-                expect(completionText).toBeInTheDocument();
-            } else {
-                // If no completion text yet, check if callback was triggered
-                // This is a valid alternative way to verify completion
-                expect(onEndMock).toHaveBeenCalled();
-            }
-        } catch (error) {
-            // If both checks fail, advance more time and try again
-            await act(async () => {
-                jest.advanceTimersByTime(5000); // Add more time and check again
-            });
+        // Add buffer time to ensure completion
+        await act(async () => {
+            jest.advanceTimersByTime(1000);
+        });
 
-            // Final attempt - just verify either is true with an "or" condition
-            const completionTextFinal = screen.queryByText(/Workout Complete!/i);
-            expect(completionTextFinal !== null || onEndMock.mock.calls.length > 0).toBe(true);
-        }
+        // Check if completion screen is displayed
+        await waitFor(() => {
+            expect(screen.getByText(/Workout Complete/i)).toBeInTheDocument();
+        });
     });
 });
