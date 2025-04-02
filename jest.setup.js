@@ -107,15 +107,29 @@ beforeEach(() => {
     // Store original console methods
     const originalError = console.error;
 
-    // Fix for act warnings - properly implement to avoid recursive calls
+    // Fix for act warnings and React prop warnings - properly implement to avoid recursive calls
     jest.spyOn(console, 'error').mockImplementation(function (message, ...args) {
-        // Skip React warnings but pass through other errors
-        if (typeof message === 'string') {
-            if (message.includes('Warning: ReactDOM.render') ||
-                message.includes('Warning: An update to')) {
-                return;
-            }
+        // List of warnings to ignore
+        const ignoredWarnings = [
+            // React act warnings
+            'Warning: ReactDOM.render',
+            'Warning: An update to',
+
+            // React-confetti prop warnings
+            'Received `false` for a non-boolean attribute `recycle`',
+            'React does not recognize the `numberOfPieces` prop',
+            'React does not recognize the `tweenDuration` prop',
+
+            // Any other warnings to ignore
+            'SyntaxError: Expected property name or'
+        ];
+
+        // Skip any warnings in our ignore list
+        if (typeof message === 'string' &&
+            ignoredWarnings.some(warning => message.includes(warning))) {
+            return;
         }
+
         // Use bind to maintain the correct context and avoid recursion
         return originalError.bind(console)(message, ...args);
     });

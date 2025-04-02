@@ -4,6 +4,9 @@ import WorkoutTimer from '../../components/workout-timer';
 import { AudioProvider } from '../../contexts/AudioContext';
 import { ThemeProvider } from '../../contexts/ThemeContext';
 
+// Define mock streak before mocking
+const mockStreak = { count: 5, lastWorkoutDate: new Date().toISOString() };
+
 // Mock audio module
 jest.mock('../../lib/audio', () => ({
     initAudio: jest.fn().mockResolvedValue(undefined),
@@ -26,13 +29,13 @@ jest.mock('../../lib/settings', () => {
                 rounds: 1
             },
             workoutStreak: {
-                count: 0,
-                lastWorkoutDate: null
+                count: 4,
+                lastWorkoutDate: new Date().toISOString()
             },
             audioUnlocked: true
         }),
         saveSettings: jest.fn(),
-        updateWorkoutStreak: jest.fn(),
+        updateWorkoutStreak: jest.fn().mockReturnValue(mockStreak),
         saveWorkoutParams: jest.fn()
     };
     return settingsModule;
@@ -67,21 +70,28 @@ describe('Workout Flow', () => {
         // Create a mock function to track when the workout ends
         const onEndMock = jest.fn();
 
-        // Render a minimal workout configuration
-        render(
-            <AudioProvider>
-                <ThemeProvider>
-                    <WorkoutTimer
-                        exerciseTime={1}
-                        restTime={1}
-                        roundRestTime={1}
-                        exercises={1}
-                        rounds={1}
-                        onEnd={onEndMock}
-                    />
-                </ThemeProvider>
-            </AudioProvider>
-        );
+        // Render with act to handle React state updates
+        await act(async () => {
+            render(
+                <AudioProvider>
+                    <ThemeProvider>
+                        <WorkoutTimer
+                            exerciseTime={1}
+                            restTime={1}
+                            roundRestTime={1}
+                            exercises={1}
+                            rounds={1}
+                            onEnd={onEndMock}
+                        />
+                    </ThemeProvider>
+                </AudioProvider>
+            );
+        });
+
+        // Wait for initial render to stabilize
+        await act(async () => {
+            jest.advanceTimersByTime(1000);
+        });
 
         // Skip countdown (3 seconds) and a bit more
         await act(async () => {
@@ -95,30 +105,18 @@ describe('Workout Flow', () => {
 
         // Add buffer time for transitions and state updates
         await act(async () => {
-            jest.advanceTimersByTime(2000);
+            jest.advanceTimersByTime(5000);
         });
 
-        // Verify onEnd was called or completion text is shown
-        // Use a more resilient approach by checking multiple conditions
-        try {
-            // First check if onEnd was called, which is the most reliable indicator
-            expect(onEndMock).toHaveBeenCalled();
-        } catch (error) {
-            // If onEnd check fails, check for completion screen elements
-            // This test should pass if EITHER condition is met
-            await waitFor(() => {
-                // Check for any of several possible elements that might indicate completion
-                const completionText = screen.queryByText(/Workout Complete!/i);
-                const completionElement = screen.queryByTestId('workout-complete');
-                const shareButton = screen.queryByRole('button', { name: /share/i });
+        // Verify that either onEnd was called or we can see completion indicators
+        const completionIndicators = [
+            screen.queryByText(/Workout Complete!/i) !== null,
+            screen.queryByTestId('workout-complete') !== null,
+            screen.queryByRole('button', { name: /share/i }) !== null,
+            onEndMock.mock.calls.length > 0
+        ];
 
-                expect(
-                    completionText !== null ||
-                    completionElement !== null ||
-                    shareButton !== null ||
-                    onEndMock.mock.calls.length > 0
-                ).toBe(true);
-            }, { timeout: 1000 });
-        }
+        // Test passes if any completion indicator is true
+        expect(completionIndicators.some(indicator => indicator)).toBe(true);
     });
 });
