@@ -38,8 +38,20 @@
     "next-env.d.ts",
     "types/**/*.d.ts",
     "global.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "components/**/*.ts",
+    "components/**/*.tsx",
+    "contexts/**/*.ts",
+    "contexts/**/*.tsx",
+    "lib/**/*.ts",
+    "lib/**/*.tsx",
+    "hooks/**/*.ts",
+    "hooks/**/*.tsx",
+    "utils/**/*.ts",
+    "utils/**/*.tsx",
+    "pages/**/*.ts",
+    "pages/**/*.tsx",
     ".next/types/**/*.ts",
     "jest.setup.ts",
     "cypress/**/*.ts",
@@ -48,7 +60,9 @@
   ],
   "exclude": [
     "node_modules",
-    "app/audio-debug",
-    "app/audio-test"
+    "app/audio-debug/**/*",
+    "app/audio-test/**/*",
+    "app/audio-debug/page.tsx",
+    "app/audio-test/page.tsx"
   ]
 }
