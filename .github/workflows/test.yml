@@ -24,12 +24,12 @@ jobs:
       fail-fast: false
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0  # Required for Percy to work properly
     
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'pnpm'
@@ -47,7 +47,7 @@ jobs:
         echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
     
     - name: Setup pnpm cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
         key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
@@ -64,19 +64,19 @@ jobs:
       
     # Build the app before running Cypress
     - name: Build Next.js app
-      run: npm run build
+      run: pnpm build
       env:
         CI: true
         
     # Start the app and wait for it to be ready
     - name: Start Next.js app
       run: |
-        npm start &
+        pnpm start &
         npx wait-on -t 60000 http://localhost:3000
       
     # Run Cypress tests
     - name: Run Cypress tests
-      uses: cypress-io/github-action@v5
+      uses: cypress-io/github-action@v6
       with:
         install: false  # We've already installed dependencies
         wait-on: 'http://localhost:3000'
@@ -89,7 +89,7 @@ jobs:
         
     # Run Percy visual tests
     - name: Run Percy visual regression tests
-      run: npx percy exec -- cypress run
+      run: pnpm percy exec -- cypress run
       env:
         PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
         CI: true
@@ -97,7 +97,7 @@ jobs:
         
     # Updated Codecov upload step
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         directory: ./coverage/
@@ -111,7 +111,7 @@ jobs:
         
     # Upload Cypress artifacts on failure
     - name: Upload Cypress artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: failure()
       with:
         name: cypress-artifacts
