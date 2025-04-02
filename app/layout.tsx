@@ -3,6 +3,7 @@ import './globals.css'
 import { AudioProvider } from '../contexts/AudioContext'
 import { AudioUnlocker } from '../components/AudioUnlocker'
 import { ThemeProvider } from '../contexts/ThemeContext'
+import { Footer } from '../components/Footer'
 
 export const metadata: Metadata = {
   title: 'Simple HIT Timer',
@@ -20,11 +21,17 @@ export default function RootLayout({
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
       </head>
-      <body suppressHydrationWarning>
+      <body suppressHydrationWarning className="flex flex-col min-h-screen">
         <AudioProvider>
           <ThemeProvider>
             <AudioUnlocker />
-            {children}
+            <div className="flex-1">
+              {children}
+            </div>
+            <Footer
+              githubUrl="https://github.com/adriancares/hiit-timer"
+              linkedinUrl="https://linkedin.com/in/adriancares"
+            />
           </ThemeProvider>
         </AudioProvider>
       </body>
