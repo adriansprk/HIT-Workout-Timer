@@ -74,19 +74,22 @@ jobs:
     
     - name: Install dependencies
       run: pnpm install
-    
-    # Explicitly download Cypress binary
-    - name: Install Cypress
-      run: |
-        echo "Installing Cypress binary..."
-        npx cypress install
-        echo "Cypress binary installed at: $(npx cypress cache path)"
-        echo "Cypress version: $(npx cypress version)"
-    
-    # Verify Cypress installation
-    - name: Verify Cypress installation
-      run: npx cypress verify
       
+    # Install Percy and Cypress explicitly
+    - name: Install Percy and Cypress
+      run: |
+        npm install -g @percy/cli
+        npm install --save-dev @percy/cypress cypress
+        npx cypress verify
+        
+    # List installed dependencies
+    - name: List installed dependencies 
+      run: |
+        echo "Node modules:"
+        ls -la node_modules/@percy || echo "Percy not found in node_modules"
+        echo "NPM global modules:"
+        npm list -g --depth=0
+    
     - name: Install global tools
       run: npm install -g wait-on
     
@@ -141,28 +144,29 @@ jobs:
           echo "e2e_exists=false" >> $GITHUB_OUTPUT
           echo "No Cypress E2E tests found"
         fi
+        
+        # List Cypress support files
+        echo "Cypress support files:"
+        ls -la cypress/support || echo "No cypress/support directory found"
     
-    # Run Cypress tests only if config and tests exist
+    # Run Cypress tests directly instead of using the action
     - name: Run Cypress tests
       if: steps.check_cypress.outputs.cypress_exists == 'true' && steps.check_cypress.outputs.e2e_exists == 'true'
-      uses: cypress-io/github-action@v6
-      with:
-        install: false  # We've already installed dependencies
-        wait-on: 'http://localhost:3000'
-        wait-on-timeout: 120
-        browser: chrome
-        record: false
-        project: .  # Specify the root directory explicitly
+      run: |
+        CYPRESS_CACHE_FOLDER=~/.cache/Cypress npx cypress run --browser chrome
       continue-on-error: true  # Don't fail the workflow if Cypress tests fail
       env:
         CI: true
         DEBUG: cypress:*
         CYPRESS_CACHE_FOLDER: ~/.cache/Cypress
         
-    # Run Percy visual tests
+    # Run Percy visual tests after Cypress runs successfully
     - name: Run Percy visual tests
       if: steps.check_cypress.outputs.cypress_exists == 'true' && steps.check_cypress.outputs.e2e_exists == 'true'
-      run: CYPRESS_CACHE_FOLDER=~/.cache/Cypress npx percy exec -- cypress run
+      run: |
+        # Direct Percy command without Cypress to debug
+        npx percy --version
+        CYPRESS_CACHE_FOLDER=~/.cache/Cypress npx percy exec -- npx cypress run
       env:
         PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
         CI: true
