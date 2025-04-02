@@ -88,11 +88,12 @@ body {
 @layer base {
   * {
     @apply transition-colors duration-200;
-    @apply border-border;
+    @apply border-border dark:border-border-dark;
   }
 
   body {
-    @apply bg-background text-foreground;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
     /* Allow scrolling by default */
     overflow-y: auto;
     min-height: 100vh;
@@ -125,4 +126,111 @@ body {
       overscroll-behavior: none;
     }
   }
+}
+
+@layer components {
+
+  /* Layout containers */
+  .container-screen {
+    @apply min-h-screen;
+  }
+
+  .container-main {
+    @apply max-w-md mx-auto p-4 pb-16;
+  }
+
+  /* Card styles */
+  .card {
+    @apply bg-white/60 backdrop-blur-sm dark:bg-slate-800/90 dark:backdrop-blur-sm rounded-xl p-5 border border-white/40 dark:border-slate-700/60;
+  }
+
+  .card-item {
+    @apply flex items-center justify-between bg-white dark:bg-slate-700 p-4 rounded-lg border border-gray-100 dark:border-slate-600 shadow-md hover:shadow-lg transition-shadow;
+  }
+
+  /* Icon containers */
+  .icon-container {
+    @apply p-2 rounded-lg;
+  }
+
+  /* Button variants */
+  .btn-primary {
+    @apply bg-primary hover:bg-primary-hover dark:bg-primary-dark dark:hover:bg-primary-darkHover text-white;
+  }
+
+  .btn-icon {
+    @apply h-8 w-8 text-primary dark:text-primary-dark;
+  }
+
+  /* Timer screen elements */
+  .timer-container {
+    @apply fixed inset-0 flex flex-col justify-between bg-gradient-to-br from-indigo-800 via-indigo-900 to-slate-900 dark:bg-gradient-to-br dark:from-slate-800 dark:via-slate-900 dark:to-slate-950 overflow-hidden;
+  }
+
+  .control-button {
+    @apply rounded-xl bg-gray-800/80 backdrop-blur-sm flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 focus:ring-offset-slate-950 transition-colors hover:bg-gray-700 border border-gray-700/50;
+  }
+
+  /* Typography */
+  .text-title {
+    @apply text-2xl font-bold text-gray-900 dark:text-white;
+  }
+
+  .text-label {
+    @apply font-medium text-gray-900 dark:text-white;
+  }
+
+  /* Badge/pill elements */
+  .badge {
+    @apply inline-flex items-center gap-2 px-3 py-1 rounded-pill text-sm font-medium;
+  }
+
+  .badge-exercise {
+    @apply badge bg-exercise text-white;
+  }
+
+  .badge-rest {
+    @apply badge bg-rest text-white;
+  }
+
+  .badge-recovery {
+    @apply badge bg-recovery text-white;
+  }
+}
+
+:root {
+  /* Color tokens for easier v4 migration */
+  --color-primary: #4F46E5;
+  --color-primary-hover: #4338CA;
+  --color-primary-dark: #6366F1;
+  --color-primary-dark-hover: #818CF8;
+  
+  --color-exercise: #22C55E;
+  --color-exercise-light: #BBF7D0;
+  --color-exercise-dark: #16A34A;
+  
+  --color-rest: #F59E0B;
+  --color-rest-light: #FDE68A;
+  --color-rest-dark: #D97706;
+  
+  --color-recovery: #3B82F6;
+  --color-recovery-light: #BFDBFE;
+  --color-recovery-dark: #2563EB;
+  
+  /* UI Colors */
+  --color-background-light: #FFFFFF;
+  --color-background-dark: #1E293B;
+  
+  --color-card-light: rgba(255, 255, 255, 0.6);
+  --color-card-dark: rgba(30, 41, 59, 0.9);
+  
+  --color-text-primary-light: #1F2937;
+  --color-text-primary-dark: #F9FAFB;
+  
+  --color-text-secondary-light: #4B5563;
+  --color-text-secondary-dark: #9CA3AF;
+  
+  /* Border Colors */
+  --color-border-light: #E5E7EB;
+  --color-border-dark: #1F2937;
 }
