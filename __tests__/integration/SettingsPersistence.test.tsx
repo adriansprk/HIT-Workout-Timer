@@ -69,15 +69,21 @@ describe('Settings Persistence', () => {
             </AudioProvider>
         );
 
-        // Find the Dark Mode section heading
-        const darkModeHeading = screen.getByText('Dark Mode');
+        // Find the dark mode toggle using multiple strategies for cross-environment compatibility
+        let darkModeInput;
 
-        // From the heading, navigate up to the parent container and find the checkbox
+        // Find by traversing from the heading (already works in CI)
+        const darkModeHeading = screen.getByText('Dark Mode');
         const container = darkModeHeading.closest('.flex.items-center.justify-between');
-        const darkModeInput = container?.querySelector('input[type="checkbox"]');
+        darkModeInput = container?.querySelector('input[type="checkbox"]');
 
         // Ensure we found the checkbox
         expect(darkModeInput).not.toBeNull();
+
+        // Wait for React to fully render before interacting
+        await act(async () => {
+            await new Promise(resolve => setTimeout(resolve, 0));
+        });
 
         // Toggle dark mode with act to handle async updates
         await act(async () => {
