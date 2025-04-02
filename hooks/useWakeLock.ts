@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { requestWakeLock, releaseWakeLock, WakeLockStatus } from '../lib/wakeLock';
+import { log } from '../lib/utils';
 
 interface UseWakeLockResult {
     isActive: boolean;
@@ -36,10 +37,10 @@ export function useWakeLock(): UseWakeLockResult {
             }
 
             setError(null);
-            console.log('Wake lock active:', result.type);
+            log('Wake lock active: ' + result.type);
         } catch (err) {
             setError(err instanceof Error ? err : new Error('Failed to request wake lock'));
-            console.error('Wake lock request failed:', err);
+            log('Wake lock request failed: ' + err, 'error');
 
             // Even on error, consider wake lock active on iOS (best effort)
             if (isIOSDevice) {
@@ -53,7 +54,7 @@ export function useWakeLock(): UseWakeLockResult {
             releaseWakeLock();
             setStatus({ isActive: false, type: null });
         } catch (err) {
-            console.error('Wake lock release failed:', err);
+            log('Wake lock release failed: ' + err, 'error');
         }
     }, []);
 

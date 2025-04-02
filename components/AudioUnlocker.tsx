@@ -1,20 +1,25 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from './ui/button';
 import { useAudio } from '../contexts/AudioContext';
-import { unlockAudioForMobile, setAudioUnlocked, forceUnlockAudio } from '../lib/audio';
 import { getAudioUnlockStatus } from '../lib/settings';
+import { unlockAudioForMobile, forceUnlockAudio } from '../lib/audio';
+import { log } from '../lib/utils';
 
+/**
+ * AudioUnlocker component that helps on mobile devices to unlock audio
+ * iOS requires user interaction to enable audio, this modal helps with that
+ */
 export const AudioUnlocker = () => {
-    const [isUnlocked, setIsUnlocked] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
+    const [isUnlocked, setIsUnlocked] = useState(false);
     const { playCountdownSound } = useAudio();
-    const unlockAttemptedRef = useRef(false);
     const clickCountRef = useRef(0);
+    const unlockAttemptedRef = useRef(false);
 
     useEffect(() => {
-        // Check if we're on a mobile device
+        // Only show the modal on iOS or Android
         const isMobile = /iPhone|iPad|iPod|Android/i.test(
             typeof navigator !== 'undefined' ? navigator.userAgent : ''
         );
@@ -26,8 +31,11 @@ export const AudioUnlocker = () => {
             if (savedUnlockStatus) {
                 // Audio was previously unlocked, no need to show the modal
                 setIsUnlocked(true);
-                setAudioUnlocked(true);
-                console.log('Audio: Using saved unlock status');
+                // Using the imported function directly instead of context
+                import('../lib/audio').then(({ setAudioUnlocked }) => {
+                    setAudioUnlocked(true);
+                });
+                log('Audio: Using saved unlock status');
             } else {
                 // Check if audio actually needs unlocking
                 unlockAudioForMobile().then(unlocked => {
@@ -45,22 +53,26 @@ export const AudioUnlocker = () => {
     const unlockAudio = async () => {
         // Increment click count - iOS sometimes requires multiple attempts
         clickCountRef.current += 1;
-        console.log(`Audio: Unlock attempt #${clickCountRef.current}`);
+        log(`Audio: Unlock attempt #${clickCountRef.current}`);
 
         // If this is the second click or later, force close the modal
         if (clickCountRef.current >= 2) {
-            console.log('Audio: Second click detected, forcing modal close');
+            log('Audio: Second click detected, forcing modal close');
             setIsUnlocked(true);
             setIsVisible(false);
+            // Using the imported function directly instead of context
+            const { setAudioUnlocked } = await import('../lib/audio');
             setAudioUnlocked(true);
             return;
         }
 
         // If we've already attempted to unlock, make doubly sure the modal closes
         if (unlockAttemptedRef.current) {
-            console.log('Audio: Unlock already attempted, forcing modal close');
+            log('Audio: Unlock already attempted, forcing modal close');
             setIsUnlocked(true);
             setIsVisible(false);
+            // Using the imported function directly instead of context
+            const { setAudioUnlocked } = await import('../lib/audio');
             setAudioUnlocked(true);
             return;
         }
@@ -70,9 +82,10 @@ export const AudioUnlocker = () => {
         try {
             // Try the enhanced iOS unlock method first
             const iosUnlocked = await forceUnlockAudio();
+            const { setAudioUnlocked } = await import('../lib/audio');
 
             if (iosUnlocked) {
-                console.log('Audio: iOS specific unlock method succeeded');
+                log('Audio: iOS specific unlock method succeeded');
                 setAudioUnlocked(true);
                 setIsUnlocked(true);
                 setIsVisible(false);
@@ -89,10 +102,10 @@ export const AudioUnlocker = () => {
                             setAudioUnlocked(true);
                             setIsUnlocked(true);
                             setIsVisible(false);
-                            console.log('Audio: Successfully unlocked audio playback');
+                            log('Audio: Successfully unlocked audio playback');
                         })
                         .catch(err => {
-                            console.error('Audio: Failed to unlock with test sound:', err);
+                            log('Audio: Failed to unlock with test sound: ' + err.message, 'error');
                             // Force unlock even if there was an error
                             setAudioUnlocked(true);
                             setIsUnlocked(true);
@@ -100,7 +113,7 @@ export const AudioUnlocker = () => {
                         });
                 })
                 .catch(err => {
-                    console.error('Audio: Failed to unlock audio:', err);
+                    log('Audio: Failed to unlock audio: ' + err.message, 'error');
                     // Force unlock even if there was an error - iOS will get a second chance on the next click
                     if (clickCountRef.current >= 2) {
                         setAudioUnlocked(true);
@@ -109,9 +122,10 @@ export const AudioUnlocker = () => {
                     }
                 });
         } catch (error) {
-            console.error('Audio: Error in unlockAudio:', error);
+            log('Audio: Error in unlockAudio: ' + (error as Error).message, 'error');
             // Force unlock even if there was an error
             if (clickCountRef.current >= 2) {
+                const { setAudioUnlocked } = await import('../lib/audio');
                 setAudioUnlocked(true);
                 setIsUnlocked(true);
                 setIsVisible(false);
