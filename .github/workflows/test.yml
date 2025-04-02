@@ -75,6 +75,14 @@ jobs:
     - name: Install dependencies
       run: pnpm install
     
+    # Explicitly download Cypress binary
+    - name: Install Cypress
+      run: |
+        echo "Installing Cypress binary..."
+        npx cypress install
+        echo "Cypress binary installed at: $(npx cypress cache path)"
+        echo "Cypress version: $(npx cypress version)"
+    
     # Verify Cypress installation
     - name: Verify Cypress installation
       run: npx cypress verify
@@ -149,14 +157,16 @@ jobs:
       env:
         CI: true
         DEBUG: cypress:*
+        CYPRESS_CACHE_FOLDER: ~/.cache/Cypress
         
     # Run Percy visual tests
     - name: Run Percy visual tests
       if: steps.check_cypress.outputs.cypress_exists == 'true' && steps.check_cypress.outputs.e2e_exists == 'true'
-      run: npx percy exec -- cypress run
+      run: CYPRESS_CACHE_FOLDER=~/.cache/Cypress npx percy exec -- cypress run
       env:
         PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
         CI: true
+        CYPRESS_CACHE_FOLDER: ~/.cache/Cypress
       continue-on-error: true
         
     # Updated Codecov upload step
