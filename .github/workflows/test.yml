@@ -28,6 +28,13 @@ jobs:
       with:
         fetch-depth: 0  # Required for Percy to work properly
     
+    - name: List repo contents
+      run: |
+        echo "Listing repository files:"
+        ls -la
+        echo "Top-level directories:"
+        find . -maxdepth 1 -type d | sort
+    
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
@@ -61,11 +68,14 @@ jobs:
     - name: Install global tools
       run: npm install -g wait-on
     
-    - name: Check test files
-      run: find __tests__ -name "*.test.tsx" | sort
+    - name: Find all test files
+      run: |
+        echo "Searching for all test files:"
+        find . -name "*.test.*" | grep -v node_modules | sort
     
+    # Run Jest tests only if there are test files
     - name: Run tests
-      run: npx jest --ci --collectCoverage --detectOpenHandles --forceExit --passWithNoTests --testMatch="**/__tests__/**/*.test.{js,jsx,ts,tsx}"
+      run: npx jest --ci --collectCoverage --detectOpenHandles --forceExit --passWithNoTests
       env:
         CI: true
       
@@ -81,23 +91,38 @@ jobs:
         npx next start &
         wait-on http://localhost:3000 -t 60000
       
-    # Check if cypress config exists and set a flag
-    - name: Check Cypress configuration
+    # Check for Cypress files
+    - name: Check for Cypress files
       id: check_cypress
-      continue-on-error: true
       run: |
-        if [ -f "cypress.config.ts" ]; then
+        echo "Checking for Cypress-related files:"
+        find . -name "*cypress*" | grep -v node_modules | sort
+        if [ -f "cypress.config.ts" ] || [ -f "cypress.config.js" ]; then
           echo "cypress_exists=true" >> $GITHUB_OUTPUT
-          echo "Cypress config found:"
-          cat cypress.config.ts
+          if [ -f "cypress.config.ts" ]; then
+            echo "Cypress config found (TS):"
+            cat cypress.config.ts
+          else
+            echo "Cypress config found (JS):"
+            cat cypress.config.js
+          fi
         else
           echo "cypress_exists=false" >> $GITHUB_OUTPUT
           echo "Cypress config NOT found!"
         fi
+        # Check if e2e test directory exists
+        if [ -d "cypress/e2e" ]; then
+          echo "e2e_exists=true" >> $GITHUB_OUTPUT
+          echo "Cypress E2E tests found:"
+          find cypress/e2e -type f | sort
+        else
+          echo "e2e_exists=false" >> $GITHUB_OUTPUT
+          echo "No Cypress E2E tests found"
+        fi
     
-    # Run Cypress tests only if config exists
+    # Run Cypress tests only if config and tests exist
     - name: Run Cypress tests
-      if: steps.check_cypress.outputs.cypress_exists == 'true'
+      if: steps.check_cypress.outputs.cypress_exists == 'true' && steps.check_cypress.outputs.e2e_exists == 'true'
       uses: cypress-io/github-action@v6
       with:
         install: false  # We've already installed dependencies
@@ -112,7 +137,7 @@ jobs:
         DEBUG: cypress:*
         
     # Run Percy visual tests - skipping this as it depends on Cypress working
-    - name: Run Percy visual regression tests
+    - name: Run Percy visual tests
       if: false  # Skip this step for now
       run: npx percy exec -- cypress run
       env:
@@ -136,7 +161,7 @@ jobs:
         
     # Upload Cypress artifacts on failure
     - name: Upload Cypress artifacts
-      if: steps.check_cypress.outputs.cypress_exists == 'true'  # Only upload if Cypress ran
+      if: steps.check_cypress.outputs.cypress_exists == 'true' && steps.check_cypress.outputs.e2e_exists == 'true'
       uses: actions/upload-artifact@v4
       with:
         name: cypress-artifacts
