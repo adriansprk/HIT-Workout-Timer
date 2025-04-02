@@ -116,8 +116,15 @@ export default function Home() {
         <div className="container-main">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-title">Your Workout Timer</h1>
-            <Button variant="ghost" size="icon" className="rounded-full" onClick={openSettings}>
-              <Settings className="h-6 w-6 text-gray-700 dark:text-gray-300" />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full settings-button"
+              onClick={openSettings}
+              data-test="settings-button"
+              aria-label="Settings"
+            >
+              <Settings className="h-6 w-6 text-gray-700 dark:text-gray-300 settings-icon" />
               <span className="sr-only">Settings</span>
             </Button>
           </div>

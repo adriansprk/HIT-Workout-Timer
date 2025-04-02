@@ -688,6 +688,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
             className="control-button rounded-full px-8 py-3"
             onClick={togglePause}
             aria-label={isPaused ? "Play workout" : "Pause workout"}
+            data-test="play-pause-button"
           >
             <span className="font-semibold text-lg flex items-center text-white">
               {isPaused ? (
@@ -706,7 +707,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
                   >
                     <polygon points="5 3 19 12 5 21 5 3"></polygon>
                   </svg>
-                  Play
+                  Resume
                 </>
               ) : (
                 <>

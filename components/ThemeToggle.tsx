@@ -30,9 +30,9 @@ export function ThemeLabel() {
         <div className="flex items-center gap-2 text-sm">
             <div className={`${isDarkMode ? "bg-blue-800" : "bg-yellow-400"} p-1 rounded-md`}>
                 {isDarkMode ? (
-                    <Moon className="h-4 w-4 text-white" />
+                    <Moon className="h-4 w-4 text-white" data-testid="theme-icon" />
                 ) : (
-                    <Sun className="h-4 w-4 text-white" />
+                    <Sun className="h-4 w-4 text-white" data-testid="theme-icon" />
                 )}
             </div>
             <span className="font-medium">Dark Mode</span>

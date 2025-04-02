@@ -18,31 +18,39 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     // Initialize audio settings on mount
     useEffect(() => {
-        const settings = loadSettings();
-        // Always start with unmuted audio
-        setIsMuted(false);
+        let mounted = true;
 
-        // If there are saved settings, update to save the unmuted state
-        if (settings.muted) {
-            saveSettings({
-                ...settings,
-                muted: false
-            });
-        }
+        const initializeAudio = async () => {
+            const settings = loadSettings();
+            // Always start with unmuted audio
+            setIsMuted(false);
 
-        // Initialize audio module
-        initAudio();
+            // If there are saved settings, update to save the unmuted state
+            if (settings.muted) {
+                saveSettings({
+                    ...settings,
+                    muted: false
+                });
+            }
 
-        // Check if audio needs to be unlocked for mobile
-        unlockAudioForMobile().then(() => {
-            // Preload audio files
-            preloadSounds().then(() => {
+            // Initialize audio module
+            await initAudio();
+
+            // Check if audio needs to be unlocked for mobile and preload sounds
+            await unlockAudioForMobile();
+            await preloadSounds();
+
+            // Only update state if component is still mounted
+            if (mounted) {
                 setIsInitialized(true);
-            });
-        });
+            }
+        };
+
+        initializeAudio().catch(console.error);
 
         // Clean up audio resources on unmount if needed
         return () => {
+            mounted = false;
             // Any cleanup code for audio resources can go here
         };
     }, []);
