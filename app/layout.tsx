@@ -7,8 +7,29 @@ import { Footer } from '../components/Footer'
 
 export const metadata: Metadata = {
   title: 'Simple HIT Timer',
-  description: 'Created with v0',
+  description: 'A customizable HIIT workout timer for your interval training sessions',
   generator: 'v0.dev',
+  openGraph: {
+    title: 'Simple HIT Timer',
+    description: 'A customizable HIIT workout timer for your interval training sessions',
+    images: [
+      {
+        url: '/docs/images/config-screen.jpeg',
+        width: 1200,
+        height: 630,
+        alt: 'HIIT Timer Configuration Screen'
+      }
+    ],
+    url: 'https://timer.adriancares.com',
+    siteName: 'Simple HIT Timer',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Simple HIT Timer',
+    description: 'A customizable HIIT workout timer for your interval training sessions',
+    images: ['/docs/images/config-screen.jpeg'],
+  }
 }
 
 export default function RootLayout({
