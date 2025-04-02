@@ -28,15 +28,13 @@ A modern, customizable High-Intensity Interval Training timer web application bu
 
 - ⚙️ **Fully Customizable Workouts**: Configure exercise time, rest periods, number of exercises, and rounds
 - 🔊 **Audio Announcements**: Voice prompts for workout phases including "halfway there", "round complete", and "workout complete"
-- ⏱️ **Intuitive Timer Interface**: Visual circular progress indicator with clear time display
+- ⏱️ **Timer Interface**: Visual circular progress indicator with clear time display
 - ⏭️ **Skip Controls**: Navigate forward and backward through workout phases
 - 📱 **Screen Wake Lock**: Prevents device screen from turning off during workouts
 - 🌓 **Dark Mode Support**: Toggle between light and dark themes
 - 📊 **Progress Tracking**: Workout streak counter to maintain motivation
-- 🖥️ **Fullscreen Mode**: Distraction-free workout experience
 - 📲 **Mobile Friendly**: Responsive design that works on all devices
 - 🔌 **Offline Support**: Works without an internet connection
-- 🎉 **Celebration Effects**: Confetti animation when you complete a workout
 - 💾 **Settings Persistence**: Saves your workout preferences
 
 ## Getting Started
