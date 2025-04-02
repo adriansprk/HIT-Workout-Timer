@@ -69,8 +69,8 @@ describe('Settings Persistence', () => {
             </AudioProvider>
         );
 
-        // Get the dark mode checkbox
-        const darkModeInput = screen.getByLabelText('dark mode');
+        // Get the dark mode checkbox by role
+        const darkModeInput = screen.getByRole('checkbox', { name: 'dark mode' });
 
         // Toggle dark mode with act to handle async updates
         await act(async () => {
