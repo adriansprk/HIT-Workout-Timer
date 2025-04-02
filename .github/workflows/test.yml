@@ -62,20 +62,20 @@ jobs:
       run: npm install -g wait-on
     
     - name: Run tests
-      run: pnpm test:ci
+      run: npx jest --ci --collectCoverage --detectOpenHandles --forceExit
       env:
         CI: true
       
     # Build the app before running Cypress
     - name: Build Next.js app
-      run: pnpm build
+      run: npx next build
       env:
         CI: true
         
     # Start the app and wait for it to be ready
     - name: Start Next.js app
       run: |
-        pnpm start &
+        npx next start &
         wait-on http://localhost:3000 -t 60000
       
     # Run Cypress tests
@@ -93,7 +93,7 @@ jobs:
         
     # Run Percy visual tests
     - name: Run Percy visual regression tests
-      run: pnpm exec percy exec -- cypress run
+      run: npx percy exec -- cypress run
       env:
         PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
         CI: true
