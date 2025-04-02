@@ -39,11 +39,21 @@ describe('Settings Module', () => {
     });
 
     test('should handle error when localStorage is corrupted', () => {
-        // Set invalid JSON in localStorage
-        localStorage.setItem('hiit-timer-settings', '{invalid-json}');
+        // Set invalid JSON in localStorage that will cause parsing errors
+        localStorage.setItem('hiit-timer-settings', '{invalid:json}');
+
+        // Spy on console.error to verify it's called with an error
+        const consoleSpy = jest.spyOn(console, 'error');
+        consoleSpy.mockImplementation(() => { });
 
         // Should revert to default settings
         const settings = loadSettings();
+
+        // Verify console.error was called and contains 'Failed to load settings'
+        expect(consoleSpy).toHaveBeenCalled();
+        expect(consoleSpy.mock.calls[0][0]).toContain('Failed to load settings');
+
+        // Verify default settings were returned
         expect(settings).toEqual({
             muted: false,
             audioUnlocked: false,
@@ -60,6 +70,9 @@ describe('Settings Module', () => {
                 lastWorkoutDate: null,
             },
         });
+
+        // Restore console.error
+        consoleSpy.mockRestore();
     });
 
     test('should save and load settings', () => {
