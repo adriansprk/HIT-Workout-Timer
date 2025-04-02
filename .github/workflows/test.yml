@@ -61,8 +61,11 @@ jobs:
     - name: Install global tools
       run: npm install -g wait-on
     
+    - name: Check test files
+      run: find __tests__ -name "*.test.tsx" | sort
+    
     - name: Run tests
-      run: npx jest --ci --collectCoverage --detectOpenHandles --forceExit
+      run: npx jest --ci --collectCoverage --detectOpenHandles --forceExit --passWithNoTests --testMatch="**/__tests__/**/*.test.{js,jsx,ts,tsx}"
       env:
         CI: true
       
