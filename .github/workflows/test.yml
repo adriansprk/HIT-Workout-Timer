@@ -1,0 +1,121 @@
+name: Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+# Add permissions block at the workflow level
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+  id-token: write # Required for Codecov token validation
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+      # Don't cancel other matrix jobs if one fails
+      fail-fast: false
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # Required for Percy to work properly
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'pnpm'
+        
+    - name: Setup PNPM
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+        run_install: false
+    
+    - name: Get pnpm store directory
+      id: pnpm-cache
+      shell: bash
+      run: |
+        echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+    
+    - name: Setup pnpm cache
+      uses: actions/cache@v3
+      with:
+        path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+        key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-pnpm-store-
+    
+    - name: Install dependencies
+      run: pnpm install
+    
+    - name: Run tests
+      run: pnpm test:ci
+      env:
+        CI: true
+      
+    # Build the app before running Cypress
+    - name: Build Next.js app
+      run: npm run build
+      env:
+        CI: true
+        
+    # Start the app and wait for it to be ready
+    - name: Start Next.js app
+      run: |
+        npm start &
+        npx wait-on -t 60000 http://localhost:3000
+      
+    # Run Cypress tests
+    - name: Run Cypress tests
+      uses: cypress-io/github-action@v5
+      with:
+        install: false  # We've already installed dependencies
+        wait-on: 'http://localhost:3000'
+        wait-on-timeout: 120
+        browser: chrome
+        record: false
+        config-file: cypress.config.ts
+      env:
+        CI: true
+        
+    # Run Percy visual tests
+    - name: Run Percy visual regression tests
+      run: npx percy exec -- cypress run
+      env:
+        PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
+        CI: true
+      continue-on-error: true  # Don't fail the build if Percy has issues
+        
+    # Updated Codecov upload step
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        directory: ./coverage/
+        fail_ci_if_error: false
+        verbose: true # Add verbose flag for better error reporting
+        files: ./coverage/lcov.info # Specify coverage file
+        flags: unittests # Add a flag to identify test type
+        name: codecov-umbrella # Add a name for the upload
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        
+    # Upload Cypress artifacts on failure
+    - name: Upload Cypress artifacts
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: cypress-artifacts
+        path: |
+          cypress/videos
+          cypress/screenshots
+        retention-days: 7 
