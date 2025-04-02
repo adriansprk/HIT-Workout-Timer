@@ -6,11 +6,11 @@ interface FooterProps {
 }
 
 export const Footer: FC<FooterProps> = ({
-    githubUrl = 'https://github.com/yourusername/hiit-timer',
-    linkedinUrl = 'https://linkedin.com/in/yourusername',
+    githubUrl = 'https://github.com/adriansprk/HIT-Workout-Timer',
+    linkedinUrl = 'https://www.linkedin.com/in/adriankrueger/',
 }) => {
     return (
-        <footer className="w-full py-3 mt-auto bg-gradient-to-r from-gray-50 via-white to-gray-50 dark:bg-background">
+        <footer className="w-full py-3 mt-auto bg-gradient-to-r from-gray-50 via-white to-gray-50 dark:bg-transparent dark:from-transparent dark:via-transparent dark:to-transparent">
             <div className="container flex items-center justify-center gap-4 text-xs text-muted-foreground">
                 <span>Coded with curiosity</span>
                 <span className="h-4 w-px bg-muted-foreground/30"></span>

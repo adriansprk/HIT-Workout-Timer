@@ -29,8 +29,8 @@ export default function RootLayout({
               {children}
             </div>
             <Footer
-              githubUrl="https://github.com/adriancares/hiit-timer"
-              linkedinUrl="https://linkedin.com/in/adriancares"
+              githubUrl="https://github.com/adriansprk/HIT-Workout-Timer"
+              linkedinUrl="https://www.linkedin.com/in/adriankrueger/"
             />
           </ThemeProvider>
         </AudioProvider>
