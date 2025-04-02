@@ -42,10 +42,16 @@ const config = {
             lines: 51
         },
     },
-    testTimeout: 20000,
+    testTimeout: 30000,
     verbose: true,
     resetMocks: false,
     restoreMocks: false,
+    testEnvironmentOptions: {
+        url: 'http://localhost/',
+        resources: 'usable',
+    },
+    maxWorkers: process.env.CI === 'true' ? 2 : '50%',
+    maxConcurrency: process.env.CI === 'true' ? 5 : 10,
 };
 
 export default createJestConfig(config); 

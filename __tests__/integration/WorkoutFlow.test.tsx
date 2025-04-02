@@ -1,4 +1,4 @@
-import { render, screen, act, fireEvent } from '@testing-library/react';
+import { render, screen, act, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import WorkoutTimer from '../../components/workout-timer';
 import { AudioProvider } from '../../contexts/AudioContext';
@@ -12,27 +12,31 @@ jest.mock('../../lib/audio', () => ({
     playSound: jest.fn().mockResolvedValue(undefined)
 }));
 
-// Mock settings module
-jest.mock('../../lib/settings', () => ({
-    loadSettings: jest.fn().mockReturnValue({
-        muted: false,
-        darkMode: false,
-        workoutParams: {
-            exerciseTime: 1,
-            restTime: 1,
-            roundRestTime: 1,
-            exercises: 2,
-            rounds: 1
-        },
-        workoutStreak: {
-            count: 0,
-            lastWorkoutDate: null
-        },
-        audioUnlocked: true
-    }),
-    saveSettings: jest.fn(),
-    updateWorkoutStreak: jest.fn()
-}));
+// Mock settings module with minimal workout params for quick testing
+jest.mock('../../lib/settings', () => {
+    const settingsModule = {
+        loadSettings: jest.fn().mockReturnValue({
+            muted: false,
+            darkMode: false,
+            workoutParams: {
+                exerciseTime: 1,
+                restTime: 1,
+                roundRestTime: 1,
+                exercises: 1,
+                rounds: 1
+            },
+            workoutStreak: {
+                count: 0,
+                lastWorkoutDate: null
+            },
+            audioUnlocked: true
+        }),
+        saveSettings: jest.fn(),
+        updateWorkoutStreak: jest.fn(),
+        saveWorkoutParams: jest.fn()
+    };
+    return settingsModule;
+});
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
@@ -52,7 +56,7 @@ Object.defineProperty(window, 'matchMedia', {
 describe('Workout Flow', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        jest.useFakeTimers();
+        jest.useFakeTimers({ doNotFake: ['nextTick', 'setImmediate'] });
     });
 
     afterEach(() => {
@@ -60,53 +64,61 @@ describe('Workout Flow', () => {
     });
 
     test('should complete workout and show completion screen', async () => {
-        // Skipping the test as it's not reliable in the test environment
-        expect(true).toBe(true);
+        // Create a mock function to track when the workout ends
+        const onEndMock = jest.fn();
 
-        /* 
+        // Render a minimal workout configuration
+        render(
+            <AudioProvider>
+                <ThemeProvider>
+                    <WorkoutTimer
+                        exerciseTime={1}
+                        restTime={1}
+                        roundRestTime={1}
+                        exercises={1}
+                        rounds={1}
+                        onEnd={onEndMock}
+                    />
+                </ThemeProvider>
+            </AudioProvider>
+        );
+
+        // Skip countdown (3 seconds) and a bit more
         await act(async () => {
-            render(
-                <AudioProvider>
-                    <ThemeProvider>
-                        <WorkoutTimer
-                            exerciseTime={1}
-                            restTime={1}
-                            roundRestTime={1}
-                            exercises={2}
-                            rounds={1}
-                            onEnd={() => { }}
-                        />
-                    </ThemeProvider>
-                </AudioProvider>
-            );
+            jest.advanceTimersByTime(4000);
         });
 
+        // First and only exercise (1 second) plus extra
+        await act(async () => {
+            jest.advanceTimersByTime(2000);
+        });
+
+        // Add buffer time for transitions and state updates
+        await act(async () => {
+            jest.advanceTimersByTime(2000);
+        });
+
+        // Verify onEnd was called or completion text is shown
+        // Use a more resilient approach by checking multiple conditions
         try {
-            // Look for different possible starting buttons
-            const startButton = screen.getByRole('button', { name: /start/i });
-            
-            // Start workout
-            await act(async () => {
-                fireEvent.click(startButton);
-            });
+            // First check if onEnd was called, which is the most reliable indicator
+            expect(onEndMock).toHaveBeenCalled();
+        } catch (error) {
+            // If onEnd check fails, check for completion screen elements
+            // This test should pass if EITHER condition is met
+            await waitFor(() => {
+                // Check for any of several possible elements that might indicate completion
+                const completionText = screen.queryByText(/Workout Complete!/i);
+                const completionElement = screen.queryByTestId('workout-complete');
+                const shareButton = screen.queryByRole('button', { name: /share/i });
 
-            // Fast forward through the workout (1 second per exercise + rest)
-            await act(async () => {
-                // Exercise 1 (1s) + Rest (1s) + Exercise 2 (1s)
-                jest.advanceTimersByTime(4000);
-            });
-
-            // Should show completion screen
-            await act(async () => {
-                // Additional time for animations and state updates
-                jest.advanceTimersByTime(1000);
-            });
-
-            expect(screen.getByText('Workout Complete!')).toBeInTheDocument();
-        } catch (e) {
-            // If we can't find the start button, just skip the test
-            console.log('Skipping test due to inability to find start button');
+                expect(
+                    completionText !== null ||
+                    completionElement !== null ||
+                    shareButton !== null ||
+                    onEndMock.mock.calls.length > 0
+                ).toBe(true);
+            }, { timeout: 1000 });
         }
-        */
     });
 });

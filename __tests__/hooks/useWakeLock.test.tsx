@@ -1,22 +1,31 @@
 import React from 'react';
-import { render, screen, act } from '@testing-library/react';
+import { render, screen, act, waitFor } from '@testing-library/react';
 import { useWakeLock } from '@/hooks/useWakeLock';
 
-const mockRelease = jest.fn().mockResolvedValue(undefined);
-const mockRequest = jest.fn().mockResolvedValue({ release: mockRelease, type: 'screen' });
+// Create more reliable mock functions
+const mockRelease = jest.fn().mockImplementation(() => Promise.resolve());
+const mockRequest = jest.fn().mockImplementation(() => Promise.resolve({
+    release: mockRelease,
+    type: 'screen'
+}));
 
-// Mock the wake lock API
-Object.defineProperty(navigator, 'wakeLock', {
-    value: {
-        request: mockRequest
-    },
-    configurable: true
-});
+// Setup before any tests run
+beforeAll(() => {
+    // Mock the wake lock API
+    Object.defineProperty(navigator, 'wakeLock', {
+        value: {
+            request: mockRequest
+        },
+        configurable: true,
+        writable: true
+    });
 
-// Mock userAgent to ensure it's not detected as iOS
-Object.defineProperty(window.navigator, 'userAgent', {
-    value: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-    configurable: true
+    // Mock userAgent to ensure it's not detected as iOS
+    Object.defineProperty(window.navigator, 'userAgent', {
+        value: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+        configurable: true,
+        writable: true
+    });
 });
 
 function TestComponent() {
@@ -24,7 +33,15 @@ function TestComponent() {
 
     // Call request when component mounts
     React.useEffect(() => {
-        request();
+        const requestLock = async () => {
+            try {
+                await request();
+            } catch (e) {
+                console.error('Error in TestComponent:', e);
+            }
+        };
+
+        requestLock();
     }, [request]);
 
     return (
@@ -43,13 +60,11 @@ describe('useWakeLock Hook', () => {
     it('should request wake lock', async () => {
         render(<TestComponent />);
 
-        // Wait for wake lock request to complete
-        await act(async () => {
-            await Promise.resolve(); // Flush promises
-        });
+        // Wait for the active state to appear with a timeout
+        await waitFor(() => {
+            expect(screen.getByTestId('is-active').textContent).toBe('active');
+        }, { timeout: 2000 });
 
-        // Should now be active
-        expect(screen.getByTestId('is-active').textContent).toBe('active');
         expect(mockRequest).toHaveBeenCalledWith('screen');
     });
 
@@ -60,31 +75,34 @@ describe('useWakeLock Hook', () => {
 
         render(<TestComponent />);
 
-        // Wait for wake lock request to fail
-        await act(async () => {
-            await Promise.resolve(); // Flush promises
-        });
-
-        // Should still have the error even if it falls back to video
-        expect(screen.getByTestId('error')).toBeInTheDocument();
+        // Wait for error to appear
+        await waitFor(() => {
+            expect(screen.getByTestId('error')).toBeInTheDocument();
+        }, { timeout: 2000 });
     });
 
     it('should release wake lock on unmount', async () => {
+        let releaseCalled = false;
+
+        // Setup a mock that we can verify was called
+        mockRelease.mockImplementationOnce(() => {
+            releaseCalled = true;
+            return Promise.resolve();
+        });
+
         const { unmount } = render(<TestComponent />);
 
-        // Wait for wake lock request to complete
-        await act(async () => {
-            await Promise.resolve(); // Flush promises
-        });
+        // Wait for the wake lock to be active
+        await waitFor(() => {
+            expect(screen.getByTestId('is-active').textContent).toBe('active');
+        }, { timeout: 2000 });
 
         // Unmount component
         unmount();
 
-        // Wait for cleanup effects to run
-        await act(async () => {
-            await Promise.resolve(); // Flush promises
-        });
-
-        expect(mockRelease).toHaveBeenCalled();
+        // Verify the release was called
+        await waitFor(() => {
+            expect(releaseCalled).toBe(true);
+        }, { timeout: 2000 });
     });
 });
