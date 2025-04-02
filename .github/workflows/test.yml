@@ -32,14 +32,15 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
-        cache: 'pnpm'
         
+    # Setup PNPM - moved before any pnpm usage
     - name: Setup PNPM
       uses: pnpm/action-setup@v2
       with:
         version: 8
         run_install: false
     
+    # Now use cache for pnpm
     - name: Get pnpm store directory
       id: pnpm-cache
       shell: bash
@@ -56,6 +57,9 @@ jobs:
     
     - name: Install dependencies
       run: pnpm install
+      
+    - name: Install global tools
+      run: npm install -g wait-on
     
     - name: Run tests
       run: pnpm test:ci
@@ -72,7 +76,7 @@ jobs:
     - name: Start Next.js app
       run: |
         pnpm start &
-        npx wait-on -t 60000 http://localhost:3000
+        wait-on http://localhost:3000 -t 60000
       
     # Run Cypress tests
     - name: Run Cypress tests
@@ -89,7 +93,7 @@ jobs:
         
     # Run Percy visual tests
     - name: Run Percy visual regression tests
-      run: pnpm percy exec -- cypress run
+      run: pnpm exec percy exec -- cypress run
       env:
         PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
         CI: true
