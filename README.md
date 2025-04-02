@@ -10,12 +10,12 @@ A modern, customizable High-Intensity Interval Training timer web application bu
   <table>
     <tr>
       <td align="center">
-        <img src="docs/images/config-screen.png" alt="Workout Configuration Screen" width="300" />
+        <img src="docs/images/config-screen.jpeg" alt="Workout Configuration Screen" width="300" />
         <br />
         <em>Workout Configuration</em>
       </td>
       <td align="center">
-        <img src="docs/images/timer-screen.png" alt="Active Workout Timer" width="300" />
+        <img src="docs/images/timer-screen.jpeg" alt="Active Workout Timer" width="300" />
         <br />
         <em>Active Workout Timer</em>
       </td>
