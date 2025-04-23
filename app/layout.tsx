@@ -61,13 +61,13 @@ export default function RootLayout({
 
         {/* Vercel Web Analytics */}
         <Script
-          src="https://va.vercel-scripts.com/v1/script.js"
+          src="/_vercel/insights/script.js"
           strategy="afterInteractive"
         />
 
         {/* Vercel Speed Insights */}
         <Script
-          src="https://vercel.com/speed-insights/script.js"
+          src="/_vercel/insights/script.speed.js"
           strategy="afterInteractive"
         />
       </body>
