@@ -60,29 +60,21 @@ export default function RootLayout({
         </AudioProvider>
 
         {/* Vercel Web Analytics */}
-        <Script id="vercel-analytics" strategy="afterInteractive">
-          {`
-            window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-            window.va('init', { 
-              'beforeSend': function (payloadData) { 
-                return payloadData; 
-              }
-            });
-          `}
-        </Script>
         <Script
-          src="/_vercel/insights/script.js"
+          src="https://va.vercel-scripts.com/v1/script.js"
           strategy="afterInteractive"
+          onLoad={() => {
+            // Initialize va
+            // @ts-ignore
+            window.va?.('event', {
+              name: 'page_view'
+            });
+          }}
         />
 
         {/* Vercel Speed Insights */}
-        <Script id="vercel-speed-insights" strategy="afterInteractive">
-          {`
-            window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
-          `}
-        </Script>
         <Script
-          src="/_vercel/insights/script.speed.js"
+          src="https://vercel.com/speed-insights/script.js"
           strategy="afterInteractive"
         />
       </body>
