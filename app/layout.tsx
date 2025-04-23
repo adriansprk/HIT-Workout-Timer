@@ -63,13 +63,6 @@ export default function RootLayout({
         <Script
           src="https://va.vercel-scripts.com/v1/script.js"
           strategy="afterInteractive"
-          onLoad={() => {
-            // Initialize va
-            // @ts-ignore
-            window.va?.('event', {
-              name: 'page_view'
-            });
-          }}
         />
 
         {/* Vercel Speed Insights */}
