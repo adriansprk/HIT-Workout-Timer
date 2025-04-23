@@ -4,6 +4,7 @@ import { AudioProvider } from '../contexts/AudioContext'
 import { AudioUnlocker } from '../components/AudioUnlocker'
 import { ThemeProvider } from '../contexts/ThemeContext'
 import { Footer } from '../components/Footer'
+import Script from 'next/script'
 
 export const metadata: Metadata = {
   title: 'Simple HIIT Timer',
@@ -57,6 +58,33 @@ export default function RootLayout({
             />
           </ThemeProvider>
         </AudioProvider>
+
+        {/* Vercel Web Analytics */}
+        <Script id="vercel-analytics" strategy="afterInteractive">
+          {`
+            window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+            window.va('init', { 
+              'beforeSend': function (payloadData) { 
+                return payloadData; 
+              }
+            });
+          `}
+        </Script>
+        <Script
+          src="/_vercel/insights/script.js"
+          strategy="afterInteractive"
+        />
+
+        {/* Vercel Speed Insights */}
+        <Script id="vercel-speed-insights" strategy="afterInteractive">
+          {`
+            window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+          `}
+        </Script>
+        <Script
+          src="/_vercel/insights/script.speed.js"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   )
