@@ -144,6 +144,9 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
     currentExercise
   });
 
+  // Debounce ref to prevent rapid successive calls to moveToNextPhase
+  const lastMoveToNextPhaseTime = useRef(0);
+
   // Wake lock hook to prevent screen from sleeping
   const { isActive, request, release } = useWakeLock();
 
@@ -199,6 +202,12 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
   const progressPercentage = (timeRemaining / getMaxTime()) * 100
 
   const moveToNextPhase = useCallback(() => {
+    // Debounce to prevent rapid successive calls (300ms cooldown)
+    const now = Date.now();
+    if (now - lastMoveToNextPhaseTime.current < 300) {
+      return;
+    }
+    lastMoveToNextPhaseTime.current = now;
     setPrevTimerState(timerState);
 
     if (timerState === "exercise") {
