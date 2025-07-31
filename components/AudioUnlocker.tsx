@@ -145,7 +145,7 @@ export const AudioUnlocker = () => {
                     To enable workout sounds on your mobile device, please tap the button below.
                     {clickCountRef.current === 1 && (
                         <span className="block mt-2 text-orange-600 dark:text-orange-400 font-medium">
-                            Tap again to continue if sounds don't work.
+                            Tap again to continue if sounds don&apos;t work.
                         </span>
                     )}
                 </p>
