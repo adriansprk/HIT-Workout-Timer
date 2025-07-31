@@ -44,3 +44,5 @@ next-env.d.ts
 
 # Cursor Rules
 .cursor
+claude.md
+.claude

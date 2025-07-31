@@ -116,13 +116,14 @@ export default function EditSliderModal({
       }
     }
 
-    if (sliderAreaRef.current) {
-      sliderAreaRef.current.addEventListener('touchmove', preventScroll, { passive: false })
+    const sliderElement = sliderAreaRef.current
+    if (sliderElement) {
+      sliderElement.addEventListener('touchmove', preventScroll, { passive: false })
     }
 
     return () => {
-      if (sliderAreaRef.current) {
-        sliderAreaRef.current.removeEventListener('touchmove', preventScroll)
+      if (sliderElement) {
+        sliderElement.removeEventListener('touchmove', preventScroll)
       }
     }
   }, [isDragging])

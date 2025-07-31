@@ -74,13 +74,13 @@ export async function requestWakeLock(): Promise<WakeLockInstance> {
         } else {
             // Fall back to video element for iOS
             log('Using video fallback for wake lock');
-            return useVideoFallback();
+            return createVideoFallback();
         }
     } catch (err) {
         log('Error requesting wake lock: ' + (err as Error).message, 'error');
         // Fall back to video if Wake Lock API fails
         log('Falling back to video due to error');
-        return useVideoFallback();
+        return createVideoFallback();
     }
 }
 
@@ -89,7 +89,7 @@ export async function requestWakeLock(): Promise<WakeLockInstance> {
  * This works for iOS Safari and other browsers that keep screen on during video playback
  * @returns A wake lock instance and status using a hidden video element
  */
-function useVideoFallback(): WakeLockInstance {
+function createVideoFallback(): WakeLockInstance {
     if (!videoElement) {
         // Create a silent video element if it doesn't exist
         videoElement = document.createElement('video');

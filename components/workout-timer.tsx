@@ -202,7 +202,11 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
     setPrevTimerState(timerState);
 
     if (timerState === "exercise") {
-      // If we're at the last exercise of the round
+      // Always move to rest period after exercise
+      setTimerState("rest")
+      setTimeRemaining(restTime)
+    } else if (timerState === "rest") {
+      // Check if we just completed the last exercise of the round
       if (currentExercise >= validExercises) {
         // If we're at the last round, complete the workout
         if (currentRound >= validRounds) {
@@ -212,17 +216,12 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
         // Otherwise move to round rest
         setTimerState("roundRest")
         setTimeRemaining(roundRestTime)
-        // Don't increment round count here, do it after round rest is complete
       } else {
-        // Move to rest period
-        setTimerState("rest")
-        setTimeRemaining(restTime)
+        // Move to next exercise and increment exercise counter
+        setTimerState("exercise")
+        setTimeRemaining(exerciseTime)
+        setCurrentExercise((prev) => prev + 1)
       }
-    } else if (timerState === "rest") {
-      // Move to next exercise
-      setTimerState("exercise")
-      setTimeRemaining(exerciseTime)
-      setCurrentExercise((prev) => Math.min(prev + 1, validExercises))
     } else if (timerState === "roundRest") {
       // Move to first exercise of next round
       setTimerState("exercise")
@@ -291,8 +290,8 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
       const isHalfwayPoint = timerRef.current.timerState === "exercise" &&
         currentTime === Math.floor(exerciseTime / 2);
 
-      // Check if this is the last exercise of a round
-      const isLastExerciseOfRound = timerRef.current.timerState === "exercise" &&
+      // Check if this is the last exercise of a round (during rest phase)
+      const isLastExerciseOfRound = timerRef.current.timerState === "rest" &&
         timerRef.current.currentExercise >= validExercises;
 
       // Check if this is the last exercise of the last round
@@ -317,18 +316,22 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
       else if (currentTime === 0) {
         // Play end of interval sound
         if (timerRef.current.timerState === "exercise") {
+          // Always play rest sound at end of exercise
+          playCountdownSound('rest');
+        }
+        else if (timerRef.current.timerState === "rest") {
           if (isLastExerciseOfWorkout) {
-            // Play workout complete sound for the last exercise of the workout
+            // Play workout complete sound for the last rest of the workout
             playCountdownSound('workout-complete');
           } else if (isLastExerciseOfRound) {
-            // Play round complete sound for the last exercise of a round 
+            // Play round complete sound for the last rest of a round 
             playCountdownSound('round-complete');
           } else {
-            // Normal rest sound for regular exercise end
-            playCountdownSound('rest');
+            // Normal go sound for regular rest end
+            playCountdownSound('go');
           }
         }
-        else if (timerRef.current.timerState === "rest" || timerRef.current.timerState === "roundRest") {
+        else if (timerRef.current.timerState === "roundRest") {
           playCountdownSound('go');
         }
 
@@ -508,7 +511,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
               </span>
             </div>
             <h2 className="text-lg font-medium text-gray-800 dark:text-gray-200">
-              Amazing work! You've crushed your HIIT workout.
+              Amazing work! You&apos;ve crushed your HIIT workout.
             </h2>
           </div>
 
@@ -547,7 +550,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
           {/* Motivational quote */}
           <div className="bg-indigo-50 dark:bg-indigo-900/30 rounded-lg p-4 mb-6">
             <p className="text-indigo-800 dark:text-indigo-300 italic text-center">
-              "{motivationalQuote}"
+              &ldquo;{motivationalQuote}&rdquo;
             </p>
           </div>
 
