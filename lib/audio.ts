@@ -14,6 +14,9 @@ let audioContext: AudioContext | null = null;
 // Audio buffer cache
 const audioBuffers: { [key: string]: AudioBuffer } = {};
 
+// Track if tab visibility listeners are set up
+let visibilityListenersInitialized = false;
+
 /**
  * Set the audio unlock status
  */
@@ -35,6 +38,63 @@ export const getAudioUnlockStatus = (): boolean => {
 };
 
 /**
+ * Handle tab visibility changes to resume AudioContext when tab becomes active
+ */
+const handleVisibilityChange = (): void => {
+    if (document.hidden) {
+        console.log('Audio: Tab became hidden, AudioContext will be suspended by browser');
+    } else {
+        console.log('Audio: Tab became visible, attempting to resume AudioContext');
+        // Tab became visible again, resume AudioContext if it exists and is suspended
+        if (audioContext && audioContext.state === 'suspended') {
+            audioContext.resume().then(() => {
+                console.log('Audio: AudioContext resumed after tab visibility change');
+            }).catch(e => {
+                console.error('Audio: Failed to resume AudioContext after tab visibility change:', e);
+            });
+        }
+    }
+};
+
+/**
+ * Handle AudioContext state changes
+ */
+const handleAudioContextStateChange = (): void => {
+    if (audioContext) {
+        console.log(`Audio: AudioContext state changed to: ${audioContext.state}`);
+        
+        // If context becomes suspended and the tab is visible, try to resume
+        if (audioContext.state === 'suspended' && !document.hidden) {
+            console.log('Audio: AudioContext suspended while tab is visible, attempting to resume');
+            audioContext.resume().catch(e => {
+                console.error('Audio: Failed to resume suspended AudioContext:', e);
+            });
+        }
+    }
+};
+
+/**
+ * Set up event listeners for tab visibility and AudioContext state changes
+ */
+const setupAudioContextListeners = (): void => {
+    if (visibilityListenersInitialized || typeof window === 'undefined') {
+        return;
+    }
+
+    console.log('Audio: Setting up AudioContext event listeners');
+    
+    // Listen for tab visibility changes
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Listen for AudioContext state changes
+    if (audioContext) {
+        audioContext.addEventListener('statechange', handleAudioContextStateChange);
+    }
+    
+    visibilityListenersInitialized = true;
+};
+
+/**
  * Initialize the Web Audio API context
  */
 const initAudioContext = (): void => {
@@ -45,6 +105,9 @@ const initAudioContext = (): void => {
             if (AudioContextClass) {
                 audioContext = new AudioContextClass();
                 console.log('Audio: AudioContext initialized successfully');
+
+                // Set up event listeners for this new context
+                setupAudioContextListeners();
 
                 // Resume context if it's suspended (newer browsers require this)
                 if (audioContext.state === 'suspended') {
@@ -257,6 +320,18 @@ export const playSound = async (sound: CountdownSound, isMuted: boolean): Promis
         }
     }
 
+    // Ensure AudioContext is running before playing sound
+    if (audioContext.state === 'suspended') {
+        console.log(`Audio: AudioContext is suspended before playing ${sound}, attempting to resume...`);
+        try {
+            await audioContext.resume();
+            console.log(`Audio: Successfully resumed AudioContext for ${sound}`);
+        } catch (e) {
+            console.error(`Audio: Failed to resume AudioContext for ${sound}:`, e);
+            // Continue anyway - sometimes the sound will still play
+        }
+    }
+
     // Try to unlock audio on mobile if needed
     const isMobile = /iPhone|iPad|iPod|Android/i.test(
         typeof navigator !== 'undefined' ? navigator.userAgent : ''
@@ -357,4 +432,41 @@ export const checkAudioFiles = async (): Promise<Record<CountdownSound, boolean>
     console.log('Audio: File accessibility check complete', results);
 
     return results;
+};
+
+/**
+ * Clean up audio resources and event listeners
+ * Should be called when the app is unmounting
+ */
+export const cleanupAudio = (): void => {
+    console.log('Audio: Cleaning up audio resources');
+    
+    // Remove event listeners
+    if (visibilityListenersInitialized) {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+        
+        if (audioContext) {
+            audioContext.removeEventListener('statechange', handleAudioContextStateChange);
+        }
+        
+        visibilityListenersInitialized = false;
+    }
+    
+    // Close AudioContext if it exists
+    if (audioContext && audioContext.state !== 'closed') {
+        audioContext.close().then(() => {
+            console.log('Audio: AudioContext closed successfully');
+        }).catch(e => {
+            console.error('Audio: Error closing AudioContext:', e);
+        });
+        audioContext = null;
+    }
+    
+    // Clear audio buffers
+    Object.keys(audioBuffers).forEach(key => {
+        delete audioBuffers[key];
+    });
+    
+    // Clear playing sounds
+    playingSounds.clear();
 }; 

@@ -11,6 +11,8 @@ jest.mock('@/lib/audio', () => ({
     playSound: jest.fn().mockResolvedValue(undefined),
     getAudioUnlockStatus: jest.fn().mockReturnValue(true),
     saveAudioUnlockStatus: jest.fn()
+,
+    cleanupAudio: jest.fn()
 }));
 
 // Mock settings module
@@ -32,6 +34,8 @@ jest.mock('@/lib/settings', () => ({
         audioUnlocked: true
     }),
     saveSettings: jest.fn()
+,
+    cleanupAudio: jest.fn()
 }));
 
 // Import directly here to be able to spy on the mock
@@ -57,7 +61,9 @@ describe('Settings Persistence', () => {
                 lastWorkoutDate: null
             },
             audioUnlocked: true
-        }));
+        ,
+    cleanupAudio: jest.fn()
+}));
     });
 
     test('saves settings when dark mode is toggled', async () => {

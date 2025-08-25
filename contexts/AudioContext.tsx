@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { preloadSounds, playSound, unlockAudioForMobile, initAudio, type CountdownSound } from '../lib/audio';
+import { preloadSounds, playSound, unlockAudioForMobile, initAudio, cleanupAudio, type CountdownSound } from '../lib/audio';
 import { loadSettings, saveSettings } from '../lib/settings';
 
 interface AudioContextType {
@@ -41,9 +41,9 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             });
         });
 
-        // Clean up audio resources on unmount if needed
+        // Clean up audio resources on unmount
         return () => {
-            // Any cleanup code for audio resources can go here
+            cleanupAudio();
         };
     }, []);
 

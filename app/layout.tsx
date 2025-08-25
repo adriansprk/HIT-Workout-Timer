@@ -7,6 +7,7 @@ import { Footer } from '../components/Footer'
 import Script from 'next/script'
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://timer.adriancares.com'),
   title: 'Simple HIIT Timer',
   description: 'A customizable HIIT workout timer for your interval training sessions',
   openGraph: {

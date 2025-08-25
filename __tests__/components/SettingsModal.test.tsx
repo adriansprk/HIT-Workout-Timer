@@ -15,7 +15,8 @@ jest.mock('../../lib/audio', () => ({
     playCountdown: jest.fn(),
     playWorkoutComplete: jest.fn(),
     getAudioUnlockStatus: jest.fn().mockReturnValue(true),
-    setAudioUnlocked: jest.fn()
+    setAudioUnlocked: jest.fn(),
+    cleanupAudio: jest.fn()
 }));
 
 // Mock the settings module

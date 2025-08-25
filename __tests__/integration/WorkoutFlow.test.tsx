@@ -14,7 +14,8 @@ jest.mock('@/lib/audio', () => ({
     playWorkoutComplete: jest.fn(),
     getAudioUnlockStatus: jest.fn().mockReturnValue(true),
     setAudioUnlocked: jest.fn(),
-    forceUnlockAudio: jest.fn().mockResolvedValue(undefined)
+    forceUnlockAudio: jest.fn().mockResolvedValue(undefined),
+    cleanupAudio: jest.fn()
 }));
 
 // Mock settings module with streak data and workout params functions

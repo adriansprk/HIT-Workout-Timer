@@ -8,7 +8,8 @@ jest.mock('../../lib/audio', () => ({
     preloadSounds: jest.fn().mockResolvedValue(undefined),
     playSound: jest.fn().mockResolvedValue(undefined),
     unlockAudioForMobile: jest.fn().mockResolvedValue(true),
-    initAudio: jest.fn()
+    initAudio: jest.fn(),
+    cleanupAudio: jest.fn()
 }));
 
 // Mock localStorage to check if muted state is persisted
