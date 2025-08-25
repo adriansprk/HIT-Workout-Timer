@@ -3,6 +3,7 @@ import './globals.css'
 import { AudioProvider } from '../contexts/AudioContext'
 import { AudioUnlocker } from '../components/AudioUnlocker'
 import { ThemeProvider } from '../contexts/ThemeContext'
+import { ThemeColorManager } from '../components/ThemeColorManager'
 import { Footer } from '../components/Footer'
 import Script from 'next/script'
 
@@ -44,11 +45,23 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-        <meta name="theme-color" content="#E1F5E2" />
+        
+        {/* Theme colors for different modes - matches CSS background colors */}
+        <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#020817" media="(prefers-color-scheme: dark)" />
+        
+        {/* iOS status bar styling */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        
+        {/* PWA theme colors */}
+        <meta name="msapplication-navbutton-color" content="#ffffff" />
+        <meta name="msapplication-TileColor" content="#ffffff" />
       </head>
       <body suppressHydrationWarning className="flex flex-col min-h-screen">
         <AudioProvider>
           <ThemeProvider>
+            <ThemeColorManager />
             <AudioUnlocker />
             <div className="flex-1">
               {children}
