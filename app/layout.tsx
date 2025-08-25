@@ -46,9 +46,9 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         
-        {/* Theme colors for different modes - matches CSS background colors */}
-        <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-        <meta name="theme-color" content="#020817" media="(prefers-color-scheme: dark)" />
+        {/* Theme colors for different modes - prioritizes timer screen colors */}
+        <meta name="theme-color" content="#eff6ff" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#1e293b" media="(prefers-color-scheme: dark)" />
         
         {/* iOS status bar styling */}
         <meta name="apple-mobile-web-app-capable" content="yes" />

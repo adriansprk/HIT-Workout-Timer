@@ -42,9 +42,9 @@ export function ThemeColorManager() {
             }
         };
 
-        // Set colors based on current theme - exactly matching CSS background colors
-        const lightColor = '#ffffff';  // Light mode: HSL(0 0% 100%) = white
-        const darkColor = '#020817';   // Dark mode: HSL(222.2 84% 4.9%) = very dark blue-gray
+        // Set colors based on current theme - using main page gradient start colors
+        const lightColor = '#eff6ff';  // Light mode: blue-50 (main page background)
+        const darkColor = '#1e293b';   // Dark mode: slate-800 (consistent across both pages)
 
         updateThemeColor(isDarkMode ? darkColor : lightColor);
     }, [isDarkMode]);
