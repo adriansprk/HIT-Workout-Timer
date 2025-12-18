@@ -38,6 +38,61 @@ export const getAudioUnlockStatus = (): boolean => {
 };
 
 /**
+ * Resume AudioContext with retry logic
+ */
+const resumeAudioContext = async (retries = 3): Promise<boolean> => {
+    if (!audioContext) {
+        return false;
+    }
+
+    // Check if context is already running
+    if (audioContext.state === 'running') {
+        return true;
+    }
+
+    // Handle closed state - recreate the context (can happen on iOS under memory pressure)
+    if (audioContext.state === 'closed') {
+        console.log('Audio: AudioContext is closed, reinitializing...');
+        // Clear cached buffers as they're tied to the old context
+        Object.keys(audioBuffers).forEach(key => {
+            delete audioBuffers[key];
+        });
+        audioContext = null;
+        initAudioContext();
+        // Wait a moment for initialization
+        await new Promise(resolve => setTimeout(resolve, 100));
+        return audioContext?.state === 'running' ?? false;
+    }
+
+    // Try to resume suspended context
+    for (let i = 0; i < retries; i++) {
+        try {
+            if (audioContext.state === 'suspended') {
+                await audioContext.resume();
+                // Give Safari a moment to fully transition (Safari's resume() can resolve before state fully transitions)
+                await new Promise(resolve => setTimeout(resolve, 50));
+                
+                if (audioContext.state === 'running') {
+                    console.log('Audio: AudioContext resumed successfully');
+                    return true;
+                }
+            } else if (audioContext.state === 'running') {
+                return true;
+            }
+        } catch (e) {
+            console.warn(`Audio: Resume attempt ${i + 1} failed:`, e);
+            if (i < retries - 1) {
+                // Wait a bit before retrying
+                await new Promise(resolve => setTimeout(resolve, 100 * (i + 1)));
+            }
+        }
+    }
+
+    console.error('Audio: Failed to resume AudioContext after all retries');
+    return false;
+};
+
+/**
  * Handle tab visibility changes to resume AudioContext when tab becomes active
  */
 const handleVisibilityChange = (): void => {
@@ -45,15 +100,27 @@ const handleVisibilityChange = (): void => {
         console.log('Audio: Tab became hidden, AudioContext will be suspended by browser');
     } else {
         console.log('Audio: Tab became visible, attempting to resume AudioContext');
-        // Tab became visible again, resume AudioContext if it exists and is suspended
-        if (audioContext && audioContext.state === 'suspended') {
-            audioContext.resume().then(() => {
-                console.log('Audio: AudioContext resumed after tab visibility change');
-            }).catch(e => {
-                console.error('Audio: Failed to resume AudioContext after tab visibility change:', e);
-            });
-        }
+        resumeAudioContext().catch(e => {
+            console.error('Audio: Uncaught error in handleVisibilityChange:', e);
+        });
     }
+};
+
+/**
+ * Handle window focus events (catches app switching on mobile)
+ */
+const handleWindowFocus = (): void => {
+    console.log('Audio: Window gained focus, ensuring AudioContext is active');
+    resumeAudioContext().catch(e => {
+        console.error('Audio: Uncaught error in handleWindowFocus:', e);
+    });
+};
+
+/**
+ * Handle window blur events
+ */
+const handleWindowBlur = (): void => {
+    console.log('Audio: Window lost focus, AudioContext may be suspended');
 };
 
 /**
@@ -63,11 +130,11 @@ const handleAudioContextStateChange = (): void => {
     if (audioContext) {
         console.log(`Audio: AudioContext state changed to: ${audioContext.state}`);
         
-        // If context becomes suspended and the tab is visible, try to resume
-        if (audioContext.state === 'suspended' && !document.hidden) {
-            console.log('Audio: AudioContext suspended while tab is visible, attempting to resume');
-            audioContext.resume().catch(e => {
-                console.error('Audio: Failed to resume suspended AudioContext:', e);
+        // If context becomes suspended and the tab/window is active, try to resume
+        if (audioContext.state === 'suspended' && !document.hidden && document.hasFocus()) {
+            console.log('Audio: AudioContext suspended while active, attempting to resume');
+            resumeAudioContext().catch(e => {
+                console.error('Audio: Uncaught error in handleAudioContextStateChange:', e);
             });
         }
     }
@@ -85,6 +152,10 @@ const setupAudioContextListeners = (): void => {
     
     // Listen for tab visibility changes
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Listen for window focus/blur (catches app switching on mobile)
+    window.addEventListener('focus', handleWindowFocus);
+    window.addEventListener('blur', handleWindowBlur);
     
     // Listen for AudioContext state changes
     if (audioContext) {
@@ -108,22 +179,20 @@ const initAudioContext = (): void => {
 
                 // Set up event listeners for this new context
                 setupAudioContextListeners();
+                
+                // Always attach statechange listener to new context (setupAudioContextListeners may return early if already initialized)
+                audioContext.addEventListener('statechange', handleAudioContextStateChange);
 
                 // Resume context if it's suspended (newer browsers require this)
-                if (audioContext.state === 'suspended') {
-                    audioContext.resume().then(() => {
-                        console.log('Audio: AudioContext resumed successfully');
-                    }).catch(e => {
-                        console.error('Audio: Failed to resume AudioContext:', e);
-                    });
-                }
+                resumeAudioContext().catch(e => {
+                    console.error('Audio: Error resuming context during init:', e);
+                });
             } else {
                 console.error('Audio: Web Audio API not supported in this browser');
             }
-        } else if (audioContext.state === 'suspended') {
-            audioContext.resume().catch(e => {
-                console.error('Audio: Failed to resume existing AudioContext:', e);
-            });
+        } else {
+            // Ensure existing context is resumed
+            resumeAudioContext();
         }
     } catch (error) {
         console.error('Audio: Error initializing AudioContext:', error);
@@ -321,15 +390,9 @@ export const playSound = async (sound: CountdownSound, isMuted: boolean): Promis
     }
 
     // Ensure AudioContext is running before playing sound
-    if (audioContext.state === 'suspended') {
-        console.log(`Audio: AudioContext is suspended before playing ${sound}, attempting to resume...`);
-        try {
-            await audioContext.resume();
-            console.log(`Audio: Successfully resumed AudioContext for ${sound}`);
-        } catch (e) {
-            console.error(`Audio: Failed to resume AudioContext for ${sound}:`, e);
-            // Continue anyway - sometimes the sound will still play
-        }
+    const resumed = await resumeAudioContext();
+    if (!resumed && audioContext.state === 'suspended') {
+        console.warn(`Audio: AudioContext still suspended before playing ${sound}, attempting anyway`);
     }
 
     // Try to unlock audio on mobile if needed
@@ -444,6 +507,8 @@ export const cleanupAudio = (): void => {
     // Remove event listeners
     if (visibilityListenersInitialized) {
         document.removeEventListener('visibilitychange', handleVisibilityChange);
+        window.removeEventListener('focus', handleWindowFocus);
+        window.removeEventListener('blur', handleWindowBlur);
         
         if (audioContext) {
             audioContext.removeEventListener('statechange', handleAudioContextStateChange);
