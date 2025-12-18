@@ -1,5 +1,5 @@
 # HIIT Timer 
-[![Next.js](https://img.shields.io/badge/Next.js-15.4.5-blue)](https://nextjs.org/) [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.x-blue)](https://www.typescriptlang.org/) [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.17-blue)](https://tailwindcss.com/) [![License](https://img.shields.io/badge/license-MIT-green)](https://opensource.org/licenses/MIT) [![Live App](https://img.shields.io/badge/live-timer.adriancares.com-brightgreen)](https://timer.adriancares.com) ![Tests](https://github.com/adriansprk/HIT-Workout-Timer/actions/workflows/test.yml/badge.svg) [![Cypress](https://img.shields.io/badge/Cypress-14.5.3-17202C?logo=cypress)](https://cypress.io)
+[![Next.js](https://img.shields.io/badge/Next.js-16.1.0-blue)](https://nextjs.org/) [![React](https://img.shields.io/badge/React-19.2.3-blue)](https://react.dev/) [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.x-blue)](https://www.typescriptlang.org/) [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.17-blue)](https://tailwindcss.com/) [![License](https://img.shields.io/badge/license-MIT-green)](https://opensource.org/licenses/MIT) [![Live App](https://img.shields.io/badge/live-timer.adriancares.com-brightgreen)](https://timer.adriancares.com) ![Tests](https://github.com/adriansprk/HIT-Workout-Timer/actions/workflows/test.yml/badge.svg) [![Cypress](https://img.shields.io/badge/Cypress-14.5.3-17202C?logo=cypress)](https://cypress.io)
 
 A modern, customizable High-Intensity Interval Training timer web application built with Next.js and TypeScript.
 
@@ -41,7 +41,7 @@ A modern, customizable High-Intensity Interval Training timer web application bu
 
 ### Prerequisites
 
-- Node.js 16.8.0 or newer
+- Node.js 20.9.0 or newer (LTS)
 - npm, yarn, or pnpm
 
 ### Installation
@@ -93,7 +93,7 @@ A modern, customizable High-Intensity Interval Training timer web application bu
 
 ## Technology Stack
 
-- **Framework**: Next.js 15.4.x with App Router
+- **Framework**: Next.js 16.1.x with App Router
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS 3.4.x
 - **UI Components**: Custom components with Radix UI primitives
