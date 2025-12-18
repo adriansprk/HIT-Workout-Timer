@@ -211,26 +211,26 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
     setPrevTimerState(timerState);
 
     if (timerState === "exercise") {
-      // Always move to rest period after exercise
-      setTimerState("rest")
-      setTimeRemaining(restTime)
-    } else if (timerState === "rest") {
-      // Check if we just completed the last exercise of the round
+      // Check if this is the last exercise of the round
       if (currentExercise >= validExercises) {
-        // If we're at the last round, complete the workout
+        // If we're at the last round, complete the workout (skip rest)
         if (currentRound >= validRounds) {
           setTimerState("complete")
           return
         }
-        // Otherwise move to round rest
+        // Otherwise skip exercise rest and go directly to round rest
         setTimerState("roundRest")
         setTimeRemaining(roundRestTime)
       } else {
-        // Move to next exercise and increment exercise counter
-        setTimerState("exercise")
-        setTimeRemaining(exerciseTime)
-        setCurrentExercise((prev) => prev + 1)
+        // Not the last exercise, move to rest period
+        setTimerState("rest")
+        setTimeRemaining(restTime)
       }
+    } else if (timerState === "rest") {
+      // After rest period, move to next exercise
+      setTimerState("exercise")
+      setTimeRemaining(exerciseTime)
+      setCurrentExercise((prev) => prev + 1)
     } else if (timerState === "roundRest") {
       // Move to first exercise of next round
       setTimerState("exercise")
@@ -299,9 +299,8 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
       const isHalfwayPoint = timerRef.current.timerState === "exercise" &&
         currentTime === Math.floor(exerciseTime / 2);
 
-      // Check if this is the last exercise of a round (during rest phase)
-      const isLastExerciseOfRound = timerRef.current.timerState === "rest" &&
-        timerRef.current.currentExercise >= validExercises;
+      // Check if this is the last exercise of a round (can be during exercise or rest phase)
+      const isLastExerciseOfRound = timerRef.current.currentExercise >= validExercises;
 
       // Check if this is the last exercise of the last round
       const isLastExerciseOfWorkout = isLastExerciseOfRound &&
@@ -325,20 +324,21 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
       else if (currentTime === 0) {
         // Play end of interval sound
         if (timerRef.current.timerState === "exercise") {
-          // Always play rest sound at end of exercise
-          playCountdownSound('rest');
-        }
-        else if (timerRef.current.timerState === "rest") {
+          // Check if this is the last exercise to play appropriate sound
           if (isLastExerciseOfWorkout) {
-            // Play workout complete sound for the last rest of the workout
+            // Play workout complete sound for the last exercise of the workout
             playCountdownSound('workout-complete');
           } else if (isLastExerciseOfRound) {
-            // Play round complete sound for the last rest of a round 
+            // Play round complete sound for the last exercise of a round
             playCountdownSound('round-complete');
           } else {
-            // Normal go sound for regular rest end
-            playCountdownSound('go');
+            // Normal rest sound for regular exercise end
+            playCountdownSound('rest');
           }
+        }
+        else if (timerRef.current.timerState === "rest") {
+          // Normal go sound for regular rest end
+          playCountdownSound('go');
         }
         else if (timerRef.current.timerState === "roundRest") {
           playCountdownSound('go');
@@ -649,10 +649,14 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
                   <span className="text-sm font-medium text-gray-300">
                     Round {currentRound}/{validRounds}
                   </span>
-                  <span className="text-xs text-gray-500 mx-2">•</span>
-                  <span className="text-sm font-medium text-gray-300">
-                    {Math.min(currentExercise, validExercises)}/{validExercises}
-                  </span>
+                  {timerState !== "roundRest" && (
+                    <>
+                      <span className="text-xs text-gray-500 mx-2">•</span>
+                      <span className="text-sm font-medium text-gray-300">
+                        {Math.min(currentExercise, validExercises)}/{validExercises}
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
 
