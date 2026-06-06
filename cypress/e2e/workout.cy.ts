@@ -9,7 +9,7 @@ describe('HIIT Timer App', () => {
         cy.visit('/', {
             onBeforeLoad(win) {
                 win.localStorage.setItem('hiit-timer-settings', JSON.stringify({
-                    muted: true,
+                    muted: false,
                     audioUnlocked: true,
                     darkMode: true,
                     workoutParams,

@@ -2,15 +2,6 @@ import { defineConfig } from 'cypress';
 
 export default defineConfig({
     e2e: {
-        setupNodeEvents(on, config) {
-            // Don't try to import Percy if not available
-            try {
-                return require('@percy/cypress/task')(on, config);
-            } catch (e) {
-                console.warn('Percy plugin not found, skipping Percy integration');
-                return config;
-            }
-        },
         baseUrl: 'http://localhost:3000',
         supportFile: 'cypress/support/e2e.js',
     },
@@ -26,6 +17,7 @@ export default defineConfig({
     },
     viewportWidth: 1280,
     viewportHeight: 720,
+    allowCypressEnv: false,
     video: false,
     screenshotOnRunFailure: true,
-}); 
+});

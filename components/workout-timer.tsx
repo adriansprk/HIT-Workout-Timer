@@ -118,19 +118,18 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
   onEnd,
 }) => {
   // Validate input parameters
+  const validExerciseTime = Math.max(1, exerciseTime);
+  const validRestTime = Math.max(0, restTime);
+  const validRoundRestTime = Math.max(0, roundRestTime);
   const validExercises = Math.max(1, exercises);
   const validRounds = Math.max(1, rounds);
 
   const [currentRound, setCurrentRound] = useState(1)
   const [currentExercise, setCurrentExercise] = useState(1)
   const [timerState, setTimerState] = useState<TimerState>("exercise")
-  const [timeRemaining, setTimeRemaining] = useState(exerciseTime)
+  const [timeRemaining, setTimeRemaining] = useState(validExerciseTime)
   const [isPaused, setIsPaused] = useState(false)
-  const [isFullscreen, setIsFullscreen] = useState(false)
-  const { playCountdownSound, isMuted } = useAudio()
-
-  // Track the previous timer state to detect transitions
-  const [prevTimerState, setPrevTimerState] = useState<TimerState | null>(null)
+  const { playCountdownSound } = useAudio()
 
   // Set up state for completion screen to avoid conditional hooks
   const [windowDimension, setWindowDimension] = useState({ width: window.innerWidth, height: window.innerHeight });
@@ -139,7 +138,6 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
 
   // Refs
   const streakUpdatedRef = useRef(false);
-  const timerContainerRef = useRef<HTMLDivElement>(null);
 
   // Store timer reference to access latest state in intervals
   const timerRef = useRef({
@@ -154,7 +152,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
   const lastMoveToNextPhaseTime = useRef(0);
 
   // Wake lock hook to prevent screen from sleeping
-  const { isActive, request, release } = useWakeLock();
+  const { isActive, request, release, isIOSDevice } = useWakeLock();
 
   // Keep the ref updated with the latest state values
   useEffect(() => {
@@ -179,33 +177,21 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
     }
   }, [timeRemaining, timerState, isPaused, currentRound, currentExercise, validExercises, validRounds]);
 
-  const getTimerColor = () => {
-    switch (timerState) {
-      case "exercise":
-        return "text-red-600"
-      case "rest":
-        return "text-green-600"
-      case "roundRest":
-        return "text-blue-600"
-      default:
-        return "text-gray-600"
-    }
-  }
-
   const getMaxTime = () => {
     switch (timerState) {
       case "exercise":
-        return exerciseTime
+        return validExerciseTime
       case "rest":
-        return restTime
+        return validRestTime
       case "roundRest":
-        return roundRestTime
+        return validRoundRestTime
       default:
         return 0
     }
   }
 
-  const progressPercentage = (timeRemaining / getMaxTime()) * 100
+  const maxTime = getMaxTime()
+  const progressPercentage = maxTime > 0 ? (timeRemaining / maxTime) * 100 : 100
 
   const moveToNextPhase = useCallback(() => {
     // Debounce to prevent rapid successive calls (300ms cooldown)
@@ -214,7 +200,6 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
       return;
     }
     lastMoveToNextPhaseTime.current = now;
-    setPrevTimerState(timerState);
 
     if (timerState === "exercise") {
       // Check if this is the last exercise of the round
@@ -224,37 +209,48 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
           setTimerState("complete")
           return
         }
+        if (validRoundRestTime <= 0) {
+          setTimerState("exercise")
+          setTimeRemaining(validExerciseTime)
+          setCurrentRound((prev) => prev + 1)
+          setCurrentExercise(1)
+          return
+        }
         // Otherwise skip exercise rest and go directly to round rest
         setTimerState("roundRest")
-        setTimeRemaining(roundRestTime)
+        setTimeRemaining(validRoundRestTime)
       } else {
+        if (validRestTime <= 0) {
+          setTimerState("exercise")
+          setTimeRemaining(validExerciseTime)
+          setCurrentExercise((prev) => prev + 1)
+          return
+        }
         // Not the last exercise, move to rest period
         setTimerState("rest")
-        setTimeRemaining(restTime)
+        setTimeRemaining(validRestTime)
       }
     } else if (timerState === "rest") {
       // After rest period, move to next exercise
       setTimerState("exercise")
-      setTimeRemaining(exerciseTime)
+      setTimeRemaining(validExerciseTime)
       setCurrentExercise((prev) => prev + 1)
     } else if (timerState === "roundRest") {
       // Move to first exercise of next round
       setTimerState("exercise")
-      setTimeRemaining(exerciseTime)
+      setTimeRemaining(validExerciseTime)
       // Increment round counter after round rest is complete, ensuring it doesn't exceed max rounds
       setCurrentRound((prev) => prev + 1);
       setCurrentExercise(1)
     }
-  }, [timerState, currentExercise, currentRound, validExercises, validRounds, restTime, exerciseTime, roundRestTime])
+  }, [timerState, currentExercise, currentRound, validExercises, validRounds, validRestTime, validExerciseTime, validRoundRestTime])
 
   const moveToPreviousPhase = useCallback(() => {
-    setPrevTimerState(timerState);
-
     if (timerState === "exercise") {
       // If we're at the first exercise of the first round, stay where we are
       if (currentExercise === 1 && currentRound === 1) {
         // Restart current exercise
-        setTimeRemaining(exerciseTime);
+        setTimeRemaining(validExerciseTime);
         return;
       }
 
@@ -264,24 +260,24 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
         setTimerState("exercise");
         setCurrentRound(prev => Math.max(prev - 1, 1));
         setCurrentExercise(validExercises);
-        setTimeRemaining(exerciseTime);
+        setTimeRemaining(validExerciseTime);
       } else {
         // Go back to the previous exercise (after its rest period)
         setTimerState("exercise");
         setCurrentExercise(prev => Math.max(prev - 1, 1));
-        setTimeRemaining(exerciseTime);
+        setTimeRemaining(validExerciseTime);
       }
     } else if (timerState === "rest") {
       // Go back to the exercise before this rest
       setTimerState("exercise");
-      setTimeRemaining(exerciseTime);
+      setTimeRemaining(validExerciseTime);
     } else if (timerState === "roundRest") {
       // Go back to the last exercise of the current round
       setTimerState("exercise");
       setCurrentExercise(validExercises);
-      setTimeRemaining(exerciseTime);
+      setTimeRemaining(validExerciseTime);
     }
-  }, [timerState, currentExercise, currentRound, validExercises, exerciseTime]);
+  }, [timerState, currentExercise, currentRound, validExercises, validExerciseTime]);
 
   // Main timer effect with stable interval
   useEffect(() => {
@@ -303,7 +299,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
 
       // Calculate the halfway point of exercise (only during exercise state)
       const isHalfwayPoint = timerRef.current.timerState === "exercise" &&
-        currentTime === Math.floor(exerciseTime / 2);
+        currentTime === Math.floor(validExerciseTime / 2);
 
       // Check if this is the last exercise of a round (can be during exercise or rest phase)
       const isLastExerciseOfRound = timerRef.current.currentExercise >= validExercises;
@@ -379,7 +375,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
         clearInterval(intervalId);
       }
     };
-  }, [timerState, timeRemaining, moveToNextPhase, playCountdownSound, exerciseTime, validExercises, validRounds]);
+  }, [timerState, timeRemaining, moveToNextPhase, playCountdownSound, validExerciseTime, validExercises, validRounds]);
 
   // When the workout is complete - initialize completion screen data
   useEffect(() => {
@@ -418,16 +414,6 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
     }
   }, [timerState]);
 
-  // Handle fullscreen logic
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, []);
-
   // Enable wake lock when timer starts, and disable on completion or pause
   useEffect(() => {
     if (timerState !== "complete" && !isPaused) {
@@ -441,28 +427,16 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
     setIsPaused((prev) => !prev);
   }
 
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement && timerContainerRef.current) {
-      timerContainerRef.current.requestFullscreen().catch(err => {
-        console.error(`Error attempting to enable fullscreen: ${err.message}`);
-      });
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      }
-    }
-  }
-
   if (timerState === "complete") {
     const totalDuration = calculateWorkoutDuration({
-      exerciseTime,
-      restTime,
-      roundRestTime,
+      exerciseTime: validExerciseTime,
+      restTime: validRestTime,
+      roundRestTime: validRoundRestTime,
       exercises: validExercises,
       rounds: validRounds,
     });
     const totalExerciseTime = calculateActiveDuration({
-      exerciseTime,
+      exerciseTime: validExerciseTime,
       exercises: validExercises,
       rounds: validRounds,
     });
@@ -597,7 +571,6 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
 
   return (
     <div
-      ref={timerContainerRef}
       className="timer-container"
       style={{
         height: '100%',
@@ -616,7 +589,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
         </button>
 
         {/* Center the WakeLock indicator */}
-        <WakeLockIndicator />
+        <WakeLockIndicator isActive={isActive} isIOSDevice={isIOSDevice} />
 
         {/* Right side control */}
         <MuteButton />

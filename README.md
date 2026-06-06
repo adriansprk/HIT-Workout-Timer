@@ -1,5 +1,5 @@
 # HIIT Timer
-[![Next.js](https://img.shields.io/badge/Next.js-16.1.6-blue)](https://nextjs.org/) [![React](https://img.shields.io/badge/React-19.2.3-blue)](https://react.dev/) [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.x-blue)](https://www.typescriptlang.org/) [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.17-blue)](https://tailwindcss.com/) [![License](https://img.shields.io/badge/license-MIT-green)](https://opensource.org/licenses/MIT) [![Live App](https://img.shields.io/badge/live-timer.adriancares.com-brightgreen)](https://timer.adriancares.com) ![Tests](https://github.com/adriansprk/HIT-Workout-Timer/actions/workflows/test.yml/badge.svg) [![Cypress](https://img.shields.io/badge/Cypress-14.5.3-17202C?logo=cypress)](https://cypress.io)
+[![Next.js](https://img.shields.io/badge/Next.js-16.2.7-blue)](https://nextjs.org/) [![React](https://img.shields.io/badge/React-19.2.3-blue)](https://react.dev/) [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.2-blue)](https://www.typescriptlang.org/) [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.17-blue)](https://tailwindcss.com/) [![Cypress](https://img.shields.io/badge/Cypress-15.16.0-17202C?logo=cypress)](https://cypress.io) [![Lint](https://img.shields.io/badge/lint-passing-brightgreen)](#testing) [![Typecheck](https://img.shields.io/badge/typecheck-passing-brightgreen)](#testing) [![Jest](https://img.shields.io/badge/Jest-56%20passing-brightgreen)](#testing) [![E2E](https://img.shields.io/badge/E2E-4%20passing-brightgreen)](#testing) [![Audit](https://img.shields.io/badge/audit-0%20vulnerabilities-brightgreen)](#testing) [![License](https://img.shields.io/badge/license-MIT-green)](https://opensource.org/licenses/MIT) [![Live App](https://img.shields.io/badge/live-timer.adriancares.com-brightgreen)](https://timer.adriancares.com) ![Tests](https://github.com/adriansprk/HIT-Workout-Timer/actions/workflows/test.yml/badge.svg)
 
 A modern, customizable High-Intensity Interval Training timer web application built with Next.js and TypeScript.
 
@@ -92,7 +92,7 @@ A modern, customizable High-Intensity Interval Training timer web application bu
 
 ## Technology Stack
 
-- **Framework**: Next.js 16.1.x with App Router
+- **Framework**: Next.js 16.2.x with App Router
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS 3.4.x
 - **UI Components**: Custom components with Radix UI primitives
@@ -101,7 +101,7 @@ A modern, customizable High-Intensity Interval Training timer web application bu
 - **Theme Switching**: Custom React context with localStorage persistence
 - **Audio**: Web Audio API
 - **Screen Wake Lock**: Web Wake Lock API with video fallback for iOS
-- **Testing**: Jest for unit and integration tests, Cypress for E2E tests
+- **Testing**: Jest for unit and integration tests, Cypress 15 for E2E tests
 - **CI/CD**: GitHub Actions for automated testing and deployment
 
 ## Project Structure

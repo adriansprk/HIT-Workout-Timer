@@ -107,7 +107,7 @@ export default function Home() {
         <div className="container-main">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-title">Your Workout Timer</h1>
-            <Button variant="ghost" size="icon" className="rounded-full" onClick={openSettings}>
+            <Button variant="ghost" size="icon" className="rounded-full" onClick={openSettings} aria-label="Settings">
               <Settings className="h-6 w-6 text-gray-700 dark:text-gray-300" />
               <span className="sr-only">Settings</span>
             </Button>
@@ -247,7 +247,7 @@ export default function Home() {
           value={exerciseTime}
           onChange={updateExerciseTime}
           onClose={closeModal}
-          min={0}
+          min={1}
           max={120}
           step={1}
           snapPoints={[15, 30, 45, 60, 90]}

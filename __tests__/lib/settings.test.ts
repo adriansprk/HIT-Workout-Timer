@@ -134,6 +134,42 @@ describe('Settings Module', () => {
         });
     });
 
+    test('should use defaults for null and empty saved numeric params', () => {
+        localStorage.setItem('hiit-timer-settings', JSON.stringify({
+            muted: false,
+            audioUnlocked: false,
+            darkMode: true,
+            workoutParams: {
+                exerciseTime: '',
+                restTime: null,
+                roundRestTime: undefined,
+                exercises: '',
+                rounds: null,
+            },
+            workoutStreak: {
+                count: '',
+                lastWorkoutDate: '',
+            },
+        }));
+
+        expect(loadSettings()).toEqual({
+            muted: false,
+            audioUnlocked: false,
+            darkMode: true,
+            workoutParams: {
+                exerciseTime: 30,
+                restTime: 10,
+                roundRestTime: 30,
+                exercises: 4,
+                rounds: 3,
+            },
+            workoutStreak: {
+                count: 0,
+                lastWorkoutDate: null,
+            },
+        });
+    });
+
     test('should handle localStorage error when saving settings', () => {
         // Use spyOn instead of direct assignment
         const mockSetItem = jest.spyOn(Storage.prototype, 'setItem');

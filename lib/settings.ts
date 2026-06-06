@@ -53,6 +53,10 @@ const cloneDefaultSettings = (): UserSettings => ({
 
 const boundedInteger = (fallback: number, min: number, max: number) =>
     z.preprocess((value) => {
+        if (value === null || value === undefined || value === '') {
+            return fallback;
+        }
+
         const numericValue = typeof value === 'number' ? value : Number(value);
 
         if (!Number.isFinite(numericValue)) {
