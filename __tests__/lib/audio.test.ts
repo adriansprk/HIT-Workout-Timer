@@ -1,4 +1,4 @@
-import { cleanupAudio, forceUnlockAudio, playSound } from '@/lib/audio';
+import { cleanupAudio, forceUnlockAudio, getAudioPlaybackStatus, playSound, restoreAudioPlayback } from '@/lib/audio';
 import { saveAudioUnlockStatus } from '@/lib/settings';
 
 jest.mock('@/lib/settings', () => ({
@@ -13,8 +13,10 @@ type MockSource = {
     onended: (() => void) | null;
 };
 
+type MockAudioState = AudioContextState | 'interrupted';
+
 class MockAudioContext {
-    state: AudioContextState = 'running';
+    state: MockAudioState;
     destination = {} as AudioDestinationNode;
     sources: MockSource[] = [];
     createBuffer = jest.fn(() => ({}) as AudioBuffer);
@@ -41,18 +43,24 @@ class MockAudioContext {
         this.sources.push(source);
         return source as unknown as AudioBufferSourceNode;
     });
+
+    constructor(state: MockAudioState) {
+        this.state = state;
+    }
 }
 
 describe('audio module', () => {
     let audioContexts: MockAudioContext[];
+    let initialAudioState: MockAudioState;
 
     beforeEach(() => {
         audioContexts = [];
+        initialAudioState = 'running';
         Object.defineProperty(window, 'AudioContext', {
             configurable: true,
             writable: true,
             value: jest.fn(() => {
-                const context = new MockAudioContext();
+                const context = new MockAudioContext(initialAudioState);
                 audioContexts.push(context);
                 return context;
             })
@@ -105,5 +113,20 @@ describe('audio module', () => {
         expect(audioContexts[0].createBuffer).toHaveBeenCalledWith(1, 1, 22050);
         expect(audioContexts[0].sources[0].start).toHaveBeenCalledWith(0);
         expect(saveAudioUnlockStatus).toHaveBeenCalledWith(true);
+    });
+
+    test('restores an interrupted audio context from a user gesture path', async () => {
+        initialAudioState = 'interrupted';
+
+        await expect(restoreAudioPlayback()).resolves.toBe(true);
+
+        expect(audioContexts[0].resume).toHaveBeenCalled();
+        expect(audioContexts[0].createBuffer).toHaveBeenCalledWith(1, 1, 22050);
+        expect(audioContexts[0].sources[0].start).toHaveBeenCalledWith(0);
+        expect(getAudioPlaybackStatus()).toEqual({
+            isUnlocked: true,
+            state: 'running',
+            needsUserRestore: false
+        });
     });
 });

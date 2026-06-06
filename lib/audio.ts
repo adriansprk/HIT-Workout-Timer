@@ -6,6 +6,8 @@ type WebKitAudioWindow = Window & typeof globalThis & {
     webkitAudioContext?: typeof AudioContext;
 };
 
+type RecoverableAudioContextState = AudioContextState | 'interrupted';
+
 // Flag to track if audio has been unlocked for mobile
 let isAudioUnlocked = false;
 
@@ -21,7 +23,85 @@ const audioBuffers: { [key: string]: AudioBuffer } = {};
 // Track if tab visibility listeners are set up
 let visibilityListenersInitialized = false;
 
-const getAudioContextState = (): AudioContextState | null => audioContext?.state ?? null;
+const clearAudioBuffers = (): void => {
+    Object.keys(audioBuffers).forEach(key => {
+        delete audioBuffers[key];
+    });
+};
+
+const getAudioContextState = (): RecoverableAudioContextState | null =>
+    audioContext ? audioContext.state as RecoverableAudioContextState : null;
+
+const isRecoverablePausedState = (state: RecoverableAudioContextState | null): boolean =>
+    state === 'suspended' || state === 'interrupted';
+
+const withTimeout = async <T,>(promise: Promise<T>, timeoutMs: number): Promise<T | null> => {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+    return new Promise<T | null>((resolve) => {
+        let settled = false;
+
+        timeoutId = setTimeout(() => {
+            if (!settled) {
+                settled = true;
+                resolve(null);
+            }
+        }, timeoutMs);
+
+        promise
+            .then((value) => {
+                if (!settled) {
+                    settled = true;
+                    if (timeoutId) {
+                        clearTimeout(timeoutId);
+                    }
+                    resolve(value);
+                }
+            })
+            .catch((error) => {
+                if (!settled) {
+                    settled = true;
+                    if (timeoutId) {
+                        clearTimeout(timeoutId);
+                    }
+                    console.warn('Audio: Timed resume promise rejected:', error);
+                    resolve(null);
+                }
+            });
+    });
+};
+
+const playSilentBuffer = (): boolean => {
+    if (!audioContext) {
+        return false;
+    }
+
+    try {
+        const silentBuffer = audioContext.createBuffer(1, 1, 22050);
+        const source = audioContext.createBufferSource();
+        source.buffer = silentBuffer;
+        source.connect(audioContext.destination);
+        source.start(0);
+        return true;
+    } catch (error) {
+        console.error('Audio: Failed to play silent restore buffer:', error);
+        return false;
+    }
+};
+
+export const getAudioPlaybackStatus = (): {
+    isUnlocked: boolean;
+    state: RecoverableAudioContextState | null;
+    needsUserRestore: boolean;
+} => {
+    const state = getAudioContextState();
+
+    return {
+        isUnlocked: isAudioUnlocked,
+        state,
+        needsUserRestore: isAudioUnlocked && state !== 'running',
+    };
+};
 
 /**
  * Set the audio unlock status
@@ -46,7 +126,7 @@ export const getAudioUnlockStatus = (): boolean => {
 /**
  * Resume AudioContext with retry logic
  */
-const resumeAudioContext = async (retries = 3): Promise<boolean> => {
+const resumeAudioContext = async (retries = 3, timeoutMs = 800): Promise<boolean> => {
     const initialState = getAudioContextState();
     if (!initialState || !audioContext) {
         return false;
@@ -61,9 +141,7 @@ const resumeAudioContext = async (retries = 3): Promise<boolean> => {
     if (initialState === 'closed') {
         console.log('Audio: AudioContext is closed, reinitializing...');
         // Clear cached buffers as they're tied to the old context
-        Object.keys(audioBuffers).forEach(key => {
-            delete audioBuffers[key];
-        });
+        clearAudioBuffers();
         audioContext = null;
         initAudioContext();
         // Wait a moment for initialization
@@ -79,8 +157,8 @@ const resumeAudioContext = async (retries = 3): Promise<boolean> => {
                 return false;
             }
 
-            if (state === 'suspended') {
-                await audioContext.resume();
+            if (isRecoverablePausedState(state)) {
+                await withTimeout(audioContext.resume(), timeoutMs);
                 // Give Safari a moment to fully transition (Safari's resume() can resolve before state fully transitions)
                 await new Promise(resolve => setTimeout(resolve, 50));
 
@@ -88,7 +166,9 @@ const resumeAudioContext = async (retries = 3): Promise<boolean> => {
                     console.log('Audio: AudioContext resumed successfully');
                     return true;
                 }
-            } else if (state === 'running') {
+            }
+
+            if (getAudioContextState() === 'running') {
                 return true;
             }
         } catch (e) {
@@ -102,6 +182,36 @@ const resumeAudioContext = async (retries = 3): Promise<boolean> => {
 
     console.error('Audio: Failed to resume AudioContext after all retries');
     return false;
+};
+
+/**
+ * Re-prime audio after iOS/Safari has interrupted or silently detached Web Audio.
+ * This must be called from a user gesture when Safari requires one.
+ */
+export const restoreAudioPlayback = async (): Promise<boolean> => {
+    console.log('Audio: Attempting to restore audio playback');
+
+    initAudioContext();
+
+    if (!audioContext) {
+        console.error('Audio: Cannot restore playback, no AudioContext available');
+        return false;
+    }
+
+    await resumeAudioContext(2);
+    const primed = playSilentBuffer();
+    await resumeAudioContext(1);
+
+    const restored = primed && getAudioContextState() === 'running';
+    if (restored) {
+        isAudioUnlocked = true;
+        saveAudioUnlockStatus(true);
+        console.log('Audio: Playback restored');
+    } else {
+        console.warn(`Audio: Playback restore incomplete, state is ${getAudioContextState()}`);
+    }
+
+    return restored;
 };
 
 /**
@@ -227,32 +337,15 @@ export const forceUnlockAudio = async (): Promise<boolean> => {
             return false;
         }
 
-        // Create and play a silent buffer
-        const silentBuffer = audioContext.createBuffer(1, 1, 22050);
-        const source = audioContext.createBufferSource();
-        source.buffer = silentBuffer;
-        source.connect(audioContext.destination);
-
-        // Play the silent sound
-        source.start(0);
-
-        console.log('Audio: Successfully played silent buffer to unlock audio');
-
-        // Resume the audio context if it's suspended
-        if (audioContext.state === 'suspended') {
-            try {
-                await audioContext.resume();
-                console.log('Audio: AudioContext resumed successfully');
-            } catch (e) {
-                console.error('Audio: Failed to resume AudioContext:', e);
-            }
-        }
+        const restored = await restoreAudioPlayback();
 
         // Set and save the unlocked status
-        isAudioUnlocked = true;
-        saveAudioUnlockStatus(true);
+        if (restored) {
+            isAudioUnlocked = true;
+            saveAudioUnlockStatus(true);
+        }
 
-        return true;
+        return restored;
     } catch (error) {
         console.error('Audio: Error in forceUnlockAudio:', error);
         return false;
@@ -399,8 +492,13 @@ export const playSound = async (sound: CountdownSound, isMuted: boolean): Promis
 
     // Ensure AudioContext is running before playing sound
     const resumed = await resumeAudioContext();
-    if (!resumed && audioContext.state === 'suspended') {
-        console.warn(`Audio: AudioContext still suspended before playing ${sound}, attempting anyway`);
+    if (!resumed && isRecoverablePausedState(getAudioContextState())) {
+        console.warn(`Audio: AudioContext still ${getAudioContextState()} before playing ${sound}, attempting restore`);
+        const restored = await restoreAudioPlayback();
+        if (!restored) {
+            console.warn(`Audio: Cannot play ${sound}; audio needs a user gesture restore`);
+            return;
+        }
     }
 
     // Try to unlock audio on mobile if needed
@@ -536,9 +634,7 @@ export const cleanupAudio = (): void => {
     }
 
     // Clear audio buffers
-    Object.keys(audioBuffers).forEach(key => {
-        delete audioBuffers[key];
-    });
+    clearAudioBuffers();
 
     // Clear playing sounds
     playingSounds.clear();

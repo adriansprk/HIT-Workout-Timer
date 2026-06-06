@@ -8,6 +8,7 @@ jest.mock('@/lib/audio', () => ({
     unlockAudioForMobile: jest.fn().mockResolvedValue(true),
     preloadSounds: jest.fn().mockResolvedValue(undefined),
     playSound: jest.fn().mockResolvedValue(undefined),
+    restoreAudioPlayback: jest.fn().mockResolvedValue(true),
     playExerciseStart: jest.fn(),
     playExerciseEnd: jest.fn(),
     playCountdown: jest.fn(),

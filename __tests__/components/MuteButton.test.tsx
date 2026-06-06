@@ -7,6 +7,7 @@ import { AudioProvider } from '@/contexts/AudioContext';
 jest.mock('../../lib/audio', () => ({
     preloadSounds: jest.fn().mockResolvedValue(undefined),
     playSound: jest.fn().mockResolvedValue(undefined),
+    restoreAudioPlayback: jest.fn().mockResolvedValue(true),
     unlockAudioForMobile: jest.fn().mockResolvedValue(true),
     initAudio: jest.fn(),
     cleanupAudio: jest.fn()
@@ -97,4 +98,4 @@ describe('MuteButton Component', () => {
         // Should be checked again (unmuted)
         expect(checkbox).toBeChecked();
     });
-}); 
+});
