@@ -4,13 +4,11 @@ import { useState, useEffect } from "react"
 import { Settings, Timer, Dumbbell, RotateCcw, Clock, RefreshCw, Play } from "lucide-react"
 import { Button } from "../components/ui/button"
 import WorkoutTimer from "../components/workout-timer"
-import WorkoutPresets from "../components/workout-presets"
 import SettingStepper from "../components/setting-stepper"
 import EditSliderModal from "../components/edit-slider-modal"
 import EditCounterModal from "../components/edit-counter-modal"
 import SettingsModal from "../components/settings-modal"
-import { loadWorkoutParams, updateWorkoutParams, type WorkoutParams } from "../lib/settings"
-import { matchPreset } from "../lib/presets"
+import { loadWorkoutParams, updateWorkoutParams } from "../lib/settings"
 import { forceUnlockAudio } from "../lib/audio"
 import { formatTime } from "../lib/utils"
 import { calculateWorkoutDuration } from "../lib/workout-time"
@@ -60,24 +58,6 @@ export default function Home() {
     setRounds(value)
     updateWorkoutParams({ rounds: value })
   }
-
-  // Apply a full preset in one tap, updating both state and storage
-  const applyPreset = (params: WorkoutParams) => {
-    setExerciseTime(params.exerciseTime)
-    setRestTime(params.restTime)
-    setRoundRestTime(params.roundRestTime)
-    setExercises(params.exercises)
-    setRounds(params.rounds)
-    updateWorkoutParams(params)
-  }
-
-  const activePresetId = matchPreset({
-    exerciseTime,
-    restTime,
-    roundRestTime,
-    exercises,
-    rounds,
-  })
 
   const totalTimeInSeconds = calculateWorkoutDuration({
     exerciseTime,
@@ -134,13 +114,11 @@ export default function Home() {
             </Button>
           </div>
 
-          <WorkoutPresets activePresetId={activePresetId} onSelect={applyPreset} />
-
-          <div className="card mb-8">
-            <div className="space-y-3">
+          <div className="card mb-8 p-2 sm:p-3">
+            <div className="divide-y divide-gray-100 dark:divide-slate-700/60">
               <SettingStepper
-                icon={<Timer className="h-5 w-5 text-green-600" />}
-                iconClassName="bg-green-100"
+                icon={<Timer className="h-5 w-5 text-green-600 dark:text-green-400" />}
+                iconClassName="bg-green-100 dark:bg-green-500/15"
                 label="Exercise Time"
                 value={exerciseTime}
                 unit="seconds"
@@ -151,8 +129,8 @@ export default function Home() {
               />
 
               <SettingStepper
-                icon={<Timer className="h-5 w-5 text-blue-600" />}
-                iconClassName="bg-blue-100"
+                icon={<Timer className="h-5 w-5 text-blue-600 dark:text-blue-400" />}
+                iconClassName="bg-blue-100 dark:bg-blue-500/15"
                 label="Rest Time"
                 value={restTime}
                 unit="seconds"
@@ -163,8 +141,8 @@ export default function Home() {
               />
 
               <SettingStepper
-                icon={<Dumbbell className="h-5 w-5 text-purple-600" />}
-                iconClassName="bg-purple-100"
+                icon={<Dumbbell className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />}
+                iconClassName="bg-indigo-100 dark:bg-indigo-500/15"
                 label="Exercises"
                 value={exercises}
                 min={1}
@@ -174,8 +152,8 @@ export default function Home() {
               />
 
               <SettingStepper
-                icon={<RotateCcw className="h-5 w-5 text-orange-600" />}
-                iconClassName="bg-orange-100"
+                icon={<RotateCcw className="h-5 w-5 text-orange-600 dark:text-orange-400" />}
+                iconClassName="bg-orange-100 dark:bg-orange-500/15"
                 label="Rounds"
                 value={rounds}
                 min={1}
@@ -185,8 +163,8 @@ export default function Home() {
               />
 
               <SettingStepper
-                icon={<RefreshCw className="h-5 w-5 text-teal-600" />}
-                iconClassName="bg-teal-100"
+                icon={<RefreshCw className="h-5 w-5 text-teal-600 dark:text-teal-400" />}
+                iconClassName="bg-teal-100 dark:bg-teal-500/15"
                 label="Round Rest Time"
                 value={roundRestTime}
                 unit="seconds"
