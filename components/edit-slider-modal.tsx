@@ -206,13 +206,21 @@ export default function EditSliderModal({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 p-5 border-t dark:border-gray-700">
-          <Button variant="outline" onClick={onClose} className="py-6 text-lg font-medium rounded-xl border-gray-200 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700 focus:ring-2 focus:ring-offset-2 dark:focus:ring-indigo-400 dark:focus:ring-offset-gray-900">
+        <div className="grid grid-cols-2 border-t border-gray-200 dark:border-gray-700">
+          <button
+            type="button"
+            onClick={onClose}
+            className="min-h-[72px] rounded-bl-xl border-r border-gray-200 text-lg font-semibold text-gray-700 transition-colors hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800 dark:active:bg-gray-700 dark:focus:ring-indigo-400"
+          >
             Cancel
-          </Button>
-          <Button onClick={handleSave} className="py-6 text-lg font-medium rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-700 dark:hover:bg-indigo-800 focus:ring-2 focus:ring-offset-2 dark:focus:ring-indigo-400 dark:focus:ring-offset-gray-900">
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            className="min-h-[72px] rounded-br-xl bg-indigo-600 text-lg font-semibold text-white transition-colors hover:bg-indigo-700 active:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-300 dark:bg-indigo-600 dark:hover:bg-indigo-500 dark:active:bg-indigo-700 dark:focus:ring-indigo-300"
+          >
             Save
-          </Button>
+          </button>
         </div>
       </div>
     </div>
