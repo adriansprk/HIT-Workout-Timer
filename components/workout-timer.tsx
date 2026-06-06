@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { formatTime } from '../lib/utils';
 import { Button } from "./ui/button"
-import { X, Trophy, ChevronRight, Clock, Flame, RotateCcw, Dumbbell, Volume2 } from "lucide-react"
+import { X, Trophy, ChevronRight, Clock, Flame, RotateCcw, Dumbbell } from "lucide-react"
 import { useAudio } from "../contexts/AudioContext"
 import { MuteButton } from "./MuteButton"
 import Confetti from 'react-confetti';
@@ -129,7 +129,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
   const [timerState, setTimerState] = useState<TimerState>("exercise")
   const [timeRemaining, setTimeRemaining] = useState(validExerciseTime)
   const [isPaused, setIsPaused] = useState(false)
-  const { playCountdownSound, isMuted, needsAudioRestore, restoreAudio } = useAudio()
+  const { playCountdownSound } = useAudio()
 
   // Set up state for completion screen to avoid conditional hooks
   const [windowDimension, setWindowDimension] = useState({ width: window.innerWidth, height: window.innerHeight });
@@ -636,16 +636,6 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
 
       {/* Control buttons - positioned at bottom */}
       <div className="fixed bottom-0 left-0 right-0 p-4 pt-0 z-20">
-        {needsAudioRestore && !isMuted && (
-          <button
-            type="button"
-            onClick={() => void restoreAudio()}
-            className="mx-auto mb-3 flex min-h-11 w-full max-w-xs items-center justify-center gap-2 rounded-lg border border-amber-300/60 bg-amber-500 px-4 py-2 text-sm font-semibold text-slate-950 shadow-lg shadow-black/20 transition-colors hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-200"
-          >
-            <Volume2 className="h-4 w-4" />
-            Restore sound
-          </button>
-        )}
         <div className="flex justify-center items-center gap-3 px-4 mb-4">
           {/* Skip backward button */}
           <button

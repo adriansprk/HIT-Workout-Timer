@@ -77,8 +77,8 @@ export default function EditCounterModal({
   const { bgColor, textColor } = getButtonColor()
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-900 rounded-xl w-full max-w-md overflow-hidden">
+    <div className="modal-backdrop">
+      <div className="modal-sheet">
         <div className="flex justify-between items-center p-5 border-b dark:border-gray-700">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{title}</h2>
           <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full h-9 w-9 hover:bg-gray-100 dark:hover:bg-gray-700">
@@ -117,14 +117,14 @@ export default function EditCounterModal({
           <button
             type="button"
             onClick={onClose}
-            className="min-h-[72px] rounded-bl-xl border-r border-gray-200 text-lg font-semibold text-gray-700 transition-colors hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800 dark:active:bg-gray-700 dark:focus:ring-indigo-400"
+            className="min-h-[72px] border-r border-gray-200 text-lg font-semibold text-gray-700 transition-colors hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800 dark:active:bg-gray-700 dark:focus:ring-indigo-400"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={handleSave}
-            className="min-h-[72px] rounded-br-xl bg-indigo-600 text-lg font-semibold text-white transition-colors hover:bg-indigo-700 active:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-300 dark:bg-indigo-600 dark:hover:bg-indigo-500 dark:active:bg-indigo-700 dark:focus:ring-indigo-300"
+            className="min-h-[72px] bg-indigo-600 text-lg font-semibold text-white transition-colors hover:bg-indigo-700 active:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-300 dark:bg-indigo-600 dark:hover:bg-indigo-500 dark:active:bg-indigo-700 dark:focus:ring-indigo-300"
           >
             Save
           </button>

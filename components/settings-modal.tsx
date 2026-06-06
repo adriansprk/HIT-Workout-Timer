@@ -15,8 +15,8 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
     const { isDarkMode, toggleDarkMode } = useTheme()
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-900 rounded-xl w-full max-w-md overflow-hidden">
+        <div className="modal-backdrop">
+            <div className="modal-sheet">
                 <div className="flex justify-between items-center p-5 border-b dark:border-gray-700">
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Settings</h2>
                     <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full h-9 w-9 hover:bg-gray-100 dark:hover:bg-gray-700">
