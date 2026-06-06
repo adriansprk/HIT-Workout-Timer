@@ -31,7 +31,6 @@ const config = {
         '.d.ts$',
         'lib/audio.ts',
         'lib/wakeLock.ts',
-        'hooks/use-toast.ts',
         'hooks/use-mobile.tsx',
     ],
     coverageThreshold: {
@@ -54,4 +53,4 @@ const config = {
     maxConcurrency: process.env.CI === 'true' ? 5 : 10,
 };
 
-export default createJestConfig(config); 
+export default createJestConfig(config);

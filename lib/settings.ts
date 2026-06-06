@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 export interface UserSettings {
     muted: boolean;
     workoutParams: WorkoutParams;
@@ -39,33 +41,88 @@ const DEFAULT_SETTINGS: UserSettings = {
     }
 };
 
+const cloneDefaultSettings = (): UserSettings => ({
+    ...DEFAULT_SETTINGS,
+    workoutParams: {
+        ...DEFAULT_SETTINGS.workoutParams
+    },
+    workoutStreak: {
+        ...DEFAULT_SETTINGS.workoutStreak
+    }
+});
+
+const boundedInteger = (fallback: number, min: number, max: number) =>
+    z.preprocess((value) => {
+        const numericValue = typeof value === 'number' ? value : Number(value);
+
+        if (!Number.isFinite(numericValue)) {
+            return fallback;
+        }
+
+        return Math.min(max, Math.max(min, Math.trunc(numericValue)));
+    }, z.number().int());
+
+const booleanWithDefault = (fallback: boolean) =>
+    z.preprocess((value) => typeof value === 'boolean' ? value : fallback, z.boolean());
+
+const dateStringOrNull = z.preprocess((value) => {
+    if (value === null || value === undefined) {
+        return null;
+    }
+
+    return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : null;
+}, z.string().nullable());
+
+const workoutParamsSchema = z.object({
+    exerciseTime: boundedInteger(DEFAULT_SETTINGS.workoutParams.exerciseTime, 1, 120),
+    restTime: boundedInteger(DEFAULT_SETTINGS.workoutParams.restTime, 0, 60),
+    roundRestTime: boundedInteger(DEFAULT_SETTINGS.workoutParams.roundRestTime, 0, 120),
+    exercises: boundedInteger(DEFAULT_SETTINGS.workoutParams.exercises, 1, 20),
+    rounds: boundedInteger(DEFAULT_SETTINGS.workoutParams.rounds, 1, 10)
+});
+
+const workoutStreakSchema = z.object({
+    count: boundedInteger(DEFAULT_SETTINGS.workoutStreak.count, 0, 36500),
+    lastWorkoutDate: dateStringOrNull
+});
+
+const userSettingsSchema = z.object({
+    muted: booleanWithDefault(DEFAULT_SETTINGS.muted),
+    workoutParams: z.preprocess(
+        (value) => value && typeof value === 'object' ? value : {},
+        workoutParamsSchema
+    ),
+    audioUnlocked: booleanWithDefault(DEFAULT_SETTINGS.audioUnlocked),
+    workoutStreak: z.preprocess(
+        (value) => value && typeof value === 'object' ? value : {},
+        workoutStreakSchema
+    ),
+    darkMode: booleanWithDefault(DEFAULT_SETTINGS.darkMode)
+});
+
+const parseSettings = (value: unknown): UserSettings => {
+    const parsed = userSettingsSchema.safeParse(value);
+    return parsed.success ? parsed.data : cloneDefaultSettings();
+};
+
 /**
  * Loads user settings from localStorage
  */
 export const loadSettings = (): UserSettings => {
     if (typeof window === 'undefined') {
-        return DEFAULT_SETTINGS;
+        return cloneDefaultSettings();
     }
 
     try {
         const savedSettings = localStorage.getItem(SETTINGS_KEY);
         if (!savedSettings) {
-            return DEFAULT_SETTINGS;
+            return cloneDefaultSettings();
         }
 
-        // Merge saved settings with defaults to ensure all properties exist
-        const parsed = JSON.parse(savedSettings);
-        return {
-            ...DEFAULT_SETTINGS,
-            ...parsed,
-            workoutParams: {
-                ...DEFAULT_SETTINGS.workoutParams,
-                ...(parsed.workoutParams || {})
-            }
-        };
+        return parseSettings(JSON.parse(savedSettings));
     } catch (error) {
         console.error('Failed to load settings from localStorage:', error);
-        return DEFAULT_SETTINGS;
+        return cloneDefaultSettings();
     }
 };
 
@@ -78,7 +135,7 @@ export const saveSettings = (settings: UserSettings): void => {
     }
 
     try {
-        localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(parseSettings(settings)));
     } catch (error) {
         console.error('Failed to save settings to localStorage:', error);
     }
@@ -212,4 +269,4 @@ export const setDarkMode = (enabled: boolean): void => {
         ...currentSettings,
         darkMode: enabled
     });
-}; 
+};

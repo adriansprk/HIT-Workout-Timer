@@ -2,6 +2,10 @@ import { saveAudioUnlockStatus, getAudioUnlockStatus as getSavedAudioUnlockStatu
 
 export type CountdownSound = 'three' | 'two' | 'one' | 'rest' | 'go' | 'halfway-there' | 'round-complete' | 'workout-complete';
 
+type WebKitAudioWindow = Window & typeof globalThis & {
+    webkitAudioContext?: typeof AudioContext;
+};
+
 // Flag to track if audio has been unlocked for mobile
 let isAudioUnlocked = false;
 
@@ -16,6 +20,8 @@ const audioBuffers: { [key: string]: AudioBuffer } = {};
 
 // Track if tab visibility listeners are set up
 let visibilityListenersInitialized = false;
+
+const getAudioContextState = (): AudioContextState | null => audioContext?.state ?? null;
 
 /**
  * Set the audio unlock status
@@ -41,17 +47,18 @@ export const getAudioUnlockStatus = (): boolean => {
  * Resume AudioContext with retry logic
  */
 const resumeAudioContext = async (retries = 3): Promise<boolean> => {
-    if (!audioContext) {
+    const initialState = getAudioContextState();
+    if (!initialState || !audioContext) {
         return false;
     }
 
     // Check if context is already running
-    if (audioContext.state === 'running') {
+    if (initialState === 'running') {
         return true;
     }
 
     // Handle closed state - recreate the context (can happen on iOS under memory pressure)
-    if (audioContext.state === 'closed') {
+    if (initialState === 'closed') {
         console.log('Audio: AudioContext is closed, reinitializing...');
         // Clear cached buffers as they're tied to the old context
         Object.keys(audioBuffers).forEach(key => {
@@ -61,22 +68,27 @@ const resumeAudioContext = async (retries = 3): Promise<boolean> => {
         initAudioContext();
         // Wait a moment for initialization
         await new Promise(resolve => setTimeout(resolve, 100));
-        return audioContext?.state === 'running' ?? false;
+        return getAudioContextState() === 'running';
     }
 
     // Try to resume suspended context
     for (let i = 0; i < retries; i++) {
         try {
-            if (audioContext.state === 'suspended') {
+            const state = getAudioContextState();
+            if (!state || !audioContext) {
+                return false;
+            }
+
+            if (state === 'suspended') {
                 await audioContext.resume();
                 // Give Safari a moment to fully transition (Safari's resume() can resolve before state fully transitions)
                 await new Promise(resolve => setTimeout(resolve, 50));
-                
-                if (audioContext.state === 'running') {
+
+                if (getAudioContextState() === 'running') {
                     console.log('Audio: AudioContext resumed successfully');
                     return true;
                 }
-            } else if (audioContext.state === 'running') {
+            } else if (state === 'running') {
                 return true;
             }
         } catch (e) {
@@ -129,7 +141,7 @@ const handleWindowBlur = (): void => {
 const handleAudioContextStateChange = (): void => {
     if (audioContext) {
         console.log(`Audio: AudioContext state changed to: ${audioContext.state}`);
-        
+
         // If context becomes suspended and the tab/window is active, try to resume
         if (audioContext.state === 'suspended' && !document.hidden && document.hasFocus()) {
             console.log('Audio: AudioContext suspended while active, attempting to resume');
@@ -149,19 +161,19 @@ const setupAudioContextListeners = (): void => {
     }
 
     console.log('Audio: Setting up AudioContext event listeners');
-    
+
     // Listen for tab visibility changes
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    
+
     // Listen for window focus/blur (catches app switching on mobile)
     window.addEventListener('focus', handleWindowFocus);
     window.addEventListener('blur', handleWindowBlur);
-    
+
     // Listen for AudioContext state changes
     if (audioContext) {
         audioContext.addEventListener('statechange', handleAudioContextStateChange);
     }
-    
+
     visibilityListenersInitialized = true;
 };
 
@@ -172,14 +184,14 @@ const initAudioContext = (): void => {
     try {
         if (!audioContext) {
             // Create new audio context
-            const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+            const AudioContextClass = window.AudioContext || (window as WebKitAudioWindow).webkitAudioContext;
             if (AudioContextClass) {
                 audioContext = new AudioContextClass();
                 console.log('Audio: AudioContext initialized successfully');
 
                 // Set up event listeners for this new context
                 setupAudioContextListeners();
-                
+
                 // Always attach statechange listener to new context (setupAudioContextListeners may return early if already initialized)
                 audioContext.addEventListener('statechange', handleAudioContextStateChange);
 
@@ -222,11 +234,7 @@ export const forceUnlockAudio = async (): Promise<boolean> => {
         source.connect(audioContext.destination);
 
         // Play the silent sound
-        if (source.start) {
-            source.start(0);
-        } else {
-            (source as any).noteOn(0);
-        }
+        source.start(0);
 
         console.log('Audio: Successfully played silent buffer to unlock audio');
 
@@ -503,20 +511,20 @@ export const checkAudioFiles = async (): Promise<Record<CountdownSound, boolean>
  */
 export const cleanupAudio = (): void => {
     console.log('Audio: Cleaning up audio resources');
-    
+
     // Remove event listeners
     if (visibilityListenersInitialized) {
         document.removeEventListener('visibilitychange', handleVisibilityChange);
         window.removeEventListener('focus', handleWindowFocus);
         window.removeEventListener('blur', handleWindowBlur);
-        
+
         if (audioContext) {
             audioContext.removeEventListener('statechange', handleAudioContextStateChange);
         }
-        
+
         visibilityListenersInitialized = false;
     }
-    
+
     // Close AudioContext if it exists
     if (audioContext && audioContext.state !== 'closed') {
         audioContext.close().then(() => {
@@ -526,12 +534,12 @@ export const cleanupAudio = (): void => {
         });
         audioContext = null;
     }
-    
+
     // Clear audio buffers
     Object.keys(audioBuffers).forEach(key => {
         delete audioBuffers[key];
     });
-    
+
     // Clear playing sounds
     playingSounds.clear();
-}; 
+};

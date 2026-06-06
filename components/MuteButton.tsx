@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useAudio } from '../contexts/AudioContext';
-import { Volume2, VolumeX, Mic, MicOff } from 'lucide-react';
-import { Button } from './ui/button';
+import { Volume2, VolumeX } from 'lucide-react';
 
 interface MuteButtonProps {
     variant?: 'icon' | 'toggle';
@@ -12,17 +11,6 @@ interface MuteButtonProps {
 
 export const MuteButton: React.FC<MuteButtonProps> = ({ variant = 'icon', className }) => {
     const { isMuted, toggleMute } = useAudio();
-    const [isAnimating, setIsAnimating] = useState(false);
-
-    const handleToggleMute = () => {
-        setIsAnimating(true);
-        setTimeout(() => {
-            toggleMute();
-            setTimeout(() => {
-                setIsAnimating(false);
-            }, 300);
-        }, 150);
-    };
 
     if (variant === 'toggle') {
         return (

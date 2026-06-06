@@ -1,5 +1,5 @@
-# HIIT Timer 
-[![Next.js](https://img.shields.io/badge/Next.js-16.1.0-blue)](https://nextjs.org/) [![React](https://img.shields.io/badge/React-19.2.3-blue)](https://react.dev/) [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.x-blue)](https://www.typescriptlang.org/) [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.17-blue)](https://tailwindcss.com/) [![License](https://img.shields.io/badge/license-MIT-green)](https://opensource.org/licenses/MIT) [![Live App](https://img.shields.io/badge/live-timer.adriancares.com-brightgreen)](https://timer.adriancares.com) ![Tests](https://github.com/adriansprk/HIT-Workout-Timer/actions/workflows/test.yml/badge.svg) [![Cypress](https://img.shields.io/badge/Cypress-14.5.3-17202C?logo=cypress)](https://cypress.io)
+# HIIT Timer
+[![Next.js](https://img.shields.io/badge/Next.js-16.1.6-blue)](https://nextjs.org/) [![React](https://img.shields.io/badge/React-19.2.3-blue)](https://react.dev/) [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.x-blue)](https://www.typescriptlang.org/) [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.17-blue)](https://tailwindcss.com/) [![License](https://img.shields.io/badge/license-MIT-green)](https://opensource.org/licenses/MIT) [![Live App](https://img.shields.io/badge/live-timer.adriancares.com-brightgreen)](https://timer.adriancares.com) ![Tests](https://github.com/adriansprk/HIT-Workout-Timer/actions/workflows/test.yml/badge.svg) [![Cypress](https://img.shields.io/badge/Cypress-14.5.3-17202C?logo=cypress)](https://cypress.io)
 
 A modern, customizable High-Intensity Interval Training timer web application built with Next.js and TypeScript.
 
@@ -34,7 +34,6 @@ A modern, customizable High-Intensity Interval Training timer web application bu
 - 🌓 **Dark Mode Support**: Toggle between light and dark themes
 - 📊 **Progress Tracking**: Workout streak counter to maintain motivation
 - 📲 **Mobile Friendly**: Responsive design that works on all devices
-- 🔌 **Offline Support**: Works without an internet connection
 - 💾 **Settings Persistence**: Saves your workout preferences
 
 ## Getting Started
@@ -99,7 +98,7 @@ A modern, customizable High-Intensity Interval Training timer web application bu
 - **UI Components**: Custom components with Radix UI primitives
 - **Icons**: Lucide React
 - **State Management**: React Context API
-- **Theme Switching**: next-themes
+- **Theme Switching**: Custom React context with localStorage persistence
 - **Audio**: Web Audio API
 - **Screen Wake Lock**: Web Wake Lock API with video fallback for iOS
 - **Testing**: Jest for unit and integration tests, Cypress for E2E tests
@@ -165,4 +164,4 @@ All documentation is centralized in the [docs folder](docs/) with an index for e
 
 ## License
 
-This project is licensed under the MIT License 
+This project is licensed under the MIT License

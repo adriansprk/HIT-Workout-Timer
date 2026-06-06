@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Settings, Timer, Dumbbell, RotateCcw, Clock, RefreshCw, Play } from "lucide-react"
+import { Settings, Timer, Dumbbell, RotateCcw, Clock, RefreshCw, Play, Pencil } from "lucide-react"
 import { Button } from "../components/ui/button"
 import WorkoutTimer from "../components/workout-timer"
 import EditSliderModal from "../components/edit-slider-modal"
@@ -9,8 +9,8 @@ import EditCounterModal from "../components/edit-counter-modal"
 import SettingsModal from "../components/settings-modal"
 import { loadWorkoutParams, updateWorkoutParams } from "../lib/settings"
 import { forceUnlockAudio } from "../lib/audio"
-import { useTheme } from "../contexts/ThemeContext"
-import Link from "next/link"
+import { formatTime } from "../lib/utils"
+import { calculateWorkoutDuration } from "../lib/workout-time"
 
 export default function Home() {
   // Initialize state with default values
@@ -22,8 +22,6 @@ export default function Home() {
   const [isWorkoutActive, setIsWorkoutActive] = useState(false)
   const [currentModal, setCurrentModal] = useState<string | null>(null)
   const [showSettings, setShowSettings] = useState(false)
-  const { isDarkMode, toggleDarkMode } = useTheme()
-
   // Load saved workout params from localStorage on component mount
   useEffect(() => {
     const savedParams = loadWorkoutParams()
@@ -60,20 +58,13 @@ export default function Home() {
     updateWorkoutParams({ rounds: value })
   }
 
-  // Calculate total workout time in seconds
-  const calculateTotalTime = () => {
-    const exerciseAndRestTime = (exerciseTime + restTime) * exercises * rounds
-    const cooldownTime = roundRestTime * (rounds - 1)
-    return exerciseAndRestTime + cooldownTime
-  }
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}:${secs.toString().padStart(2, "0")}`
-  }
-
-  const totalTimeInSeconds = calculateTotalTime()
+  const totalTimeInSeconds = calculateWorkoutDuration({
+    exerciseTime,
+    restTime,
+    roundRestTime,
+    exercises,
+    rounds,
+  })
 
   const startWorkout = async () => {
     // Unlock audio first to ensure sounds work throughout the workout
@@ -139,21 +130,7 @@ export default function Home() {
                     className="btn-icon"
                     onClick={() => openModal("exerciseTime")}
                   >
-                    <svg
-                      width="15"
-                      height="15"
-                      viewBox="0 0 15 15"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4"
-                    >
-                      <path
-                        d="M11.8536 1.14645C11.6583 0.951184 11.3417 0.951184 11.1465 1.14645L3.71455 8.57836C3.62459 8.66832 3.55263 8.77461 3.50251 8.89155L2.04044 12.303C1.9599 12.491 2.00189 12.709 2.14646 12.8536C2.29103 12.9981 2.50905 13.0401 2.69697 12.9596L6.10847 11.4975C6.2254 11.4474 6.3317 11.3754 6.42166 11.2855L13.8536 3.85355C14.0488 3.65829 14.0488 3.34171 13.8536 3.14645L11.8536 1.14645ZM4.42166 9.28547L11.5 2.20711L12.7929 3.5L5.71455 10.5784L4.21924 11.2192L3.78081 10.7808L4.42166 9.28547Z"
-                        fill="currentColor"
-                        fillRule="evenodd"
-                        clipRule="evenodd"
-                      ></path>
-                    </svg>
+                    <Pencil className="h-4 w-4" />
                     <span className="sr-only">Edit</span>
                   </Button>
                 </div>
@@ -174,21 +151,7 @@ export default function Home() {
                     className="btn-icon"
                     onClick={() => openModal("restTime")}
                   >
-                    <svg
-                      width="15"
-                      height="15"
-                      viewBox="0 0 15 15"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4"
-                    >
-                      <path
-                        d="M11.8536 1.14645C11.6583 0.951184 11.3417 0.951184 11.1465 1.14645L3.71455 8.57836C3.62459 8.66832 3.55263 8.77461 3.50251 8.89155L2.04044 12.303C1.9599 12.491 2.00189 12.709 2.14646 12.8536C2.29103 12.9981 2.50905 13.0401 2.69697 12.9596L6.10847 11.4975C6.2254 11.4474 6.3317 11.3754 6.42166 11.2855L13.8536 3.85355C14.0488 3.65829 14.0488 3.34171 13.8536 3.14645L11.8536 1.14645ZM4.42166 9.28547L11.5 2.20711L12.7929 3.5L5.71455 10.5784L4.21924 11.2192L3.78081 10.7808L4.42166 9.28547Z"
-                        fill="currentColor"
-                        fillRule="evenodd"
-                        clipRule="evenodd"
-                      ></path>
-                    </svg>
+                    <Pencil className="h-4 w-4" />
                     <span className="sr-only">Edit</span>
                   </Button>
                 </div>
@@ -209,21 +172,7 @@ export default function Home() {
                     className="btn-icon"
                     onClick={() => openModal("exercises")}
                   >
-                    <svg
-                      width="15"
-                      height="15"
-                      viewBox="0 0 15 15"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4"
-                    >
-                      <path
-                        d="M11.8536 1.14645C11.6583 0.951184 11.3417 0.951184 11.1465 1.14645L3.71455 8.57836C3.62459 8.66832 3.55263 8.77461 3.50251 8.89155L2.04044 12.303C1.9599 12.491 2.00189 12.709 2.14646 12.8536C2.29103 12.9981 2.50905 13.0401 2.69697 12.9596L6.10847 11.4975C6.2254 11.4474 6.3317 11.3754 6.42166 11.2855L13.8536 3.85355C14.0488 3.65829 14.0488 3.34171 13.8536 3.14645L11.8536 1.14645ZM4.42166 9.28547L11.5 2.20711L12.7929 3.5L5.71455 10.5784L4.21924 11.2192L3.78081 10.7808L4.42166 9.28547Z"
-                        fill="currentColor"
-                        fillRule="evenodd"
-                        clipRule="evenodd"
-                      ></path>
-                    </svg>
+                    <Pencil className="h-4 w-4" />
                     <span className="sr-only">Edit</span>
                   </Button>
                 </div>
@@ -244,21 +193,7 @@ export default function Home() {
                     className="btn-icon"
                     onClick={() => openModal("rounds")}
                   >
-                    <svg
-                      width="15"
-                      height="15"
-                      viewBox="0 0 15 15"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4"
-                    >
-                      <path
-                        d="M11.8536 1.14645C11.6583 0.951184 11.3417 0.951184 11.1465 1.14645L3.71455 8.57836C3.62459 8.66832 3.55263 8.77461 3.50251 8.89155L2.04044 12.303C1.9599 12.491 2.00189 12.709 2.14646 12.8536C2.29103 12.9981 2.50905 13.0401 2.69697 12.9596L6.10847 11.4975C6.2254 11.4474 6.3317 11.3754 6.42166 11.2855L13.8536 3.85355C14.0488 3.65829 14.0488 3.34171 13.8536 3.14645L11.8536 1.14645ZM4.42166 9.28547L11.5 2.20711L12.7929 3.5L5.71455 10.5784L4.21924 11.2192L3.78081 10.7808L4.42166 9.28547Z"
-                        fill="currentColor"
-                        fillRule="evenodd"
-                        clipRule="evenodd"
-                      ></path>
-                    </svg>
+                    <Pencil className="h-4 w-4" />
                     <span className="sr-only">Edit</span>
                   </Button>
                 </div>
@@ -279,21 +214,7 @@ export default function Home() {
                     className="btn-icon"
                     onClick={() => openModal("roundRestTime")}
                   >
-                    <svg
-                      width="15"
-                      height="15"
-                      viewBox="0 0 15 15"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4"
-                    >
-                      <path
-                        d="M11.8536 1.14645C11.6583 0.951184 11.3417 0.951184 11.1465 1.14645L3.71455 8.57836C3.62459 8.66832 3.55263 8.77461 3.50251 8.89155L2.04044 12.303C1.9599 12.491 2.00189 12.709 2.14646 12.8536C2.29103 12.9981 2.50905 13.0401 2.69697 12.9596L6.10847 11.4975C6.2254 11.4474 6.3317 11.3754 6.42166 11.2855L13.8536 3.85355C14.0488 3.65829 14.0488 3.34171 13.8536 3.14645L11.8536 1.14645ZM4.42166 9.28547L11.5 2.20711L12.7929 3.5L5.71455 10.5784L4.21924 11.2192L3.78081 10.7808L4.42166 9.28547Z"
-                        fill="currentColor"
-                        fillRule="evenodd"
-                        clipRule="evenodd"
-                      ></path>
-                    </svg>
+                    <Pencil className="h-4 w-4" />
                     <span className="sr-only">Edit</span>
                   </Button>
                 </div>
@@ -393,4 +314,3 @@ export default function Home() {
     </main>
   )
 }
-

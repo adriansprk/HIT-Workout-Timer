@@ -1,5 +1,6 @@
 import { render, screen, act } from '@testing-library/react';
 import { AudioProvider, useAudio } from '../../contexts/AudioContext';
+import { loadSettings } from '../../lib/settings';
 
 // Mock audio module
 jest.mock('../../lib/audio', () => ({
@@ -58,6 +59,35 @@ describe('AudioContext', () => {
         });
 
         expect(screen.getByTestId('muted-status')).toHaveTextContent('unmuted');
+    });
+
+    test('should initialize from persisted muted setting', async () => {
+        (loadSettings as jest.Mock).mockReturnValueOnce({
+            muted: true,
+            darkMode: false,
+            workoutParams: {
+                exerciseTime: 30,
+                restTime: 10,
+                roundRestTime: 30,
+                exercises: 4,
+                rounds: 3
+            },
+            workoutStreak: {
+                count: 0,
+                lastWorkoutDate: null
+            },
+            audioUnlocked: true
+        });
+
+        await act(async () => {
+            render(
+                <AudioProvider>
+                    <TestComponent />
+                </AudioProvider>
+            );
+        });
+
+        expect(screen.getByTestId('muted-status')).toHaveTextContent('muted');
     });
 
     test('should toggle mute state', async () => {

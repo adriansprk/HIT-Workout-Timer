@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { X } from "lucide-react"
-import { Label } from "@/components/ui/label"
 
 interface EditSliderModalProps {
   title: string
@@ -219,4 +218,3 @@ export default function EditSliderModal({
     </div>
   )
 }
-

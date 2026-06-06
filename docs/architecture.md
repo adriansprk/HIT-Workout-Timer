@@ -9,9 +9,9 @@ The HIIT Timer is built with a modern React-based architecture using Next.js as 
 1. **Component-Based Architecture**: UI is broken down into reusable, composable components
 2. **Context-Based State Management**: Global state is managed via React Context API
 3. **Hooks-Based Logic**: Business logic is abstracted into custom hooks
-4. **Progressive Enhancement**: Core functionality works without JavaScript, enhanced with JS
+4. **Progressive Enhancement**: Core functionality is optimized for client-side workout sessions
 5. **Responsive Design**: Mobile-first approach with adaptive layouts
-6. **Offline Capability**: Works offline with local storage persistence
+6. **Local Persistence**: Stores workout preferences and streak data in localStorage
 7. **Accessibility First**: ARIA compliant with keyboard navigation support
 
 ## Technologies
@@ -19,20 +19,19 @@ The HIIT Timer is built with a modern React-based architecture using Next.js as 
 The application is built with the following key technologies:
 
 ### Core Framework
-- **Next.js 15**: React framework for production applications
+- **Next.js 16**: React framework for production applications
 - **React 19**: UI component library
 - **TypeScript**: Static type checking
 
 ### UI Components and Styling
 - **Tailwind CSS**: Utility-first CSS framework
-- **Radix UI**: Unstyled, accessible UI components 
+- **Radix UI**: Unstyled, accessible UI components
 - **Lucide React**: Icon library
 - **Class Variance Authority & clsx**: For managing component variants
 - **Tailwind Merge**: Utility for merging Tailwind classes
 
 ### State Management
 - **React Context API**: For global state management
-- **React Hook Form**: Form state management
 - **Zod**: Schema validation
 
 ### Testing
@@ -68,20 +67,17 @@ HIIT-Timer/
 │   ├── MuteButton.tsx        # Audio mute toggle
 │   ├── WakeLockIndicator.tsx # Wake lock status indicator
 │   ├── edit-counter-modal.tsx # Number counter edit modal
-│   ├── edit-slider-modal.tsx # Slider-based edit modal
-│   ├── edit-duration-modal.tsx # Duration edit modal
-│   ├── edit-exercises-modal.tsx # Exercise list edit modal
-│   └── theme-provider.tsx    # Theme provider wrapper
+│   └── edit-slider-modal.tsx # Slider-based edit modal
 ├── contexts/                 # React Context providers
 │   ├── AudioContext.tsx      # Audio system state management
 │   └── ThemeContext.tsx      # Theme state management
 ├── hooks/                    # Custom React hooks
 │   ├── useWakeLock.ts        # Screen wake lock functionality
-│   ├── use-mobile.tsx        # Mobile detection hook
-│   └── use-toast.ts          # Toast notification system
+│   └── use-mobile.tsx        # Mobile detection hook
 ├── lib/                      # Utility functions and services
 │   ├── audio.ts              # Audio playback utilities
 │   ├── settings.ts           # Settings persistence
+│   ├── workout-time.ts       # Workout duration calculations
 │   ├── utils.ts              # General utilities
 │   └── wakeLock.ts           # Wake lock implementation
 ├── styles/                   # Global styles and theme definitions
@@ -323,4 +319,4 @@ Potential architectural enhancements include:
 - Workout templates/presets
 - Analytics integration
 - More advanced audio capabilities with synthesized speech
-- Enhanced mobile features with device motion/orientation API 
+- Enhanced mobile features with device motion/orientation API

@@ -1,8 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button"
-import { X, Moon, Sun, VolumeX, Volume2, Mic, MicOff } from "lucide-react"
-import { ThemeToggle } from "./ThemeToggle"
+import { X, Moon, Sun, VolumeX, Volume2 } from "lucide-react"
 import { useAudio } from "../contexts/AudioContext"
 import { MuteButton } from "./MuteButton"
 import { useTheme } from "../contexts/ThemeContext"
@@ -12,7 +11,7 @@ interface SettingsModalProps {
 }
 
 export default function SettingsModal({ onClose }: SettingsModalProps) {
-    const { isMuted, toggleMute } = useAudio()
+    const { isMuted } = useAudio()
     const { isDarkMode, toggleDarkMode } = useTheme()
 
     return (
@@ -87,4 +86,4 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
             </div>
         </div>
     )
-} 
+}

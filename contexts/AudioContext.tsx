@@ -19,16 +19,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // Initialize audio settings on mount
     useEffect(() => {
         const settings = loadSettings();
-        // Always start with unmuted audio
-        setIsMuted(false);
-
-        // If there are saved settings, update to save the unmuted state
-        if (settings.muted) {
-            saveSettings({
-                ...settings,
-                muted: false
-            });
-        }
+        setIsMuted(settings.muted);
 
         // Initialize audio module
         initAudio();
@@ -80,4 +71,4 @@ export const useAudio = (): AudioContextType => {
     }
 
     return context;
-}; 
+};

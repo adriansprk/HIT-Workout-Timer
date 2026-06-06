@@ -1,0 +1,33 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "next-env.d.ts",
+    "types/**/*.d.ts",
+    "global.d.ts",
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "components/**/*.ts",
+    "components/**/*.tsx",
+    "contexts/**/*.ts",
+    "contexts/**/*.tsx",
+    "lib/**/*.ts",
+    "lib/**/*.tsx",
+    "hooks/**/*.ts",
+    "hooks/**/*.tsx",
+    "utils/**/*.ts",
+    "utils/**/*.tsx",
+    "pages/**/*.ts",
+    "pages/**/*.tsx",
+    ".next/types/**/*.ts",
+    "jest.setup.ts",
+    "cypress/**/*.ts",
+    "__tests__/**/*.ts",
+    "__tests__/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    ".next/dev/**",
+    "app/audio-debug/**/*",
+    "app/audio-test/**/*"
+  ]
+}

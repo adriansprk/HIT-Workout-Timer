@@ -98,6 +98,42 @@ describe('Settings Module', () => {
         expect(loadedSettings).toEqual(settings);
     });
 
+    test('should normalize invalid saved workout params', () => {
+        localStorage.setItem('hiit-timer-settings', JSON.stringify({
+            muted: true,
+            audioUnlocked: true,
+            darkMode: false,
+            workoutParams: {
+                exerciseTime: -10,
+                restTime: 999,
+                roundRestTime: '45',
+                exercises: 0,
+                rounds: 99,
+            },
+            workoutStreak: {
+                count: -1,
+                lastWorkoutDate: 'not-a-date',
+            },
+        }));
+
+        expect(loadSettings()).toEqual({
+            muted: true,
+            audioUnlocked: true,
+            darkMode: false,
+            workoutParams: {
+                exerciseTime: 1,
+                restTime: 60,
+                roundRestTime: 45,
+                exercises: 1,
+                rounds: 10,
+            },
+            workoutStreak: {
+                count: 0,
+                lastWorkoutDate: null,
+            },
+        });
+    });
+
     test('should handle localStorage error when saving settings', () => {
         // Use spyOn instead of direct assignment
         const mockSetItem = jest.spyOn(Storage.prototype, 'setItem');
@@ -253,4 +289,4 @@ describe('Settings Module', () => {
         setDarkMode(true);
         expect(getDarkMode()).toBe(true);
     });
-}); 
+});

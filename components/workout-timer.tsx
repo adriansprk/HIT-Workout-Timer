@@ -3,13 +3,14 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { formatTime } from '../lib/utils';
 import { Button } from "./ui/button"
-import { X, Trophy, ChevronRight, Clock, Flame, RotateCcw, Dumbbell, Maximize, Minimize } from "lucide-react"
+import { X, Trophy, ChevronRight, Clock, Flame, RotateCcw, Dumbbell } from "lucide-react"
 import { useAudio } from "../contexts/AudioContext"
 import { MuteButton } from "./MuteButton"
 import Confetti from 'react-confetti';
 import { updateWorkoutStreak } from "../lib/settings";
 import { useWakeLock } from "../hooks/useWakeLock";
 import { WakeLockIndicator } from "./WakeLockIndicator";
+import { calculateActiveDuration, calculateWorkoutDuration } from "../lib/workout-time";
 
 // Array of motivational quotes for the completion screen
 const MOTIVATIONAL_QUOTES = [
@@ -22,6 +23,11 @@ const MOTIVATIONAL_QUOTES = [
   "The only way to define your limits is by going beyond them.",
   "What seems impossible today will one day become your warm-up.",
 ];
+
+const getRandomQuote = () => {
+  const randomIndex = Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length);
+  return MOTIVATIONAL_QUOTES[randomIndex];
+};
 
 interface WorkoutTimerProps {
   exerciseTime: number;
@@ -447,37 +453,19 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
     }
   }
 
-  // Random quote selection function
-  const getRandomQuote = () => {
-    const randomIndex = Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length);
-    return MOTIVATIONAL_QUOTES[randomIndex];
-  };
-
-  // Calculate total workout duration in seconds
-  const calculateTotalDuration = (exerciseTime: number, restTime: number, roundRestTime: number, exercises: number, rounds: number) => {
-    // Exercise time for all exercises in all rounds
-    const totalExerciseTime = exerciseTime * exercises * rounds;
-
-    // Rest time between exercises (not needed after last exercise in each round)
-    const totalRestTime = restTime * (exercises - 1) * rounds;
-
-    // Round rest time between rounds (not needed after last round)
-    const totalRoundRestTime = roundRestTime * (rounds - 1);
-
-    return totalExerciseTime + totalRestTime + totalRoundRestTime;
-  };
-
-  // Calculate total active exercise time (excluding rest periods)
-  const calculateActiveTime = (exerciseTime: number, exercises: number, rounds: number) => {
-    return exerciseTime * exercises * rounds;
-  };
-
   if (timerState === "complete") {
-    // Calculate total workout duration
-    const totalDuration = calculateTotalDuration(exerciseTime, restTime, roundRestTime, validExercises, validRounds);
-
-    // Calculate total exercise time (without rest periods)
-    const totalExerciseTime = calculateActiveTime(exerciseTime, validExercises, validRounds);
+    const totalDuration = calculateWorkoutDuration({
+      exerciseTime,
+      restTime,
+      roundRestTime,
+      exercises: validExercises,
+      rounds: validRounds,
+    });
+    const totalExerciseTime = calculateActiveDuration({
+      exerciseTime,
+      exercises: validExercises,
+      rounds: validRounds,
+    });
 
     return (
       <div className="mx-auto p-4 max-w-md fixed inset-0 z-50 overflow-y-auto bg-black/90" style={{ height: '100dvh' }}>
@@ -776,4 +764,3 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
 }
 
 export default WorkoutTimer
-
