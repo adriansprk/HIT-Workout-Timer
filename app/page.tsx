@@ -1,13 +1,16 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Settings, Timer, Dumbbell, RotateCcw, Clock, RefreshCw, Play, Pencil } from "lucide-react"
+import { Settings, Timer, Dumbbell, RotateCcw, Clock, RefreshCw, Play } from "lucide-react"
 import { Button } from "../components/ui/button"
 import WorkoutTimer from "../components/workout-timer"
+import WorkoutPresets from "../components/workout-presets"
+import SettingStepper from "../components/setting-stepper"
 import EditSliderModal from "../components/edit-slider-modal"
 import EditCounterModal from "../components/edit-counter-modal"
 import SettingsModal from "../components/settings-modal"
-import { loadWorkoutParams, updateWorkoutParams } from "../lib/settings"
+import { loadWorkoutParams, updateWorkoutParams, type WorkoutParams } from "../lib/settings"
+import { matchPreset } from "../lib/presets"
 import { forceUnlockAudio } from "../lib/audio"
 import { formatTime } from "../lib/utils"
 import { calculateWorkoutDuration } from "../lib/workout-time"
@@ -57,6 +60,24 @@ export default function Home() {
     setRounds(value)
     updateWorkoutParams({ rounds: value })
   }
+
+  // Apply a full preset in one tap, updating both state and storage
+  const applyPreset = (params: WorkoutParams) => {
+    setExerciseTime(params.exerciseTime)
+    setRestTime(params.restTime)
+    setRoundRestTime(params.roundRestTime)
+    setExercises(params.exercises)
+    setRounds(params.rounds)
+    updateWorkoutParams(params)
+  }
+
+  const activePresetId = matchPreset({
+    exerciseTime,
+    restTime,
+    roundRestTime,
+    exercises,
+    rounds,
+  })
 
   const totalTimeInSeconds = calculateWorkoutDuration({
     exerciseTime,
@@ -113,112 +134,67 @@ export default function Home() {
             </Button>
           </div>
 
+          <WorkoutPresets activePresetId={activePresetId} onSelect={applyPreset} />
+
           <div className="card mb-8">
-            <div className="space-y-4">
-              <div className="card-item">
-                <div className="flex items-center gap-3">
-                  <div className="icon-container bg-green-100">
-                    <Timer className="h-5 w-5 text-green-600" />
-                  </div>
-                  <span className="text-label">Exercise Time</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-label">{exerciseTime}s</span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="btn-icon"
-                    onClick={() => openModal("exerciseTime")}
-                  >
-                    <Pencil className="h-4 w-4" />
-                    <span className="sr-only">Edit</span>
-                  </Button>
-                </div>
-              </div>
+            <div className="space-y-3">
+              <SettingStepper
+                icon={<Timer className="h-5 w-5 text-green-600" />}
+                iconClassName="bg-green-100"
+                label="Exercise Time"
+                value={exerciseTime}
+                unit="seconds"
+                min={1}
+                max={120}
+                onChange={updateExerciseTime}
+                onEdit={() => openModal("exerciseTime")}
+              />
 
-              <div className="card-item">
-                <div className="flex items-center gap-3">
-                  <div className="icon-container bg-blue-100">
-                    <Timer className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <span className="text-label">Rest Time</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-label">{restTime}s</span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="btn-icon"
-                    onClick={() => openModal("restTime")}
-                  >
-                    <Pencil className="h-4 w-4" />
-                    <span className="sr-only">Edit</span>
-                  </Button>
-                </div>
-              </div>
+              <SettingStepper
+                icon={<Timer className="h-5 w-5 text-blue-600" />}
+                iconClassName="bg-blue-100"
+                label="Rest Time"
+                value={restTime}
+                unit="seconds"
+                min={0}
+                max={60}
+                onChange={updateRestTime}
+                onEdit={() => openModal("restTime")}
+              />
 
-              <div className="card-item">
-                <div className="flex items-center gap-3">
-                  <div className="icon-container bg-purple-100">
-                    <Dumbbell className="h-5 w-5 text-purple-600" />
-                  </div>
-                  <span className="text-label">Exercises</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-label">{exercises}</span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="btn-icon"
-                    onClick={() => openModal("exercises")}
-                  >
-                    <Pencil className="h-4 w-4" />
-                    <span className="sr-only">Edit</span>
-                  </Button>
-                </div>
-              </div>
+              <SettingStepper
+                icon={<Dumbbell className="h-5 w-5 text-purple-600" />}
+                iconClassName="bg-purple-100"
+                label="Exercises"
+                value={exercises}
+                min={1}
+                max={20}
+                onChange={updateExercises}
+                onEdit={() => openModal("exercises")}
+              />
 
-              <div className="card-item">
-                <div className="flex items-center gap-3">
-                  <div className="icon-container bg-orange-100">
-                    <RotateCcw className="h-5 w-5 text-orange-600" />
-                  </div>
-                  <span className="text-label">Rounds</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-label">{rounds}</span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="btn-icon"
-                    onClick={() => openModal("rounds")}
-                  >
-                    <Pencil className="h-4 w-4" />
-                    <span className="sr-only">Edit</span>
-                  </Button>
-                </div>
-              </div>
+              <SettingStepper
+                icon={<RotateCcw className="h-5 w-5 text-orange-600" />}
+                iconClassName="bg-orange-100"
+                label="Rounds"
+                value={rounds}
+                min={1}
+                max={10}
+                onChange={updateRounds}
+                onEdit={() => openModal("rounds")}
+              />
 
-              <div className="card-item">
-                <div className="flex items-center gap-3">
-                  <div className="icon-container bg-teal-100">
-                    <RefreshCw className="h-5 w-5 text-teal-600" />
-                  </div>
-                  <span className="text-label">Round Rest Time</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-label">{roundRestTime}s</span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="btn-icon"
-                    onClick={() => openModal("roundRestTime")}
-                  >
-                    <Pencil className="h-4 w-4" />
-                    <span className="sr-only">Edit</span>
-                  </Button>
-                </div>
-              </div>
+              <SettingStepper
+                icon={<RefreshCw className="h-5 w-5 text-teal-600" />}
+                iconClassName="bg-teal-100"
+                label="Round Rest Time"
+                value={roundRestTime}
+                unit="seconds"
+                min={0}
+                max={120}
+                onChange={updateRoundRestTime}
+                onEdit={() => openModal("roundRestTime")}
+              />
             </div>
           </div>
 
