@@ -14,8 +14,6 @@ interface EditSliderModalProps {
   max: number
   step?: number
   snapPoints: number[]
-  unit: string
-  type?: "exercise" | "rest" | "roundRest" // Type prop still used for label text only
 }
 
 export default function EditSliderModal({
@@ -27,8 +25,6 @@ export default function EditSliderModal({
   max,
   step = 1,
   snapPoints,
-  unit,
-  type = "exercise", // Default to exercise type
 }: EditSliderModalProps) {
   const [sliderValue, setSliderValue] = useState(value)
   const [activeSnapPoint, setActiveSnapPoint] = useState<number | null>(null)
@@ -84,20 +80,6 @@ export default function EditSliderModal({
     onClose()
   }
 
-  // Get the label text based on type
-  const getLabelText = () => {
-    switch (type) {
-      case "exercise":
-        return "Exercise Time"
-      case "rest":
-        return "Rest Time"
-      case "roundRest":
-        return "Round Rest Time"
-      default:
-        return "Duration"
-    }
-  }
-
   // Prevent default touch move behavior when dragging
   const handleTouchStart = () => {
     setIsDragging(true)
@@ -139,11 +121,6 @@ export default function EditSliderModal({
         </div>
 
         <div className="py-16 px-6 sm:px-10">
-          {/* Simplified description label - plain text in black */}
-          <div className="mb-8">
-            <span className="font-medium text-gray-900 dark:text-white text-2xl">{getLabelText()}</span>
-          </div>
-
           {/* Custom slider implementation with cleaner layering */}
           <div
             ref={sliderAreaRef}

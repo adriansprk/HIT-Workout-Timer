@@ -243,7 +243,7 @@ export default function Home() {
 
       {currentModal === "exerciseTime" && (
         <EditSliderModal
-          title="Edit Exercise Time"
+          title="Exercise Time"
           value={exerciseTime}
           onChange={updateExerciseTime}
           onClose={closeModal}
@@ -251,14 +251,12 @@ export default function Home() {
           max={120}
           step={1}
           snapPoints={[15, 30, 45, 60, 90]}
-          unit="seconds"
-          type="exercise"
         />
       )}
 
       {currentModal === "restTime" && (
         <EditSliderModal
-          title="Edit Rest Time"
+          title="Rest Time"
           value={restTime}
           onChange={updateRestTime}
           onClose={closeModal}
@@ -266,14 +264,12 @@ export default function Home() {
           max={60}
           step={1}
           snapPoints={[15, 30, 45]}
-          unit="seconds"
-          type="rest"
         />
       )}
 
       {currentModal === "roundRestTime" && (
         <EditSliderModal
-          title="Edit Round Rest Time"
+          title="Round Rest Time"
           value={roundRestTime}
           onChange={updateRoundRestTime}
           onClose={closeModal}
@@ -281,8 +277,6 @@ export default function Home() {
           max={120}
           step={1}
           snapPoints={[30, 60, 90]}
-          unit="seconds"
-          type="roundRest"
         />
       )}
 
@@ -299,7 +293,7 @@ export default function Home() {
 
       {currentModal === "rounds" && (
         <EditCounterModal
-          title="Edit Rounds"
+          title="Rounds"
           value={rounds}
           onChange={updateRounds}
           onClose={closeModal}
