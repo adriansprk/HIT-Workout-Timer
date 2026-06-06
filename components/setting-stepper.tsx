@@ -35,7 +35,7 @@ export default function SettingStepper({
     const atMax = value >= max
 
     return (
-        <div className="card-item">
+        <div className="flex items-center justify-between px-2 py-3">
             <div className="flex items-center gap-3 min-w-0">
                 <div className={`icon-container ${iconClassName}`}>{icon}</div>
                 <span className="text-label truncate">{label}</span>

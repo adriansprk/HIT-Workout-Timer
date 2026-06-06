@@ -51,19 +51,13 @@ const CircularProgress = ({ value, size = 300, strokeWidth = 14, timerState }: {
   const circumference = radius * 2 * Math.PI;
   const strokeDashoffset = circumference - (value / 100) * circumference;
 
-  // Color based on timer state
-  const getColor = () => {
-    switch (timerState) {
-      case "exercise":
-        return "var(--color-exercise)"; // Using CSS variables instead of hard-coded colors
-      case "rest":
-        return "var(--color-rest)";
-      case "roundRest":
-        return "var(--color-recovery)";
-      default:
-        return "#818CF8"; // indigo-400
-    }
-  };
+  // Detect a phase reset (value jumps back up) so the ring snaps instead of
+  // sweeping backwards. Normal ticks decrease the value and animate smoothly.
+  const prevValue = useRef(value);
+  const isReset = value > prevValue.current + 0.5;
+  useEffect(() => {
+    prevValue.current = value;
+  }, [value]);
 
   return (
     <div className="relative inline-flex items-center justify-center">
@@ -79,8 +73,7 @@ const CircularProgress = ({ value, size = 300, strokeWidth = 14, timerState }: {
           cy={size / 2}
           r={radius}
           fill="transparent"
-          stroke="#E5E7EB" // gray-200
-          className="dark:stroke-gray-600"
+          stroke="rgba(255,255,255,0.18)"
           strokeWidth={strokeWidth}
         />
       </svg>
@@ -97,16 +90,35 @@ const CircularProgress = ({ value, size = 300, strokeWidth = 14, timerState }: {
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke={getColor()}
+          stroke="#FFFFFF"
           strokeWidth={strokeWidth}
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
           strokeLinecap="round"
-          style={{ transition: "stroke-dashoffset 0.5s ease" }}
+          style={{ transition: isReset ? "none" : "stroke-dashoffset 1s linear" }}
         />
       </svg>
     </div>
   );
+};
+
+// State-driven full-screen background colors for at-a-glance legibility
+const STATE_BACKGROUNDS: Record<TimerState, string> = {
+  exercise: "#166534", // green-800
+  rest: "#9A3412", // orange-800 (warm = pause)
+  roundRest: "#1E40AF", // blue-800
+  complete: "#0F172A", // slate-900
+};
+
+// Fire a haptic pulse where supported (no-op on unsupported devices)
+const vibrate = (pattern: number | number[]) => {
+  if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+    try {
+      navigator.vibrate(pattern);
+    } catch {
+      // ignore — haptics are a progressive enhancement
+    }
+  }
 };
 
 const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
@@ -129,6 +141,9 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
   const [timerState, setTimerState] = useState<TimerState>("exercise")
   const [timeRemaining, setTimeRemaining] = useState(validExerciseTime)
   const [isPaused, setIsPaused] = useState(false)
+  // "Get Ready" countdown shown before the very first exercise (3,2,1)
+  const [getReadyCount, setGetReadyCount] = useState(3)
+  const [isGettingReady, setIsGettingReady] = useState(true)
   const { playCountdownSound } = useAudio()
 
   // Set up state for completion screen to avoid conditional hooks
@@ -282,6 +297,8 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
   // Main timer effect with stable interval
   useEffect(() => {
     if (timerState === "complete") return;
+    // Hold the workout until the "Get Ready" countdown finishes
+    if (isGettingReady) return;
 
     // Initialize time from the beginning
     let currentTime = timeRemaining;
@@ -375,7 +392,39 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
         clearInterval(intervalId);
       }
     };
-  }, [timerState, timeRemaining, moveToNextPhase, playCountdownSound, validExerciseTime, validExercises, validRounds]);
+  }, [timerState, timeRemaining, moveToNextPhase, playCountdownSound, validExerciseTime, validExercises, validRounds, isGettingReady]);
+
+  // "Get Ready" 3-2-1 countdown before the first exercise begins
+  useEffect(() => {
+    if (!isGettingReady) return;
+    if (isPaused) return;
+
+    vibrate(40);
+    playCountdownSound(getReadyCount === 3 ? "three" : getReadyCount === 2 ? "two" : "one");
+
+    const id = setTimeout(() => {
+      if (getReadyCount > 1) {
+        setGetReadyCount((c) => c - 1);
+      } else {
+        // Countdown finished — start the workout
+        vibrate([0, 120]);
+        playCountdownSound("go");
+        setIsGettingReady(false);
+      }
+    }, 1000);
+
+    return () => clearTimeout(id);
+  }, [isGettingReady, getReadyCount, isPaused, playCountdownSound]);
+
+  // Haptic feedback on every phase transition for eyes-free awareness
+  const prevPhaseRef = useRef<TimerState>(timerState);
+  useEffect(() => {
+    if (isGettingReady) return;
+    if (prevPhaseRef.current !== timerState) {
+      vibrate(timerState === "exercise" ? [0, 80, 60, 80] : 100);
+      prevPhaseRef.current = timerState;
+    }
+  }, [timerState, isGettingReady]);
 
   // When the workout is complete - initialize completion screen data
   useEffect(() => {
@@ -538,20 +587,6 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
     );
   }
 
-  // Get state indicator badge class
-  const getStateBadgeClass = () => {
-    switch (timerState) {
-      case "exercise":
-        return "badge-exercise";
-      case "rest":
-        return "badge-rest";
-      case "roundRest":
-        return "badge-recovery";
-      default:
-        return "badge bg-gray-600 text-white";
-    }
-  }
-
   // Get state indicator text
   const getStateText = () => {
     switch (timerState) {
@@ -566,8 +601,27 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
     }
   }
 
-  const stateBadgeClass = getStateBadgeClass();
   const stateText = getStateText();
+
+  // Compute what comes after the current phase, mirroring moveToNextPhase logic
+  const getNextUpLabel = (): string => {
+    if (timerState === "exercise") {
+      if (currentExercise >= validExercises) {
+        if (currentRound >= validRounds) return "Finish";
+        if (validRoundRestTime > 0) return "Recovery";
+        return `Round ${currentRound + 1}`;
+      }
+      if (validRestTime > 0) return "Rest";
+      return `Exercise ${currentExercise + 1}`;
+    }
+    if (timerState === "rest") return `Exercise ${currentExercise + 1}`;
+    if (timerState === "roundRest") return `Round ${currentRound + 1}`;
+    return "";
+  };
+  const nextUpLabel = getNextUpLabel();
+
+  // Full-screen background reflects the current phase for at-a-glance reading
+  const backgroundColor = STATE_BACKGROUNDS[timerState];
 
   return (
     <div
@@ -575,6 +629,9 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
       style={{
         height: '100%',
         width: '100%',
+        background: backgroundColor,
+        backgroundImage: "radial-gradient(120% 80% at 50% 0%, rgba(255,255,255,0.12), transparent 60%)",
+        transition: "background-color 0.6s ease",
       }}
     >
       {/* Controls positioned at top */}
@@ -598,6 +655,13 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
       {/* Main timer content */}
       <div className="flex-1 flex flex-col justify-center items-center mt-16 mb-32">
         <div className="relative flex flex-col items-center">
+          {/* Phase label above the ring */}
+          <div className="mb-5 inline-flex items-center rounded-full bg-white/15 px-5 py-1.5 backdrop-blur-sm">
+            <span className="text-base font-bold uppercase tracking-[0.2em] text-white">
+              {stateText}
+            </span>
+          </div>
+
           {/* Timer circle */}
           <div className="relative">
             <CircularProgress value={progressPercentage} timerState={timerState} />
@@ -607,13 +671,13 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
               {/* Round info at top of circle */}
               <div className="whitespace-nowrap mb-1">
                 <div className="flex items-center">
-                  <span className="text-sm font-medium text-gray-300">
+                  <span className="text-sm font-medium text-white/70">
                     Round {currentRound}/{validRounds}
                   </span>
                   {timerState !== "roundRest" && (
                     <>
-                      <span className="text-xs text-gray-500 mx-2">•</span>
-                      <span className="text-sm font-medium text-gray-300">
+                      <span className="text-xs text-white/40 mx-2">•</span>
+                      <span className="text-sm font-medium text-white/70">
                         {Math.min(currentExercise, validExercises)}/{validExercises}
                       </span>
                     </>
@@ -621,18 +685,36 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({
                 </div>
               </div>
 
-              <div className="text-8xl font-bold text-white" data-test="timer-display">
+              <div className="text-8xl font-bold text-white tabular-nums" data-test="timer-display">
                 {formatTime(timeRemaining)}
-              </div>
-
-              {/* Status badge overlaid on timer */}
-              <div className={`${stateBadgeClass} mt-4 font-semibold`}>
-                {stateText}
               </div>
             </div>
           </div>
+
+          {/* Next up preview */}
+          {nextUpLabel && (
+            <div className="mt-6 flex items-center gap-2 text-white/75">
+              <span className="text-xs font-semibold uppercase tracking-wider text-white/50">
+                Next
+              </span>
+              <ChevronRight className="h-4 w-4 text-white/50" />
+              <span className="text-base font-semibold text-white">{nextUpLabel}</span>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* "Get Ready" full-screen countdown overlay before the first exercise */}
+      {isGettingReady && (
+        <div className="fixed inset-0 z-30 flex flex-col items-center justify-center bg-black/55 backdrop-blur-sm">
+          <span className="mb-4 text-lg font-semibold uppercase tracking-[0.3em] text-white/80">
+            Get Ready
+          </span>
+          <span key={getReadyCount} className="get-ready-number text-[10rem] font-bold leading-none text-white tabular-nums">
+            {getReadyCount}
+          </span>
+        </div>
+      )}
 
       {/* Control buttons - positioned at bottom */}
       <div className="fixed bottom-0 left-0 right-0 p-4 pt-0 z-20">
